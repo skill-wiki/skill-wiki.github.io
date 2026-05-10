@@ -1,46 +1,34 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Prior art" slug="background/prior-art" lang="zh" description="Skill Wiki 与 RAG、知识图谱、agent skills、Voyager 风格检索之间的关系。">
-  <h1>Prior art</h1>
+<DocsLayout title="相关工作" slug="background/prior-art" lang="zh" description="Skill Wiki 跟 RAG、知识图谱、agent skill、Voyager 风格检索之间的位置关系。">
+  <h1>相关工作</h1>
   <p style="color: var(--fg-muted);">
-    把结构化知识喂给 LLM agent，Skill Wiki 不是第一个尝试。
-    这页讲它跟另外四种方案的相对位置。
+    把结构化知识塞到 LLM agent 跟前，Skill Wiki 不是头一个动手的。这页讲它跟另外四种方案的相对位置。
   </p>
 
   <h2>急加载式 skill（SKILL.md、Custom Instructions）</h2>
   <p>
-    现在的主流：markdown 文件每轮整份注入 system prompt。写起来便宜、上手快，规模上去就崩。
-    见 <a href="/zh/docs/background/problem">批量加载的问题</a>。
+    现在的主流：一份 markdown 文件，每轮整份注入 system prompt。写起来便宜，上手快，规模一上去就崩。详见
+    <a href="/zh/docs/background/problem">批量加载的问题</a>。
   </p>
 
-  <h2>Retrieval-augmented generation（RAG）</h2>
+  <h2>RAG（检索增强生成）</h2>
   <p>
-    RAG 解决"批量"问题的方式是每轮从向量库里检索内容。代价是结构性的：
-    向量检索按 embedding 相似度排序，对类型完全不感知。
-    一个 query "how do I make a pan sauce" 可能返回一段讲 pan sauce 历史的 fact、
-    一条无关的"deglaze 温度"规则、或者一段营销文案 ——
-    embedding 不知道哪个才是 agent 需要的<em>method</em>。
+    RAG 解决"批量"的方式是每轮从向量库里取内容，代价是结构性的：向量检索按 embedding 相似度排序，对类型完全不感知。一句 query "how do I make a pan sauce" 检索回来的可能是一段讲 pan sauce 历史的 fact、一条无关的 deglaze 温度规则，也可能是一段营销文案——embedding 自己分不清哪一条才是 agent 真正要的<em>method</em>。
   </p>
   <p>
-    Skill Wiki 保留了 RAG 的 pull 模式，但加了<em>带类型</em>的检索：
-    agent 按 kind 提问，检索器在 kind 内排序，contracts 强制组合规则。
+    Skill Wiki 沿用 RAG 的拉式模型，再加一层<em>带类型</em>的检索：agent 按 kind 提问，检索器在 kind 内部排序，contract 来强制组合规则。
   </p>
 
   <h2>知识图谱（Neo4j、Wikidata）</h2>
   <p>
-    经典知识图谱已经做到了"索引和内容分离"，也用了带类型的边。
-    缺的是 <em>面向 LLM agent 的工具链</em>：KG schema 是给 SPARQL 查询和人工编辑用的，
-    不是为"agent 需要 30 token 的按需摘要、或者 200 token 的 core"设计的。
-    Skill Wiki 借用了"边带类型"这一点，再加一层 projection。
+    经典的知识图谱本来就把索引和内容分开了，边也带类型。差的是<em>给 LLM agent 用的工具链</em>：KG 的 schema 是为 SPARQL 查询和人工编辑设计的，不是为"按需要拿一段 30 token 的摘要、或者 200 token 的 core"设计的。Skill Wiki 借走"边带类型"这一点，再加上一层 projection。
   </p>
 
   <h2>Voyager 风格的 skill 检索</h2>
   <p>
-    <a href="https://voyager.minedojo.org/" rel="noopener">Voyager</a>（NeurIPS 2023）
-    用一个 skill 库加检索，让 agent 能力增量增长。它的 skill 单元是代码片段，检索是向量相似度。
-    Skill Wiki 把这个原则推广到任何类型的知识 —— 不只是可执行的 skill ——
-    并加上 LLM 可以倚仗的静态类型检查。
+    <a href="https://voyager.minedojo.org/" rel="noopener">Voyager</a>（NeurIPS 2023）用一个 skill 库加检索，让 agent 能力增量增长。它的 skill 单元是代码片段，检索靠向量相似度。Skill Wiki 把这个原则推广到任何类型的知识——不只是可执行 skill——还加上了 LLM 可以靠住的静态类型检查。
   </p>
 
   <h2>对比表</h2>
@@ -50,16 +38,16 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
         <th>方案</th>
         <th>Index 常驻上下文</th>
         <th>正文按需加载</th>
-        <th>带类型的边</th>
+        <th>边带类型</th>
         <th>编译期检查</th>
       </tr>
     </thead>
     <tbody>
       <tr><td>SKILL.md</td><td>—</td><td>否（急加载）</td><td>—</td><td>—</td></tr>
       <tr><td>RAG（向量）</td><td>—</td><td>是</td><td>—</td><td>—</td></tr>
-      <tr><td>知识图谱</td><td>部分</td><td>经 SPARQL</td><td>是</td><td>仅 schema</td></tr>
-      <tr><td>Voyager skills</td><td>—</td><td>向量检索</td><td>—</td><td>编译（代码）</td></tr>
-      <tr><td><strong>Skill Wiki</strong></td><td>是（约 3 KB）</td><td>是，按 id</td><td>是（14 个 verb）</td><td>L1 + L3 + 可选 L2</td></tr>
+      <tr><td>知识图谱</td><td>部分</td><td>走 SPARQL</td><td>是</td><td>仅 schema 层</td></tr>
+      <tr><td>Voyager skill</td><td>—</td><td>向量检索</td><td>—</td><td>编译（代码层）</td></tr>
+      <tr><td><strong>Skill Wiki</strong></td><td>是（约 3 KB）</td><td>是，按 id</td><td>是（14 个 verb）</td><td>L1 + L3，可选 L2</td></tr>
     </tbody>
   </table>
 

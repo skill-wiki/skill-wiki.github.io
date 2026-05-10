@@ -17,7 +17,7 @@ const { post } = Astro.props as { post: ReturnType<typeof loadPosts>[number] };
   <article class="post">
     <p class="post-back"><a href="/blog">← All posts</a></p>
     <header class="post-head">
-      <p class="post-meta">{post.date} · {post.reading} · field note</p>
+      <p class="post-meta">{post.date} · {post.reading}</p>
       <h1 class="post-title">{post.title}</h1>
       <p class="post-deck">{post.excerpt}</p>
     </header>

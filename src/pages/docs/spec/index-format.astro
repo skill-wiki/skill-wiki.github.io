@@ -5,7 +5,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <h1><code>_index.xml</code> format</h1>
   <p style="color: var(--fg-muted);">
     The <code>_index.xml</code> file is the single most important runtime artifact:
-    it is what the agent sees at boot. Every Skill publishes one. The format is fixed
+    it is what the agent sees at boot. Every Prime publishes one. The format is fixed
     at v1.
   </p>
 
@@ -24,7 +24,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <!-- One <cluster> per domain (optional grouping). -->
   <cluster name="accessibility" density="0.42">
 
-    <!-- One <atom> per atom in the Skill. -->
+    <!-- One <atom> per atom in the Prime. -->
     <atom id="@community/rule-keyboard-accessible"
           kind="rule"
           tokens="312"
@@ -65,7 +65,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
       <tr><td><code>atom</code></td><td><code>tokens</code></td><td>yes</td><td>Token count of the <code>full</code> projection.</td></tr>
       <tr><td><code>atom</code></td><td><code>q</code></td><td>recommended</td><td>Quality score (0.0 – 5.0).</td></tr>
       <tr><td><code>edge</code></td><td><code>type</code></td><td>yes</td><td>One of the 14 verbs.</td></tr>
-      <tr><td><code>edge</code></td><td><code>target</code></td><td>yes</td><td>Atom id (may cross Skills).</td></tr>
+      <tr><td><code>edge</code></td><td><code>target</code></td><td>yes</td><td>Atom id (may cross Primes).</td></tr>
     </tbody>
   </table>
 
@@ -73,7 +73,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <p>
     Each <code>&lt;atom&gt;</code> entry should be ≤ 50 tokens including its inline
     summary and edges. A 100-atom corpus produces a ~5 KB index; a 1,000-atom corpus
-    fits in ~50 KB. The reference frontend-design Skill (898 atoms) compiles to a
+    fits in ~50 KB. The reference frontend-design Prime (898 atoms) compiles to a
     ~52 KB <code>_index.xml</code>.
   </p>
 

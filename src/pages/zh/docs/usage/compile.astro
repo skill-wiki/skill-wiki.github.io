@@ -1,15 +1,15 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="编译" slug="usage/compile" lang="zh" description="prime compile 与 build-atom-dirs 脚本 —— 把 .prime 源变成运行时产物。">
+<DocsLayout title="编译" slug="usage/compile" lang="zh" description="prime compile 与 build-atom-dirs 脚本，把 .prime 源码转成运行时产物。">
   <h1>编译</h1>
   <p style="color: var(--fg-muted);">
-    编译会扫 <code>primes/sources/</code>，发射到 <code>primes/compiled/</code> ——
-    每个原子一个目录，加上全局 <code>_index.xml</code>。
+    编译会遍历 <code>primes/sources/</code>，把结果写入 <code>primes/compiled/</code>：
+    每个原子一个目录，外加一份全局 <code>_index.xml</code>。
   </p>
 
-  <h2>两个入口</h2>
-  <p>你可以编译单个文件（冒烟测试），或一整棵树（生产）。</p>
+  <h2>两种入口</h2>
+  <p>可以单独编译一个文件（用来冒烟），也可以编译整棵源码树（用来发布）。</p>
 
 <pre><code>{`# Single file — useful for iterating on one atom
 prime compile primes/sources/@my/rule-x.prime
@@ -26,7 +26,7 @@ DEEPSEEK_API_KEY=sk-... \\
     --out primes/compiled \\
     --deep`}</code></pre>
 
-  <h2>会写出什么</h2>
+  <h2>产物结构</h2>
 
 <pre><code>{`primes/compiled/
 ├── _index.xml                              ← always-loaded surface
@@ -43,14 +43,14 @@ DEEPSEEK_API_KEY=sk-... \\
         ├── graph.yaml
         └── chunks/...`}</code></pre>
 
-  <h2>输出的承诺</h2>
+  <h2>输出保证</h2>
   <ul>
-    <li><strong>幂等：</strong>同一份源编译两次产出字节级一致的输出。</li>
-    <li><strong>L2 缓存：</strong>LLM 检查结果存在 <code>.l2-cache.json</code>；没改的原子不会再付费。</li>
-    <li><strong>每原子原子化：</strong>原子 A 编译失败不会污染原子 B 的输出。每个原子目录先写后改名。</li>
+    <li><strong>幂等：</strong>同一份源码编译两次，产物字节级一致。</li>
+    <li><strong>L2 有缓存：</strong>LLM 检查结果会写入 <code>.l2-cache.json</code>，未改动的原子不会重复花钱。</li>
+    <li><strong>逐原子隔离：</strong>原子 A 编译失败，不会影响原子 B 的产物。每个原子目录都是先写到临时位置再整体改名落地。</li>
   </ul>
 
-  <h2>编译后查看</h2>
+  <h2>编译后检查</h2>
 
 <pre><code>{`# List everything
 prime list --dir primes/compiled
@@ -65,7 +65,7 @@ prime deps @my/method-foo --dir primes/compiled
 wc -c primes/compiled/_index.xml`}</code></pre>
 
   <h2>持续编译</h2>
-  <p>开发时，watch + 重新编译：</p>
+  <p>开发时可以监听文件变化，自动重新编译：</p>
 <pre><code>{`bun --watch scripts/build-atom-dirs.ts \\
   --src primes/sources \\
   --out primes/compiled`}</code></pre>
@@ -76,11 +76,11 @@ wc -c primes/compiled/_index.xml`}</code></pre>
       <tr><th>报错</th><th>原因</th><th>修法</th></tr>
     </thead>
     <tbody>
-      <tr><td>L1: 必填字段缺失</td><td>原子缺一个 kind 必填字段</td><td>加上；见 <a href="/zh/docs/spec/atoms">Atoms</a></td></tr>
-      <tr><td>L1: 未知 atom id <code>@x/y</code></td><td>边指向了不存在的原子</td><td>把目标写出来或删掉这条边</td></tr>
-      <tr><td>L3: <code>requires</code> 链中检到环</td><td>A→B→C→A</td><td>把其中一条边换成 <code>see-also</code> 来打破环</td></tr>
-      <tr><td>L3: <code>validates-with</code> kind 不匹配</td><td>边指向了错误的 kind</td><td>用 <code>source</code> / <code>metric</code> / <code>check</code> 当目标</td></tr>
-      <tr><td>L2: AI client 不可达</td><td>API key 缺失或被限流</td><td>不加 <code>--deep</code>，或者配置 key</td></tr>
+      <tr><td>L1：必填字段缺失</td><td>原子少了对应 kind 的必填字段</td><td>补上即可，参考 <a href="/zh/docs/spec/atoms">Atoms</a></td></tr>
+      <tr><td>L1：未知 atom id <code>@x/y</code></td><td>边指向的原子并不存在</td><td>把目标原子补出来，或删掉这条边</td></tr>
+      <tr><td>L3：<code>requires</code> 上检测到环</td><td>A→B→C→A</td><td>把其中一条边改成 <code>see-also</code>，破掉环</td></tr>
+      <tr><td>L3：<code>validates-with</code> 的 kind 不匹配</td><td>边指向了错误的 kind</td><td>把目标改成 <code>source</code>、<code>metric</code> 或 <code>check</code></td></tr>
+      <tr><td>L2：AI 客户端不可达</td><td>缺 API key 或被限流</td><td>去掉 <code>--deep</code> 跳过，或配上 key 重试</td></tr>
     </tbody>
   </table>
 </DocsLayout>

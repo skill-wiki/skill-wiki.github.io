@@ -21,20 +21,20 @@ function summarise(c: typeof packs[0]) {
   title="市场"
   current="marketplace"
   lang="zh"
-  description="浏览 Skill Wiki 的类型化原子 Skill —— 可插入任意 MCP 兼容 AI 代理。每个 Skill 是一个自洽的 @scope，包含规则、术语、方法与模式。"
+  description="浏览 Skill Wiki 上的 Prime —— 横跨设计、后端、安全等领域，可插入任意 MCP 兼容 AI 代理。每个 Prime 是一个自洽的 @scope，包含规则、术语、方法与模式。"
 >
   <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
     <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
       <div>
         <p class="hero-eyebrow">
           <span class="pill">市场</span>
-          {packs.length} 个 Skill · 共 {fmt.format(packs.reduce((s, c) => s + c.total, 0))} 个原子
+          {packs.length} 个 Prime · 共 {fmt.format(packs.reduce((s, c) => s + c.total, 0))} 个原子
         </p>
-        <h1>浏览类型化原子 Skill。</h1>
+        <h1>浏览 Prime。</h1>
         <p class="lede">
-          每个 Skill 是一个自洽的 <code>@scope</code> —— 一组类型化原子。
-          用 <code>prime install @name</code> 装上，或在这里浏览。
-          协议 domain-blind；知识活在 Skill 里。
+          每个 Prime 是一个自洽的 <code>@scope</code> —— 一组类型化原子。
+          用 <code>prime install @name</code> 装上，或在这里浏览。协议 domain-blind，
+          知识活在 Prime 里 —— 设计、后端、安全都在同一套协议上。
         </p>
         <p class="lede" style="margin-bottom: 0;">
           想发布自己的？看 <a href="/zh/docs/usage/publish-install">发布与安装</a>。
@@ -61,9 +61,9 @@ function summarise(c: typeof packs[0]) {
                 <h2><code>@frontend-design</code></h2>
                 <p class="flagship-desc">
                   {fmt.format(featured.total)} 个类型化原子，覆盖 9 个设计子领域 ——
-                  色彩、版式、动效、间距、可访问性、文案 voice、视觉层次、布局、组件模式。
+                  色彩、版式、动效、间距、可访问性、文案语气、视觉层次、布局、组件模式。
                   参考语料 + 参考应用：5 工具 MCP 封装、31 个 persona、30 个任务分类、
-                  20-task benchmark。
+                  20 任务 benchmark。
                 </p>
                 <dl>
                   <dt>原子</dt><dd>{fmt.format(featured.total)}</dd>
@@ -119,10 +119,10 @@ function summarise(c: typeof packs[0]) {
 
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">其他 Skill</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">协议附带的示例</h2>
+      <p class="section-eyebrow">更多 Prime</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">领域 Prime 与示例包</h2>
       <p class="section-lede">
-        协议附带的示例 Skill —— 小、聚焦，适合学习 DSL 或冒烟测试运行时。
+        覆盖后端架构、应用安全等领域的早期 Prime，加上几个用来学 DSL 或冒烟测试运行时的小示例。
       </p>
       <div class="pack-grid">
         {others.map((c) => {
@@ -136,7 +136,7 @@ function summarise(c: typeof packs[0]) {
               </div>
               <p class="pack-desc">
                 {c.domain?.description ||
-                  `${c.total} 个原子，覆盖 ${ks.length} 种 kind。示例 Skill。`}
+                  `${c.total} 个原子，覆盖 ${ks.length} 种 kind。示例 Prime。`}
               </p>
               <div class="pack-stats">
                 <span><span class="dot" style="background: #1a7f37;"></span>{c.total} 原子</span>
@@ -153,9 +153,9 @@ function summarise(c: typeof packs[0]) {
   <section class="section">
     <div class="section-inner">
       <p class="section-eyebrow">发布自己的</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">把你的 Skill 加到这个市场</h2>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">把你的 Prime 加到这个市场</h2>
       <p class="section-lede">
-        市场是 PR 驱动的。把你的 Skill push 到 GitHub，再开一个 PR
+        市场是 PR 驱动的。把你的 Prime push 到 GitHub，再开一个 PR
         把它加到本站仓的 <code>data/skills.yaml</code>。我们 review、merge，
         CI 自动重新渲染市场。
       </p>
@@ -163,7 +163,7 @@ function summarise(c: typeof packs[0]) {
       <div class="submit-grid">
         <div class="submit-step">
           <span class="submit-num">1</span>
-          <h3>把 Skill push 到 GitHub</h3>
+          <h3>把 Prime push 到 GitHub</h3>
           <p>任何公开仓。用 <code>prime compile</code> 编译。Apache-2.0 或兼容许可。</p>
         </div>
         <div class="submit-step">
@@ -174,7 +174,7 @@ function summarise(c: typeof packs[0]) {
         <div class="submit-step">
           <span class="submit-num">3</span>
           <h3>我们 merge，CI 重 build</h3>
-          <p>下次部署后你的 Skill 出现在市场，约 5 分钟。</p>
+          <p>下次部署后你的 Prime 出现在市场，约 5 分钟。</p>
         </div>
       </div>
 

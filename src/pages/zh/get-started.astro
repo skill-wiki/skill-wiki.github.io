@@ -21,7 +21,7 @@ npm install -g @prime-lang/cli
 prime --version
 # → prime 0.1.0</code></pre>
 
-    <h2>2. 安装一个示例 Skill</h2>
+    <h2>2. 安装一个示例 Prime</h2>
     <pre><code>prime install @recipes
 # → 装到 ./.primes/@recipes</code></pre>
 
@@ -42,19 +42,19 @@ prime --version
 
     <p>重启 Claude Code，5 个工具会出现在 agent 工具列表里：</p>
     <ul>
-      <li><code>prime_query</code></li>
-      <li><code>prime_resolve</code></li>
-      <li><code>prime_intent</code></li>
-      <li><code>prime_validate</code></li>
-      <li><code>prime_compile</code></li>
+      <li><code>prime_query</code> —— 按意图检索原子。</li>
+      <li><code>prime_resolve</code> —— 取单个原子的 <code>summary</code> / <code>core</code> / <code>full</code> 投影。</li>
+      <li><code>prime_intent</code> —— 把 brief 解析为原子集合。</li>
+      <li><code>prime_validate</code> —— 用语料库校验产物。</li>
+      <li><code>prime_compile</code> —— 把源文件编译为可服务格式。</li>
     </ul>
 
     <h2>下一步</h2>
     <ul>
-      <li><a href="/zh/marketplace">浏览市场</a> —— 4 个示例 Skill + 旗舰 @frontend-design</li>
-      <li><a href="/docs/spec/overview">阅读规范</a></li>
-      <li><a href="/docs/architecture/pipeline">查看架构</a></li>
-      <li><a href="/docs/extending/custom-kinds">如何拓展自己的 kind</a></li>
+      <li><a href="/zh/marketplace">浏览市场</a> —— 示例 Prime + 旗舰 <code>@frontend-design</code>。</li>
+      <li><a href="/zh/docs/spec/overview">阅读规范。</a></li>
+      <li><a href="/zh/docs/architecture/pipeline">架构管线。</a></li>
+      <li><a href="/zh/docs/extending/custom-kinds">扩展：添加自定义 kind。</a></li>
     </ul>
   </div>
 </Base>

@@ -21,21 +21,23 @@ function summarise(c: typeof packs[0]) {
 <Base
   title="Marketplace"
   current="marketplace"
-  description="Browse Skill Wiki packs — typed-atom corpora you can plug into any MCP-compatible AI agent. Each pack is a self-contained @scope of rules, terms, methods, and patterns."
+  description="Browse Skill Wiki Primes — design, backend, security, and more. Typed-atom corpora you can plug into any MCP-compatible AI agent. Each Prime is a self-contained @scope of rules, terms, methods, and patterns."
 >
   <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
     <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
       <div>
         <p class="hero-eyebrow">
           <span class="pill">Marketplace</span>
-          {packs.length} Skills · {fmt.format(packs.reduce((s, c) => s + c.total, 0))} atoms
+          {packs.length} Primes · {fmt.format(packs.reduce((s, c) => s + c.total, 0))} atoms
         </p>
-        <h1>Browse Skills.</h1>
+        <h1>Browse Primes.</h1>
         <p class="lede">
-          Each Skill is a self-contained <code>@scope</code> of typed atoms — what
-          a SKILL.md would look like if every line had a type and an edge.
-          Install with <code>prime install @name</code>, or browse here. The protocol
-          is domain-blind; Skills are where domain knowledge lives.
+          Prime is the protocol; Skill Wiki is the marketplace. Each Prime is
+          a self-contained <code>@scope</code> of typed atoms — what a SKILL.md
+          would look like if every line had a type and an edge. Install with
+          <code>prime install @name</code>, or browse here. The protocol is
+          domain-blind — design, backend, and security all ride on the same
+          spec.
         </p>
         <p class="lede" style="margin-bottom: 0;">
           Want to publish your own? See <a href="/docs/usage/publish-install">Publish & install</a>.
@@ -121,11 +123,12 @@ function summarise(c: typeof packs[0]) {
 
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">Other Skills</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Examples shipped with the protocol</h2>
+      <p class="section-eyebrow">More Primes</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Domain Primes & starter examples</h2>
       <p class="section-lede">
-        Bundled example Skills — small, focused, useful for learning the DSL or
-        sanity-testing the runtime.
+        Early Primes covering backend architecture and application security,
+        plus a couple of tiny example packs handy for learning the DSL or
+        smoke-testing the runtime.
       </p>
       <div class="pack-grid">
         {others.map((c) => {
@@ -139,7 +142,7 @@ function summarise(c: typeof packs[0]) {
               </div>
               <p class="pack-desc">
                 {c.domain?.description ||
-                  `${c.total} typed atoms across ${ks.length} kinds. Example Skill.`}
+                  `${c.total} typed atoms across ${ks.length} kinds. Example Prime.`}
               </p>
               <div class="pack-stats">
                 <span><span class="dot" style="background: #1a7f37;"></span>{c.total} atoms</span>
@@ -156,9 +159,9 @@ function summarise(c: typeof packs[0]) {
   <section class="section">
     <div class="section-inner">
       <p class="section-eyebrow">Publish your own</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Add your Skill to this marketplace</h2>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Add your Prime to this marketplace</h2>
       <p class="section-lede">
-        The marketplace is PR-driven. Push your Skill to GitHub, then open one
+        The marketplace is PR-driven. Push your Prime to GitHub, then open one
         PR adding it to <code>data/skills.yaml</code> on this site's repo. We
         review, merge, and CI re-renders the marketplace.
       </p>
@@ -166,7 +169,7 @@ function summarise(c: typeof packs[0]) {
       <div class="submit-grid">
         <div class="submit-step">
           <span class="submit-num">1</span>
-          <h3>Push your Skill to GitHub</h3>
+          <h3>Push your Prime to GitHub</h3>
           <p>Any public repo. Compile with <code>prime compile</code>. Apache-2.0 or compatible license.</p>
         </div>
         <div class="submit-step">
@@ -177,7 +180,7 @@ function summarise(c: typeof packs[0]) {
         <div class="submit-step">
           <span class="submit-num">3</span>
           <h3>We merge, CI rebuilds</h3>
-          <p>Your Skill appears in the marketplace on next deploy. ~5 minutes.</p>
+          <p>Your Prime appears in the marketplace on next deploy. ~5 minutes.</p>
         </div>
       </div>
 

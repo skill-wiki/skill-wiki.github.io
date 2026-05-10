@@ -1,24 +1,23 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="规范 · 概览" slug="spec/overview" lang="zh" description="一页看懂 Skill Wiki 协议的全部表面。">
+<DocsLayout title="规范 · 概览" slug="spec/overview" lang="zh" description="一页看完 Skill Wiki 协议的全部接触面。">
   <h1>规范 · 概览</h1>
   <p style="color: var(--fg-muted);">
-    协议表面，v1.0 冻结于 2026-05-07。每一块给一段简介，每个标题点进去是完整子页。
+    协议接触面，2026-05-07 冻结于 v1.0。每一块给一段简介，标题点进去是它的完整子页。
   </p>
 
   <h2 id="status">状态</h2>
   <p>
-    <strong>规范：</strong>v1.0，2026-05-07 冻结。v2 之前不再有破坏性变更。<br />
-    <strong>实现：</strong>覆盖 v1 规范约 75%。各组件状态见 <a href="/zh/docs">站点首页</a>的对照表。
+    <strong>规范：</strong>v1.0，2026-05-07 冻结，到 v2 之前不会再有破坏性变更。<br />
+    <strong>实现：</strong>覆盖 v1 规范约 75%。逐组件状态见 <a href="/zh/docs">站点首页</a>的对照表。
   </p>
 
   <h2>协议里的七件事</h2>
 
   <h3><a href="/zh/docs/spec/atoms">1. Atoms</a></h3>
   <p>
-    知识单元。28 种 kind 横跨 5 个层（Data / Behaviour / Composition / Style / Meta）。
-    每个原子都声明自己的 <code>id</code>、<code>version</code>、对应 kind 的 body 字段，以及一组<em>出边</em>。
+    知识的最小单元。28 种 kind 分布在 5 个层（Data / Behaviour / Composition / Style / Meta）。每个原子都要声明自己的 <code>id</code>、<code>version</code>、对应 kind 的 body 字段，以及一组<em>出边</em>。
   </p>
 
   <h3><a href="/zh/docs/spec/edges">2. Edges</a></h3>
@@ -27,61 +26,46 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     <code>validates-with</code>、<code>contradicts</code>、<code>specializes</code>、
     <code>conflicts</code>、<code>extends</code>、<code>derived-from</code>、
     <code>compatible</code>、<code>supplies-to</code>、<code>see-also</code>、
-    <code>includes</code>、<code>relationships</code>。每个 verb 有允许的源 kind 和目标 kind，
-    L3 跨原子检查器会基于这些语义推理。
+    <code>includes</code>、<code>relationships</code>。每个 verb 都规定了允许的源 kind 和目标 kind，L3 跨原子检查器靠这些语义做推理。
   </p>
 
   <h3><a href="/zh/docs/spec/projection">3. Projection</a></h3>
   <p>
-    每个原子渲染为三种 Markdown 视图：
-    <code>summary</code>（约 30 token，常驻 index）、
-    <code>core</code>（约 150 token，作为相邻命中加载）、
-    <code>full</code>（约 380 token，作为直接命中加载）。chunker 知道 kind ——
-    一条 <code>rule</code> 的 summary 是它的 claim；一个 <code>method</code> 的 summary 是它的 goal。
+    每个原子会渲染成三种 Markdown 视图：<code>summary</code>（约 30 token，常驻 index）、<code>core</code>（约 150 token，命中相邻原子时加载）、<code>full</code>（约 380 token，直接命中时加载）。chunker 是 kind-aware 的——一条 <code>rule</code> 的 summary 就是它的 claim，一个 <code>method</code> 的 summary 就是它的 goal。
   </p>
 
   <h3><a href="/zh/docs/spec/contracts">4. 组合契约</a></h3>
   <p>
-    <code>method</code>、<code>persona</code> 或 <code>scope</code> 上的 <code>contract</code> 块声明：
-    父原子加载时<strong>必须一起加载</strong>哪些原子、<strong>必须排斥</strong>哪些原子，
-    以及哪些是<strong>有条件必须加载</strong>。contract 由运行时评估，agent 不参与 ——
-    所以 agent 看到的总是一个"构造完整"的集合。
+    <code>method</code>、<code>persona</code> 或 <code>scope</code> 上的 <code>contract</code> 块声明了三件事：父原子加载时<strong>必须一起加载</strong>哪些原子、<strong>必须排除</strong>哪些原子、哪些是<strong>有条件强制加载</strong>的。contract 由运行时来解，agent 不参与——所以 agent 拿到的总是一个"构造完整"的集合。
   </p>
 
   <h3><a href="/zh/docs/spec/registry">5. Registry 契约</a></h3>
   <p>
-    一个 Skill 以 tarball + manifest 形式发布。任何实现以下 HTTP 路由的服务都可以当作 registry：
-    <code>POST /publish</code>、<code>GET /pack/:scope</code>、<code>GET /pack/:scope/:version/tarball</code>。
-    <code>prime publish</code> 和 <code>prime install</code> 是这套契约的客户端；
-    参考实现是 <code>@prime-lang/registry</code>。
+    一个 Prime 以 tarball + manifest 的形式发布。任何实现下面这三条 HTTP 路由的服务都能当 registry：<code>POST /publish</code>、<code>GET /pack/:scope</code>、<code>GET /pack/:scope/:version/tarball</code>。<code>prime publish</code> 和 <code>prime install</code> 是这套契约的客户端，参考实现是 <code>@prime-lang/registry</code>。
   </p>
 
   <h3><a href="/zh/docs/spec/index-format"><code>_index.xml</code> 格式</a></h3>
   <p>
-    始终加载的索引文件。每个 domain 一个 <code>&lt;cluster&gt;</code>；
-    里面的 <code>&lt;atom&gt;</code> 项列出 <code>id</code>、<code>kind</code>、
-    <code>tokens</code>（full 投影的 token 数）、<code>q</code>（质量分），以及 <code>&lt;edge&gt;</code> 子节点。
+    始终常驻上下文的索引文件。每个 domain 一个 <code>&lt;cluster&gt;</code>，里面的每个 <code>&lt;atom&gt;</code> 项给出 <code>id</code>、<code>kind</code>、<code>tokens</code>（full 投影的 token 数）、<code>q</code>（质量分），以及若干 <code>&lt;edge&gt;</code> 子节点。
   </p>
 
   <h3>投影层级由 agent 自选</h3>
   <p>
-    agent 通过 MCP 工具的 <code>level</code> 参数选择加载哪个投影。
-    检索驱动的轮次通常对选中的原子加载 <code>core</code>；聚焦轮次加载 <code>full</code>。
-    <code>summary</code> 永远不需要单独加载 —— 它已经在 index 里。
+    agent 通过 MCP 工具的 <code>level</code> 参数决定加载哪一种投影。检索驱动的轮次通常对选中的原子加载 <code>core</code>，聚焦的轮次加载 <code>full</code>。<code>summary</code> 永远不需要单独加载——它本来就在 index 里。
   </p>
 
   <h2>协议刻意不规定的事</h2>
   <p>
-    Skill Wiki 是<em>领域无关</em>的。协议不规定：
+    Skill Wiki 是<em>领域无关</em>的，下面这些协议都不管：
   </p>
   <ul>
-    <li><strong>你的领域用哪些 kind。</strong>从 28 种里挑；没用上的就在你的 corpus 里不存在。</li>
+    <li><strong>你的领域用哪些 kind。</strong>从 28 种里挑，剩下的在你的 corpus 里就当不存在。</li>
     <li><strong>L1 阶段抽哪些 intent 字段。</strong>那是领域插件的活。</li>
-    <li><strong>L5 阶段怎么验证生成结果。</strong>也是领域插件的活。</li>
-    <li><strong>怎么检索。</strong>参考实现用 6 轴排序；其它实现可以不一样。</li>
+    <li><strong>L5 阶段怎么校验生成结果。</strong>同样是领域插件的活。</li>
+    <li><strong>怎么检索。</strong>参考实现走的是 6 轴排序，其它实现可以用别的。</li>
   </ul>
 
   <p>
-    边界详见 <a href="/zh/docs/architecture/domain-plugin">领域插件</a>。
+    关于这条边界的细节，详见 <a href="/zh/docs/architecture/domain-plugin">领域插件</a>。
   </p>
 </DocsLayout>

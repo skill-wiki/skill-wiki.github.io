@@ -47,7 +47,7 @@ const mcpConfigSnippet = `{
   title="Skill Wiki"
   current="home"
   lang="zh"
-  description="一套面向 AI 知识的开放协议：类型化原子、声明式边图、懒加载投影。覆盖前端设计、菜谱等领域 980+ 原子，按需取用、只取所需。"
+  description="一套面向 AI 知识的开放协议：类型化原子、声明式边图、懒加载投影。Prime 已覆盖设计、后端、安全等多个领域，按需取用、只取所需。"
 >
   <!-- HERO -->
   <section class="hero">
@@ -56,14 +56,14 @@ const mcpConfigSnippet = `{
         <p class="hero-eyebrow">
           <span class="pill">v0.1.0</span> Apache-2.0 · MCP 原生 · 开放协议
         </p>
-        <h1>Skill 的协议层。</h1>
+        <h1>Prime —— 协议层。</h1>
         <p class="lede">
           Skill Wiki 把每个 <code>SKILL.md</code> 拆成一份
           <strong>类型化原子的 wiki</strong> —— 用 ID 寻址，带声明式边图，按需取用。
           Agent 只看一份 ~3 KB 的索引；原子正文只在 brief 真需要时才进上下文。
         </p>
         <p class="lede" style="margin-bottom: 0;">
-          Skill 的 Wikipedia。类型贯穿到底。
+          Prime 是协议；Skill Wiki 是市场。类型贯穿到底。
         </p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-large" href="/zh/docs/usage/install">开始使用 →</a>
@@ -133,7 +133,7 @@ const mcpConfigSnippet = `{
         规范定义的内容
       </h2>
       <p class="section-lede">
-        关于协议本身的四个数字 —— v1.0 已冻结。装多少 Skill 都不会变。
+        关于协议本身的四个数字 —— v1.0 已冻结。装多少 Prime 都不会变。
       </p>
       <div class="kpi">
         <div>
@@ -165,13 +165,13 @@ const mcpConfigSnippet = `{
         参考部署
       </h2>
       <p class="section-lede">
-        本站市场里 {t.corpora} 个参考 Skill 的实际数字 —— 用 v0.1.0 参考实现编译产出。
+        本站市场里 {t.corpora} 个参考 Prime 的实际数字 —— 用 v0.1.0 参考实现编译产出。
       </p>
       <div class="kpi">
         <div>
           <div class="lbl">编译原子</div>
           <div class="n">{fmt.format(t.atoms)}</div>
-          <div class="sub">{t.corpora} 个 Skill</div>
+          <div class="sub">{t.corpora} 个 Prime</div>
         </div>
         <div>
           <div class="lbl">类型化边</div>
@@ -179,14 +179,14 @@ const mcpConfigSnippet = `{
           <div class="sub">L3 已校验</div>
         </div>
         <div>
-          <div class="lbl">Skill</div>
+          <div class="lbl">Prime</div>
           <div class="n">{t.corpora}</div>
-          <div class="sub">1 旗舰 · 3 示例</div>
+          <div class="sub">1 旗舰 · {t.corpora - 1} 示例与起步包</div>
         </div>
         <div>
-          <div class="lbl">参考包</div>
-          <div class="n">7</div>
-          <div class="sub">parser · compiler · runtime · …</div>
+          <div class="lbl">已覆盖领域</div>
+          <div class="n">{corpora.filter((c) => !['recipes', 'hello-world'].includes(c.slug)).length}</div>
+          <div class="sub">设计 · 后端 · 安全 · …</div>
         </div>
       </div>
       <p style="margin-top: 20px; font-size: 14px; color: var(--fg-muted);">
@@ -198,14 +198,18 @@ const mcpConfigSnippet = `{
   <!-- FLAGSHIP -->
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">旗舰 Skill</p>
+      <p class="section-eyebrow">旗舰 Prime</p>
       <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
         来自市场
       </h2>
       <p class="section-lede">
-        协议 domain-blind —— 知识活在 Skill 里。
-        <code>@frontend-design</code> 是旗舰参考包：898 个关于视觉设计的类型化原子，
-        建在你拿来 ship 安全包或菜谱包同样的协议之上。
+        协议 domain-blind —— 知识活在 Prime 里。当前市场已覆盖设计、后端架构、
+        应用安全等领域，所有 Prime 共用同一套协议。
+      </p>
+      <p class="section-lede" style="margin-bottom: 40px;">
+        <code>@frontend-design</code> 是旗舰参考 Prime：
+        {flagship ? fmt.format(flagship.total) : ''} 个关于视觉设计的类型化原子 ——
+        协议在真实领域上跑通的最深一份样本。
       </p>
 
       {flagship && (
@@ -234,7 +238,7 @@ const mcpConfigSnippet = `{
               </dl>
               <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
               <div class="hero-cta" style="margin-top: var(--s-4);">
-                <a class="btn btn-primary" href="/zh/marketplace#frontend-design">查看 Skill →</a>
+                <a class="btn btn-primary" href="/zh/marketplace#frontend-design">查看 Prime →</a>
                 <a class="btn" href="/browse?corpus=frontend-design">浏览 {flagship.total} 个原子</a>
               </div>
             </div>
@@ -283,7 +287,7 @@ const mcpConfigSnippet = `{
               <span class="pack-pill">v0.1.0</span>
             </div>
             <p class="pack-desc">
-              {c.domain?.description || `${c.total} 个原子，${[...new Set(c.atoms.map((a) => a.kind))].length} 种 kind。示例 Skill。`}
+              {c.domain?.description || `${c.total} 个原子，${[...new Set(c.atoms.map((a) => a.kind))].length} 种 kind。示例 Prime。`}
             </p>
             <div class="pack-stats">
               <span><span class="dot" style="background: #1a7f37;"></span>{c.total} 原子</span>
@@ -331,10 +335,10 @@ bunx @prime-lang/mcp-server-core</code></pre>
   <section class="section">
     <div class="section-inner">
       <div class="lead-strip">
-        <div>{fmt.format(t.atoms)} 原子 · 1.94 s 构建</div>
+        <div>{fmt.format(t.atoms)} 原子 · {t.corpora} 个 Prime</div>
         <div>448 测试通过</div>
         <div>0 类型错误</div>
-        <div>7 个包 · Apache-2.0</div>
+        <div>Apache-2.0 · v0.1.0</div>
       </div>
     </div>
   </section>

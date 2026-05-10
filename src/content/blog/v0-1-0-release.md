@@ -1,14 +1,16 @@
 ---
 title: "Skill Wiki v0.1.0 — the protocol is shipping"
 date: "2026-05-10"
-excerpt: "Today we're releasing v0.1.0 of the Skill Wiki protocol — a typed knowledge graph for AI agents. 28 atom kinds, 14 edge verbs, 3 projection levels, a generic MCP server, and a 898-atom reference frontend-design Skill. Apache-2.0."
+excerpt: "Today we're releasing v0.1.0 of the Prime protocol — a typed knowledge graph for AI agents. 28 atom kinds, 14 edge verbs, 3 projection levels, a generic MCP server, and a 898-atom reference frontend-design Prime. Apache-2.0."
 ---
 
 # Skill Wiki v0.1.0 — the protocol is shipping
 
-We're shipping **Skill Wiki v0.1.0** today. It's a protocol for putting
-typed, addressable domain knowledge in the reach of AI agents — without
-bulk-loading SKILL.md files into every turn.
+We're shipping **Skill Wiki v0.1.0** today — the marketplace home of the
+**Prime protocol**, our open spec for putting typed, addressable domain
+knowledge in the reach of AI agents without bulk-loading SKILL.md files
+into every turn. Prime is the protocol and CLI; Skill Wiki is the site
+and community marketplace.
 
 If you're new to the project, start with [the spec overview](/docs/spec/overview)
 or the [bulk-loading problem](/docs/background/problem) page. If you've
@@ -34,7 +36,7 @@ been following along, here's what's in the box.
 - `@prime-lang/cli` — `prime init / compile / check / show / publish / install / …`.
 - `@prime-lang/types` — shared AST + protocol types.
 
-**Reference Skill** — `@frontend-design`:
+**Reference Prime** — `@frontend-design`:
 
 - 898 typed atoms across 9 design sub-domains.
 - 5 namespaces: `@community`, `@impeccable`, `@anthropic-impeccable`, `@nielsen`, `@w3c`.
@@ -52,7 +54,7 @@ been following along, here's what's in the box.
 If you've been using bulk-loaded SKILL.md files as your knowledge layer for
 agents, the failures stack up at scale:
 
-| Problem | SKILL.md | Skill Wiki |
+| Problem | SKILL.md | Prime |
 |---|---|---|
 | Token cost grows with skill count | Yes | Bounded by what loads |
 | Bad knowledge pollutes every turn | Yes | Filtered per-turn |
@@ -74,7 +76,7 @@ deliberately did not build:
 - A custom LLM. The L2 checker uses DeepSeek by default; swap it if you want.
 - A lock-in registry. The HTTP contract is four endpoints; mirror or self-host trivially.
 
-The reference Skills are small (the trivial `@hello-world` is 8 atoms; the
+The reference Primes are small (the trivial `@hello-world` is 8 atoms; the
 example `@recipes` is 47) so you can read every atom and see how kinds
 compose. The flagship `@frontend-design` is intentionally larger — 898
 atoms — so you can see what the architecture looks like at scale.
@@ -104,7 +106,7 @@ PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
 Then [wire it into Claude Code](/docs/usage/mcp-claude) (or Cursor, Continue,
 Aider — anything that speaks MCP).
 
-To publish a Skill of your own, see [Publish & install](/docs/usage/publish-install).
+To publish a Prime of your own, see [Publish & install](/docs/usage/publish-install).
 
 To extend the protocol with a custom kind or verb, see [Custom kinds](/docs/extending/custom-kinds).
 

@@ -63,7 +63,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     <code>confidence:</code> 解析为 <code>0.0-1.0</code> 范围。
   </p>
 
-  <h2>Skill 自演化 <span style="color: var(--fg-muted);">[计划 · 2026 → 2027]</span></h2>
+  <h2>Prime 自演化 <span style="color: var(--fg-muted);">[计划 · 2026 → 2027]</span></h2>
   <p>
     只靠人工 PR 添加原子的 corpus 会变陈旧。真实使用本身就是最好的信号
     —— 哪些原子被查了但没命中、哪些意图返回的置信度低、哪些 projection
@@ -119,7 +119,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     <a href="https://textgrad.com/" rel="noopener">TextGrad</a>
   </p>
 
-  <h2>Skill 评测 <span style="color: var(--fg-muted);">[计划 · 2026 Q4]</span></h2>
+  <h2>Prime 评测 <span style="color: var(--fg-muted);">[计划 · 2026 Q4]</span></h2>
   <p>
     协议有用，前提是可量化。今天唯一的评测是"agent 引用对了几个原子" ——
     人工跑 20 题基准。v0.2 把它升级成一等动词，让 corpus 作者能拿出
@@ -162,7 +162,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
   </p>
 
   <p>
-    <strong>Moonshot：</strong> 公共 Skill 排行榜。corpus 注册进来，harness
+    <strong>Moonshot：</strong> 公共 Prime 排行榜。corpus 注册进来，harness
     每周跑一套固定任务，发布带版本锁定的结果。和代码界的
     <a href="https://github.com/openai/human-eval" rel="noopener">HumanEval</a>
     一个意思。
@@ -174,7 +174,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     <a href="https://inspect.aisi.org.uk/" rel="noopener">Inspect AI</a>
   </p>
 
-  <h2>Skill 优化 <span style="color: var(--fg-muted);">[计划 · 2027]</span></h2>
+  <h2>Prime 优化 <span style="color: var(--fg-muted);">[计划 · 2027]</span></h2>
   <p>
     v0.1 检索路径很朴素：加载 <code>_index.xml</code>、排序、取 projection。
     1k 原子没问题，10k 就浪费，100k 装不下 context。v0.3+ 把这条路收紧，
@@ -201,7 +201,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     里同样的查询零检索成本。corpus 重编译时失效。
   </p>
 
-  <h3>多 Skill 组合预算分配</h3>
+  <h3>多 Prime 组合预算分配</h3>
   <p>
     挂多个 corpus（v0.3 多 corpus MCP）时，runtime 按各 corpus 的意图分
     分配 token 预算，不再用固定配额。

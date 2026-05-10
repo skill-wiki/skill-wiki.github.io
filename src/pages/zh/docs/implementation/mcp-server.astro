@@ -6,7 +6,7 @@ import Mermaid from '../../../../components/Mermaid.astro';
   <h1>MCP server</h1>
   <p style="color: var(--fg-muted);">
     <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>
-    是集成面。<code>@prime-lang/mcp-server-core</code> 是一个通用的、领域无关的 MCP server，
+    是这一层的集成面。<code>@prime-lang/mcp-server-core</code> 是一个通用的、领域无关的 MCP server，
     把运行时包起来，对外暴露 5 个工具。
   </p>
 
@@ -17,10 +17,10 @@ import Mermaid from '../../../../components/Mermaid.astro';
     </thead>
     <tbody>
       <tr><td><code>prime_query</code></td><td><code>{`{ scope, level, tags, budget_tokens }`}</code></td><td><code>{`{ hits: [{ id, kind, path, tokens }] }`}</code></td><td>搜排序后的原子。</td></tr>
-      <tr><td><code>prime_resolve</code></td><td><code>{`{ brief, max_tokens }`}</code></td><td>+ 已契约化的集合</td><td>brief → 排序后的原子（L1+L2+L3）。</td></tr>
-      <tr><td><code>prime_intent</code></td><td><code>{`{ brief }`}</code></td><td><code>IntentObject</code></td><td>brief → IntentObject（L1）。</td></tr>
+      <tr><td><code>prime_resolve</code></td><td><code>{`{ brief, max_tokens }`}</code></td><td>加上已契约化的集合</td><td>brief 转排序后的原子（L1 + L2 + L3）。</td></tr>
+      <tr><td><code>prime_intent</code></td><td><code>{`{ brief }`}</code></td><td><code>IntentObject</code></td><td>brief 转 IntentObject（L1）。</td></tr>
       <tr><td><code>prime_validate</code></td><td><code>{`{ artifact, atom_set }`}</code></td><td><code>{`{ ok, fixes }`}</code></td><td>校验输出（L5）。</td></tr>
-      <tr><td><code>prime_compile</code></td><td><code>{`{ source }`}</code></td><td>编译产物</td><td>临时编译一个 <code>.prime</code>。</td></tr>
+      <tr><td><code>prime_compile</code></td><td><code>{`{ source }`}</code></td><td>编译产物</td><td>临时编译一份 <code>.prime</code>。</td></tr>
     </tbody>
   </table>
 
@@ -70,24 +70,24 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
     server --> H
     server --> R`}</Mermaid>
 
-  <h2>工具的输入/输出 JSON Schema</h2>
+  <h2>工具的输入输出 JSON Schema</h2>
   <p>
-    每个工具都有自己的 JSON Schema，注册到 MCP SDK 上。完整 schema 见
+    每个工具都带自己的 JSON Schema，启动时注册到 MCP SDK 上。完整 schema 见
     <a href="/zh/docs/reference/mcp">参考 → MCP</a>。
   </p>
 
   <h2>领域定制 MCP wrapper</h2>
   <p>
-    <code>@prime-lang/mcp-server-core</code> 是领域无关的。某个领域可能想要一个 wrapper 加：
+    <code>@prime-lang/mcp-server-core</code> 是领域无关的。某个领域可能想要一个 wrapper，再加上：
   </p>
   <ul>
     <li>领域定制的工具名（<code>frontend_color_check</code>、<code>security_threat_model</code>）。</li>
-    <li>预置好的 persona + style 标签集合。</li>
+    <li>预置好的 persona 加 style 标签集合。</li>
     <li>领域定制的 L5 validator。</li>
   </ul>
 
   <p>
-    参考 frontend Skill 提供了 <code>@prime-lang/mcp-server-frontend</code>，就是这种 wrapper。
-    见 <a href="/zh/docs/extending/domain-mcp">拓展 → 领域 MCP</a>。
+    参考 frontend Prime 自带 <code>@prime-lang/mcp-server-frontend</code>，正是这种 wrapper。
+    详见 <a href="/zh/docs/extending/domain-mcp">扩展 → 领域 MCP</a>。
   </p>
 </DocsLayout>

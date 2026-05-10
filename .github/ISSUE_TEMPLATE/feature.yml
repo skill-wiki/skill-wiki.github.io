@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a change to the website or its data pipeline.
+title: "[feature] "
+labels: ["enhancement", "needs-discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing this. For protocol-level changes, open the issue against the `prime-system` repo instead.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today, or what is harder than it should be?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch the user-facing change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you think about? Why is this proposal preferred?
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use case
+      description: Who benefits from this change, and in what scenario?

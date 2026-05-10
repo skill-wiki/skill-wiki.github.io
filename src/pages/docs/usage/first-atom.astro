@@ -9,7 +9,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   </p>
 
   <h2>1. Make a workspace</h2>
-<pre><code>{`mkdir my-Skill && cd my-Skill
+<pre><code>{`mkdir my-prime && cd my-prime
 mkdir -p primes/sources/@my`}</code></pre>
 
   <h2>2. Write the first atom (a fact)</h2>
@@ -67,8 +67,8 @@ mkdir -p primes/sources/@my`}</code></pre>
 
 <pre><code>{`# Run from inside your prime-system clone
 bun /abs/path/to/prime-system/scripts/build-atom-dirs.ts \\
-  --src /abs/path/to/my-Skill/primes/sources \\
-  --out /abs/path/to/my-Skill/primes/compiled
+  --src /abs/path/to/my-prime/primes/sources \\
+  --out /abs/path/to/my-prime/primes/compiled
 
 # → output:
 #   primes/compiled/@my/fact-water-boils-at-100c/{atom.yaml, chunks/}

@@ -17,7 +17,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 
 **协议本身** —— v1.0 已冻结：
 
-- **28 种原子 kind**，分 5 层：Data、Behaviour、Composition、Style、Meta。作者按需挑用，没用到的 kind 不出现在你的 Skill 里。
+- **28 种原子 kind**，分 5 层：Data、Behaviour、Composition、Style、Meta。作者按需挑用，没用到的 kind 不出现在你的 Prime 里。
 - **14 种类型化边动词** —— `requires`、`validates-with`、`contradicts`、`specializes`…，每个动词限定来源/目标 kind，L3 检查器据此推理。
 - **3 级投影** —— `summary`（约 30 token）、`core`（约 150 token）、`full`（约 380 token）。Kind-aware chunker。
 - **组合契约** —— 在 method、persona、scope 上声明 `must-include` / `must-avoid` / `conditionally-required`。
@@ -33,7 +33,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 - `@prime-lang/cli` —— `prime init / compile / check / show / publish / install / …`。
 - `@prime-lang/types` —— 共享 AST + 协议类型。
 
-**参考 Skill** —— `@frontend-design`：
+**参考 Prime** —— `@frontend-design`：
 
 - 898 个类型化原子，覆盖 9 个设计子领域。
 - 5 个命名空间：`@community`、`@impeccable`、`@anthropic-impeccable`、`@nielsen`、`@w3c`。
@@ -52,7 +52,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 
 | 问题 | SKILL.md | Skill Wiki |
 |---|---|---|
-| token 成本随 skill 数增长 | 是 | 只随实际加载量 |
+| token 成本随 Prime 数增长 | 是 | 只随实际加载量 |
 | 坏知识每轮都污染上下文 | 是 | 按需过滤 |
 | validator 能基于关系推理 | 否 | 是（14 个动词） |
 | 不重新编译就能组合 | 否 | 是（contracts） |
@@ -70,7 +70,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 - **不做自家 LLM**。L2 检查器默认走 DeepSeek，想换随便换。
 - **不做锁仓库的 registry**。HTTP 协议 4 个端点，自托管和镜像都简单。
 
-参考 Skill 都做得很小（最简的 `@hello-world` 就 8 个原子；
+参考 Prime 都做得很小（最简的 `@hello-world` 就 8 个原子；
 `@recipes` 47 个），方便你逐个原子看 kind 怎么组合。
 旗舰 `@frontend-design` 故意做大 —— 898 个原子 —— 让你看到规模化时架构长什么样。
 
@@ -97,7 +97,7 @@ PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
 
 然后[接进 Claude Code](/zh/docs/usage/mcp-claude)（或 Cursor、Continue、Aider —— 任何讲 MCP 的客户端）。
 
-发布自己的 Skill：[发布与安装](/zh/docs/usage/publish-install)。
+发布自己的 Prime：[发布与安装](/zh/docs/usage/publish-install)。
 
 加新 kind 或 verb：[自定义 kind](/zh/docs/extending/custom-kinds)。
 

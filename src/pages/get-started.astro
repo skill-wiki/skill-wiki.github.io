@@ -2,73 +2,105 @@
 import Base from '../layouts/Base.astro';
 ---
 <Base title="Get started" current="docs">
-  <h1>Get started</h1>
-  <p style="font-size: 1.05rem; color: var(--fg-soft); max-width: 70ch;">
-    Prime is a CLI for compiling, querying, and installing knowledge atoms.
-    Five minutes from zero to first atom.
-  </p>
+  <div class="getstart-wrap">
+    <p class="article-meta">Get started · 5 min</p>
+    <h1>Installed in 30 seconds.</h1>
+    <p class="getstart-lede">
+      Skill Wiki speaks MCP. Point Claude Code, Cursor, Continue, or any
+      MCP client at the local server and you're done. The minimal steps
+      are below; the full guide lives in
+      <a href="/docs/usage/install">Docs → Usage → Install</a>.
+    </p>
 
-  <h2>1. Install the CLI</h2>
-  <pre><code># Bun (fastest)
-bun add -g @prime/cli
+    <h2>1. Install the CLI</h2>
+    <pre><code># Bun (recommended)
+bun add -g @prime-lang/cli
 
 # Or npm
-npm i -g @prime/cli</code></pre>
+npm install -g @prime-lang/cli
 
-  <h2>2. Install a corpus</h2>
-  <p>
-    Corpora are folders of atoms. Install one from a remote registry:
-  </p>
-  <pre><code>prime install @recipes
-# → ./prime/sources/@recipes/...</code></pre>
+prime --version
+# → prime 0.1.0</code></pre>
 
-  <p>
-    Or compile a local one:
-  </p>
-  <pre><code>cd my-corpus
-prime compile
-# → ./primes/compiled/_index.xml + per-atom folders</code></pre>
+    <h2>2. Install a sample Prime</h2>
+    <pre><code>prime install @recipes
+# → installed to ./.primes/@recipes</code></pre>
 
-  <h2>3. Inspect atoms</h2>
-  <pre><code># List atoms in the local corpus
-prime list
+    <h2>3. Start the MCP server</h2>
+    <pre><code>PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core</code></pre>
 
-# Show one atom — metadata, all edges, graph fan-out
-prime show @recipes/method-pan-sauce
+    <h2>4. Wire it into Claude Code</h2>
+    <p>Edit <code>~/.config/claude-code/mcp.json</code>:</p>
+<pre><code>{`{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": { "PRIME_DIR": "/abs/path/to/compiled" }
+    }
+  }
+}`}</code></pre>
 
-# Walk the dependency tree
-prime deps @recipes/method-pan-sauce</code></pre>
+    <p>Restart Claude Code. Five tools appear in the agent's tool list:</p>
+    <ul>
+      <li><code>prime_query</code> — search atoms by intent.</li>
+      <li><code>prime_resolve</code> — fetch one atom at <code>summary</code>, <code>core</code>, or <code>full</code>.</li>
+      <li><code>prime_intent</code> — turn a brief into an atom set.</li>
+      <li><code>prime_validate</code> — check an artifact against the corpus.</li>
+      <li><code>prime_compile</code> — compile sources to the served format.</li>
+    </ul>
 
-  <h2>4. Query from an agent (MCP)</h2>
-  <p>
-    The MCP server exposes <code>prime_query</code> / <code>prime_resolve</code> /
-    <code>prime_intent</code> / <code>prime_validate</code> / <code>prime_compile</code>
-    tools to any MCP-capable client (Claude Code, Cursor, Continue, …).
-  </p>
-  <pre><code># Boot the server on the compiled corpus
-PRIME_DIR=primes/compiled bunx @prime-lang/mcp-server-core</code></pre>
+    <h2>What's an atom?</h2>
+    <p>
+      A self-contained typed unit of knowledge with:
+    </p>
+    <ul>
+      <li>A <strong>kind</strong> — fact, rule, pattern, anti-pattern, method, term, principle, tradeoff, or one of 19 others.</li>
+      <li>A <strong>domain</strong> tag (cooking, frontend-design, …).</li>
+      <li>Three <strong>projection levels</strong>: <code>summary</code> (~30 tok), <code>core</code> (~150 tok), <code>full</code> (~380 tok). Pick the smallest that fits the budget.</li>
+      <li>Typed <strong>edges</strong> to other atoms: <code>requires</code>, <code>supplies-to</code>, <code>related</code>, <code>see-also</code>, <code>enhances</code>, <code>includes</code>, …</li>
+    </ul>
 
-  <h2>5. Publish</h2>
-  <p>
-    When your corpus is ready, publish it for others to install:
-  </p>
-  <pre><code>prime publish --remote https://your-registry.example</code></pre>
-
-  <h2>What is an atom?</h2>
-  <p>
-    An atom is a self-contained typed unit of knowledge. It has:
-  </p>
-  <ul>
-    <li>A <strong>kind</strong> — fact, rule, pattern, anti-pattern, method, term, principle, tradeoff, or collection.</li>
-    <li>A <strong>domain</strong> — a tag declaring which subject area it lives in (cooking, coding-style, …).</li>
-    <li>Three <strong>projection levels</strong>: <code>summary</code> (~30 tokens), <code>core</code> (~150 tokens), <code>full</code> (~380 tokens). Pick the smallest one that fits your context window.</li>
-    <li><strong>Edges</strong> to other atoms with explicit verbs: <code>requires</code>, <code>supplies-to</code>, <code>related</code>, <code>see-also</code>, <code>enhances</code>, <code>includes</code>, …</li>
-  </ul>
-
-  <h2>Next</h2>
-  <ul>
-    <li><a href="/browse">Browse the live corpora</a></li>
-    <li><a href="/about">Read about the project</a></li>
-    <li><a href="https://github.com/skill-wiki/prime-system" rel="noopener">Source on GitHub</a></li>
-  </ul>
+    <h2>Next</h2>
+    <ul>
+      <li><a href="/marketplace">Browse the marketplace</a> — sample Primes + the flagship <code>@frontend-design</code>.</li>
+      <li><a href="/docs/spec/overview">Read the spec.</a></li>
+      <li><a href="/docs/architecture/pipeline">Architecture pipeline.</a></li>
+      <li><a href="/docs/extending/custom-kinds">Extending: add your own kind.</a></li>
+    </ul>
+  </div>
 </Base>
+
+<style>
+  .getstart-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px var(--s-4) 80px;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  .getstart-wrap h1 {
+    font-size: clamp(32px, 4.5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0 0 20px;
+    border: 0;
+    padding: 0;
+  }
+  .getstart-lede {
+    font-size: 17px;
+    color: var(--fg-muted);
+    line-height: 1.55;
+    margin: 0 0 40px;
+    letter-spacing: -0.005em;
+  }
+  .getstart-wrap h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    margin: 48px 0 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-muted);
+  }
+</style>

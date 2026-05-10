@@ -31,20 +31,20 @@ object           ::= "OPEN" (field ("," field)* ","?)? "CLOSE"`
 <DocsLayout title=".prime DSL 文法" slug="reference/dsl" lang="zh" description=".prime DSL —— BNF 文法、词法规则、原子 body 形态。">
   <h1>.prime DSL 文法</h1>
   <p style="color: var(--fg-muted);">
-    一套小而手写的语法。28 个关键字（每个 kind 一个），14 个 verb 名作为字段标识符，
+    一套小而手写的语法。28 个关键字（每种 kind 一个），14 个 verb 名当字段标识符，
     6 类标点。注释用 <code>//</code>。
   </p>
 
   <h2>词法结构</h2>
   <ul>
-    <li><strong>关键字</strong> —— 28 个原子 kind，保留字。</li>
-    <li><strong>标识符</strong> —— 原子名（<code>PascalCase</code>）和字段名（<code>kebab-case</code>）。</li>
-    <li><strong>原子 ID</strong> —— <code>@scope/kind-kebab-name</code>。允许跨 Skill 引用。</li>
-    <li><strong>字符串</strong> —— 双引号；<code>\\</code> 转义 <code>"</code>、<code>n</code>、<code>t</code>。</li>
+    <li><strong>关键字</strong> —— 28 种原子 kind，全是保留字。</li>
+    <li><strong>标识符</strong> —— 原子名走 <code>PascalCase</code>，字段名走 <code>kebab-case</code>。</li>
+    <li><strong>原子 ID</strong> —— <code>@scope/kind-kebab-name</code>，允许跨 Prime 引用。</li>
+    <li><strong>字符串</strong> —— 双引号，<code>\\</code> 转义 <code>"</code>、<code>n</code>、<code>t</code>。</li>
     <li><strong>数字</strong> —— 整数和小数。</li>
     <li><strong>布尔</strong> —— <code>true</code>、<code>false</code>。</li>
     <li><strong>标点</strong> —— <code>{`{`}</code> <code>{`}`}</code> <code>[</code> <code>]</code> <code>:</code> <code>,</code></li>
-    <li><strong>注释</strong> —— <code>// 到行尾</code>。</li>
+    <li><strong>注释</strong> —— <code>//</code> 一直到行尾。</li>
   </ul>
 
   <h2>BNF（草图）</h2>
@@ -52,11 +52,11 @@ object           ::= "OPEN" (field ("," field)* ","?)? "CLOSE"`
 
   <h2>结尾逗号</h2>
   <p>
-    list 和 object 都允许。parser 接受 <code>[a, b, c,]</code>，
-    这样调整边列表顺序时 diff 会干净。
+    list 和 object 都允许。parser 会接受 <code>[a, b, c,]</code>，
+    所以调换边列表的顺序时不会污染 diff。
   </p>
 
-  <h2>每种值的字段形态</h2>
+  <h2>各种值的字段写法</h2>
   <table>
     <thead><tr><th>字段形态</th><th>例子</th></tr></thead>
     <tbody>
@@ -71,7 +71,7 @@ object           ::= "OPEN" (field ("," field)* ","?)? "CLOSE"`
   </table>
 
   <h2>边字段</h2>
-  <p>14 个 verb 都能当字段名用。值永远是 atom ID 列表。</p>
+  <p>14 个 verb 都能直接当字段名。值永远是一组 atom ID。</p>
 
 <pre><code>{`requires:        [@my/term-x, @my/term-y]
 validates-with:  [@my/source-rfc-1234]
@@ -80,19 +80,19 @@ see-also:        [@my/pattern-z]`}</code></pre>
 
   <h2>边界情况</h2>
   <ul>
-    <li><strong>重复字段</strong> —— 后写的覆盖；L1 给一个 warning。</li>
-    <li><strong>空列表</strong> —— 等价于不写这个字段。</li>
-    <li><strong>空对象</strong> —— 对 kind 必填字段而言不合法。</li>
-    <li><strong>自引用</strong> —— 一个原子在 <code>requires</code> 里引用自己，会被 L3 当成环。</li>
+    <li><strong>重复字段</strong> —— 后写的覆盖前面，L1 给一个 warning。</li>
+    <li><strong>空列表</strong> —— 等同不写这个字段。</li>
+    <li><strong>空对象</strong> —— 对 kind 必填字段来说不合法。</li>
+    <li><strong>自引用</strong> —— 一个原子在 <code>requires</code> 里写自己，L3 当成环。</li>
   </ul>
 
   <h2>为什么用 DSL</h2>
   <p>
-    YAML 或 JSON 都行得通。我们选了一个薄的 DSL，原因：
+    YAML 或 JSON 也能行。最后选了一个薄 DSL，原因有三：
   </p>
   <ol>
-    <li>YAML 的空白敏感 + 9 种写字符串的方式让解析报错很脆。</li>
-    <li>原子 ID（<code>@scope/name</code>）可以单独占一类词法 —— 拼错时报错更清楚。</li>
-    <li>保留 kind 关键字比 YAML 的 <code>kind: rule</code> 加一堆任意字段清晰得多。</li>
+    <li>YAML 空白敏感，加上 9 种写字符串的方式，解析报错很脆。</li>
+    <li>原子 ID（<code>@scope/name</code>）能独占一类 token —— 拼错时报错更清楚。</li>
+    <li>保留 kind 关键字比 YAML 里 <code>kind: rule</code> 加一堆任意字段读起来清晰得多。</li>
   </ol>
 </DocsLayout>

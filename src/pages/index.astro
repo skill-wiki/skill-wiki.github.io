@@ -46,7 +46,7 @@ const mcpConfigSnippet = `{
 <Base
   title="Skill Wiki"
   current="home"
-  description="An open protocol for AI knowledge: typed atoms, declarative edge graph, lazy projection. 980+ atoms across frontend design, recipes, and more — retrieve only what you need at the moment you need it."
+  description="An open protocol for AI knowledge: typed atoms, declarative edge graph, lazy projection. Primes span design, backend, security, and more — retrieve only what you need at the moment you need it."
 >
   <!-- HERO -->
   <section class="hero">
@@ -55,20 +55,20 @@ const mcpConfigSnippet = `{
         <p class="hero-eyebrow">
           <span class="pill">v0.1.0</span> Apache-2.0 · MCP-native · open protocol
         </p>
-        <h1>The protocol for Skills.</h1>
+        <h1>The protocol for Primes.</h1>
         <p class="lede">
-          Skill Wiki turns each <code>SKILL.md</code> blob into a
-          <strong>wiki of typed atoms</strong> — addressable by ID, with a
-          declared edge graph, retrieved on demand. Agents see a ~3 KB index
-          of what exists; atom bodies stream in only when the brief calls
-          for them.
+          Prime is the protocol; Skill Wiki is the marketplace. Each
+          <code>SKILL.md</code> blob becomes a <strong>wiki of typed
+          atoms</strong> — addressable by ID, with a declared edge graph,
+          retrieved on demand. Agents see a ~3 KB index of what exists; atom
+          bodies stream in only when the brief calls for them.
         </p>
         <p class="lede" style="margin-bottom: 0;">
-          Wikipedia for Skills. Typed all the way down.
+          Wikipedia for Primes. Typed all the way down.
         </p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-large" href="/docs/usage/install">Get started →</a>
-          <a class="btn btn-large" href="/marketplace">Browse Skills</a>
+          <a class="btn btn-large" href="/marketplace">Browse Primes</a>
           <a class="btn btn-large" href="https://github.com/skill-wiki/prime-system" rel="noopener">View on GitHub ↗</a>
         </div>
       </div>
@@ -136,7 +136,7 @@ const mcpConfigSnippet = `{
       </h2>
       <p class="section-lede">
         Four numbers about the protocol itself — fixed at v1.0. They don't change
-        when you add Skills.
+        when you add Primes.
       </p>
       <div class="kpi">
         <div>
@@ -168,14 +168,14 @@ const mcpConfigSnippet = `{
         Reference deployment
       </h2>
       <p class="section-lede">
-        Numbers from the {t.corpora} reference Skills in this site's marketplace —
+        Numbers from the {t.corpora} reference Primes in this site's marketplace —
         compiled with the v0.1.0 reference implementation.
       </p>
       <div class="kpi">
         <div>
           <div class="lbl">Atoms compiled</div>
           <div class="n">{fmt.format(t.atoms)}</div>
-          <div class="sub">across {t.corpora} Skills</div>
+          <div class="sub">across {t.corpora} Primes</div>
         </div>
         <div>
           <div class="lbl">Typed edges</div>
@@ -183,14 +183,14 @@ const mcpConfigSnippet = `{
           <div class="sub">L3-validated</div>
         </div>
         <div>
-          <div class="lbl">Skills</div>
+          <div class="lbl">Primes</div>
           <div class="n">{t.corpora}</div>
-          <div class="sub">1 flagship · 3 examples</div>
+          <div class="sub">1 flagship · {t.corpora - 1} examples & seeds</div>
         </div>
         <div>
-          <div class="lbl">npm packages</div>
-          <div class="n">7</div>
-          <div class="sub">parser · compiler · runtime · …</div>
+          <div class="lbl">Domains shipped</div>
+          <div class="n">{corpora.filter((c) => !['recipes', 'hello-world'].includes(c.slug)).length}</div>
+          <div class="sub">design · backend · security · …</div>
         </div>
       </div>
       <p style="margin-top: 20px; font-size: 14px; color: var(--fg-muted);">
@@ -202,20 +202,21 @@ const mcpConfigSnippet = `{
   <!-- FLAGSHIP -->
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">Flagship Skill</p>
+      <p class="section-eyebrow">Flagship Prime</p>
       <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
         From the Marketplace
       </h2>
       <p class="section-lede">
-        The protocol is domain-blind — Skills are where actual knowledge lives.
-        Each Skill is a self-contained <code>@scope</code> of typed atoms — what
+        The protocol is domain-blind — Primes are where actual knowledge lives.
+        Each Prime is a self-contained <code>@scope</code> of typed atoms — what
         Anthropic's <code>SKILL.md</code> format would look like if every line
-        had a type.
+        had a type. Today's marketplace already spans design, backend
+        architecture, and application security.
       </p>
       <p class="section-lede" style="margin-bottom: 40px;">
-        <code>@frontend-design</code> is the flagship reference Skill: 898 typed
-        atoms about visual design, built on the same protocol you'd use to ship
-        a security Skill or a cooking Skill.
+        <code>@frontend-design</code> is the flagship reference Prime:
+        {flagship ? fmt.format(flagship.total) : ''} typed atoms about visual
+        design — the deepest worked example of the protocol on a real domain.
       </p>
 
       {flagship && (
@@ -244,7 +245,7 @@ const mcpConfigSnippet = `{
               </dl>
               <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
               <div class="hero-cta" style="margin-top: var(--s-4);">
-                <a class="btn btn-primary" href="/marketplace#frontend-design">Visit Skill →</a>
+                <a class="btn btn-primary" href="/marketplace#frontend-design">Visit Prime →</a>
                 <a class="btn" href="/browse?corpus=frontend-design">Browse {flagship.total} atoms</a>
               </div>
             </div>
@@ -293,7 +294,7 @@ const mcpConfigSnippet = `{
               <span class="pack-pill">v0.1.0</span>
             </div>
             <p class="pack-desc">
-              {c.domain?.description || `${c.total} typed atoms across ${[...new Set(c.atoms.map((a) => a.kind))].length} kinds. Example Skill.`}
+              {c.domain?.description || `${c.total} typed atoms across ${[...new Set(c.atoms.map((a) => a.kind))].length} kinds. Example Prime.`}
             </p>
             <div class="pack-stats">
               <span><span class="dot" style="background: #1a7f37;"></span>{c.total} atoms</span>
@@ -342,10 +343,10 @@ bunx @prime-lang/mcp-server-core</code></pre>
   <section class="section">
     <div class="section-inner">
       <div class="lead-strip">
-        <div>980 atoms · 1.94 s build</div>
+        <div>{fmt.format(t.atoms)} atoms · {t.corpora} Primes</div>
         <div>448 tests passing</div>
         <div>0 typecheck errors</div>
-        <div>7 npm packages · Apache-2.0</div>
+        <div>Apache-2.0 · v0.1.0</div>
       </div>
     </div>
   </section>

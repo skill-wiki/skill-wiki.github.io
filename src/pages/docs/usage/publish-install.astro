@@ -30,7 +30,37 @@ prime-version: "1.0"
 sources: "primes/sources"
 compiled: "primes/compiled"`}</code></pre>
 
-  <h2>Publish</h2>
+  <h2>Publishing via CLI (one-command flow)</h2>
+  <p>
+    To list your Skill on the public marketplace at
+    <a href="https://skill-wiki.github.io">skill-wiki.github.io</a>, you don't need
+    to fork or hand-edit YAML. The CLI does it for you:
+  </p>
+
+<pre><code>{`# From the root of your corpus repo (must contain pack.yaml + compiled/)
+prime publish-marketplace \\
+  --description "Typed atoms for X domain" \\
+  --tags "x,y,z"
+
+# Preview the YAML entry without forking / pushing:
+prime publish-marketplace --dry-run --description "..." --tags "..."`}</code></pre>
+
+  <p>What it does:</p>
+  <ol>
+    <li>Reads <code>pack.yaml</code> for name / version / compiled subdir.</li>
+    <li>Detects the GitHub repo from <code>git remote get-url origin</code>.</li>
+    <li>Forks <code>skill-wiki/skill-wiki.github.io</code> via <code>gh repo fork</code> (idempotent).</li>
+    <li>Clones the fork, appends an entry to <code>data/skills.yaml</code>, branches, commits, pushes.</li>
+    <li>Opens a PR via <code>gh pr create</code> and prints the URL.</li>
+  </ol>
+
+  <p>
+    Requires the <a href="https://cli.github.com">GitHub CLI</a> (<code>gh</code>) to be installed and
+    authenticated (<code>gh auth login</code>). If anything goes wrong mid-flow, your branch is
+    pushed to your fork — open the PR by hand from there.
+  </p>
+
+  <h2>Publish (registry server)</h2>
 <pre><code>{`# Compile first (publish bundles compiled/)
 bun scripts/build-atom-dirs.ts \\
   --src primes/sources \\

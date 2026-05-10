@@ -18,7 +18,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <h2>Endpoints</h2>
 
   <h3><code>POST /publish</code></h3>
-  <p>Upload a Skill tarball + manifest.</p>
+  <p>Upload a Prime tarball + manifest.</p>
 <pre><code>{`Headers:
   Authorization: Bearer <token>
   Content-Type:  multipart/form-data
@@ -29,7 +29,7 @@ Form parts:
 
 Response (201):
 {
-  "name":     "@my/Skill",
+  "name":     "@my/prime",
   "version":  "1.0.0",
   "sha256":   "...",
   "url":      "/pack/@my/pack/1.0.0/tarball"
@@ -41,7 +41,7 @@ Errors:
   409  version already published`}</code></pre>
 
   <h3><code>GET /pack/:scope</code></h3>
-  <p>List versions of a Skill.</p>
+  <p>List versions of a Prime.</p>
 <pre><code>{`Path: /pack/%40my%2Fcooking          // url-encoded "@my/cooking"
 
 Response (200):
@@ -70,7 +70,7 @@ Response (200):
 }`}</code></pre>
 
   <h3><code>GET /pack/:scope/:version/tarball</code></h3>
-  <p>Download the Skill tarball.</p>
+  <p>Download the Prime tarball.</p>
 <pre><code>{`Response (200):
   Content-Type: application/gzip
   Body: tarball bytes`}</code></pre>
@@ -102,7 +102,7 @@ Response (200):
       <tr><td>304</td><td>Not Modified (use ETag for tarballs).</td></tr>
       <tr><td>400</td><td>Schema error in manifest or query.</td></tr>
       <tr><td>401</td><td>Bad / missing auth.</td></tr>
-      <tr><td>404</td><td>Skill or version not found.</td></tr>
+      <tr><td>404</td><td>Prime or version not found.</td></tr>
       <tr><td>409</td><td>Version conflict on publish.</td></tr>
       <tr><td>500</td><td>Server error.</td></tr>
     </tbody>

@@ -1,6 +1,9 @@
 ---
 import '../styles/global.css';
 import '../styles/mermaid.css';
+import { totals } from '../lib/corpus';
+const _t = totals();
+const _atomsFmt = new Intl.NumberFormat('en-US').format(_t.atoms);
 
 interface Props {
   title: string;
@@ -245,7 +248,7 @@ const prefix = (p: string) => (isZh ? `/zh${p}` : p);
       </div>
       <div class="gh-footer-bottom">
         <span>© 2026 Skill Wiki contributors. Apache-2.0.</span>
-        <span>{isZh ? '语料 v0.1.0 · 980 atoms 编译' : 'v0.1.0 · 980 atoms compiled'}</span>
+        <span>{isZh ? `语料 v0.1.0 · ${_atomsFmt} atoms 编译` : `v0.1.0 · ${_atomsFmt} atoms compiled`}</span>
       </div>
     </footer>
 
@@ -261,6 +264,76 @@ const prefix = (p: string) => (isZh ? `/zh${p}` : p);
           document.documentElement.dataset.theme = next;
           try { localStorage.setItem('sw-theme', next); } catch {}
         });
+      })();
+    </script>
+
+    <script>
+      // Copy-button injection — adds a hover-visible "Copy" button to every
+      // <pre> code block on the page. Idempotent (runs once per page).
+      // Skips Mermaid wrappers (which render to <div>, not <pre>, but we
+      // belt-and-suspenders the selector anyway).
+      (function () {
+        const w = window as unknown as { __copyBtnInit?: boolean };
+        if (w.__copyBtnInit) return;
+        w.__copyBtnInit = true;
+
+        const isZh = document.documentElement.lang.startsWith('zh');
+        const labels = isZh
+          ? { copy: '复制', copied: '已复制' }
+          : { copy: 'Copy', copied: 'Copied' };
+
+        function attach() {
+          const blocks = document.querySelectorAll<HTMLPreElement>(
+            'pre:not(.mermaid):not([data-mermaid-src])'
+          );
+          blocks.forEach((pre) => {
+            // Don't double-attach if the script re-runs after a partial nav.
+            if (pre.querySelector(':scope > .copy-btn')) return;
+            // Skip pre elements inside a mermaid wrapper (defensive — none
+            // exist today, but cheap to check).
+            if (pre.closest('.mermaid-wrapper')) return;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'copy-btn';
+            btn.setAttribute('aria-label', labels.copy);
+            btn.textContent = labels.copy;
+
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const text = pre.textContent ?? '';
+              try {
+                await navigator.clipboard.writeText(text);
+              } catch {
+                // Older browsers / file:// — fall back to a hidden textarea.
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'absolute';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch {}
+                document.body.removeChild(ta);
+              }
+              btn.textContent = labels.copied;
+              btn.classList.add('copied');
+              window.setTimeout(() => {
+                btn.textContent = labels.copy;
+                btn.classList.remove('copied');
+              }, 1200);
+            });
+
+            pre.appendChild(btn);
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', attach, { once: true });
+        } else {
+          attach();
+        }
       })();
     </script>
   </body>

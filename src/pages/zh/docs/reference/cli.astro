@@ -1,41 +1,41 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="CLI 参考" slug="reference/cli" lang="zh" description="所有 prime 命令、选项、退出码。">
+<DocsLayout title="CLI 参考" slug="reference/cli" lang="zh" description="所有 prime 命令、选项和退出码。">
   <h1>CLI 参考</h1>
   <p style="color: var(--fg-muted);">
-    <code>prime</code> 二进制覆盖编写、编译、分发。源代码：<code>packages/cli/src/index.ts</code>。
+    <code>prime</code> 这个二进制覆盖编写、编译和分发三件事。源码在 <code>packages/cli/src/index.ts</code>。
   </p>
 
   <h2>命令</h2>
   <table>
     <thead><tr><th>命令</th><th>参数</th><th>用途</th></tr></thead>
     <tbody>
-      <tr><td><code>init</code></td><td>—</td><td>交互式创建一个 <code>.prime</code> 文件。</td></tr>
-      <tr><td><code>compile</code></td><td><code>&lt;file&gt; [--deep]</code></td><td>编译 <code>.prime</code> → 原子目录 + index。</td></tr>
-      <tr><td><code>check</code></td><td><code>&lt;file&gt; | --registry</code></td><td>只校验，不发射。</td></tr>
+      <tr><td><code>init</code></td><td>—</td><td>交互式新建一份 <code>.prime</code> 文件。</td></tr>
+      <tr><td><code>compile</code></td><td><code>&lt;file&gt; [--deep]</code></td><td>把 <code>.prime</code> 编译成原子目录加 index。</td></tr>
+      <tr><td><code>check</code></td><td><code>&lt;file&gt; | --registry</code></td><td>只校验，不写产物。</td></tr>
       <tr><td><code>test</code></td><td><code>&lt;file&gt;</code></td><td>跑评估准则测试。</td></tr>
-      <tr><td><code>graph</code></td><td><code>&lt;file&gt; [--format ascii\|svg]</code></td><td>可视化关系图。</td></tr>
-      <tr><td><code>decompose</code></td><td><code>&lt;SKILL.md&gt;</code></td><td>AI 辅助：把 skill 拆成原子。</td></tr>
-      <tr><td><code>compose</code></td><td><code>--name &lt;name&gt;</code></td><td>把原子组合成新 SKILL.md。</td></tr>
-      <tr><td><code>list</code></td><td><code>[--scope @s] [--dir]</code></td><td>列出本地 registry 的原子。</td></tr>
-      <tr><td><code>show</code></td><td><code>&lt;@scope/name&gt;</code></td><td>打印原子细节 + 边。</td></tr>
+      <tr><td><code>graph</code></td><td><code>&lt;file&gt; [--format ascii\|svg]</code></td><td>把关系图画出来。</td></tr>
+      <tr><td><code>decompose</code></td><td><code>&lt;SKILL.md&gt;</code></td><td>AI 辅助：把 Skill 拆成原子。</td></tr>
+      <tr><td><code>compose</code></td><td><code>--name &lt;name&gt;</code></td><td>把原子拼成一份新的 SKILL.md。</td></tr>
+      <tr><td><code>list</code></td><td><code>[--scope @s] [--dir]</code></td><td>列出本地 registry 里的原子。</td></tr>
+      <tr><td><code>show</code></td><td><code>&lt;@scope/name&gt;</code></td><td>打印原子详情和边。</td></tr>
       <tr><td><code>deps</code></td><td><code>&lt;@scope/name&gt;</code></td><td>遍历依赖树。</td></tr>
-      <tr><td><code>install</code></td><td><code>[name] [--remote]</code></td><td>从 registry 安装 Skill。</td></tr>
-      <tr><td><code>publish</code></td><td><code>[--remote] [--token]</code></td><td>发布当前 Skill。</td></tr>
-      <tr><td><code>search</code></td><td><code>&lt;query&gt; [--remote]</code></td><td>搜 registry。</td></tr>
-      <tr><td><code>info</code></td><td><code>&lt;name&gt;</code></td><td>查看 Skill 详情。</td></tr>
-      <tr><td><code>ls</code></td><td><code>[--dir]</code></td><td>列出已安装的 Skill。</td></tr>
+      <tr><td><code>install</code></td><td><code>[name] [--remote]</code></td><td>从 registry 装 Prime。</td></tr>
+      <tr><td><code>publish</code></td><td><code>[--remote] [--token]</code></td><td>发布当前 Prime。</td></tr>
+      <tr><td><code>search</code></td><td><code>&lt;query&gt; [--remote]</code></td><td>搜索 registry。</td></tr>
+      <tr><td><code>info</code></td><td><code>&lt;name&gt;</code></td><td>看某个 Prime 的详情。</td></tr>
+      <tr><td><code>ls</code></td><td><code>[--dir]</code></td><td>列出已装的 Prime。</td></tr>
     </tbody>
   </table>
 
   <h2>全局选项</h2>
   <ul>
-    <li><code>--version</code>、<code>-v</code> —— 打印版本</li>
+    <li><code>--version</code>、<code>-v</code> —— 打印版本号</li>
     <li><code>--help</code>、<code>-h</code> —— 打印用法</li>
-    <li><code>--dir &lt;path&gt;</code> —— 覆盖默认的 sources/compiled 目录</li>
-    <li><code>--remote &lt;url&gt;</code> —— registry URL（用于 publish/install/search/info）</li>
-    <li><code>--json</code> —— 机器可读输出（适用时）</li>
+    <li><code>--dir &lt;path&gt;</code> —— 覆盖默认的 sources / compiled 目录</li>
+    <li><code>--remote &lt;url&gt;</code> —— registry 地址（publish / install / search / info 用）</li>
+    <li><code>--json</code> —— 机器可读输出（在适用的命令上）</li>
   </ul>
 
   <h2>退出码</h2>
@@ -43,18 +43,18 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     <thead><tr><th>码</th><th>含义</th></tr></thead>
     <tbody>
       <tr><td>0</td><td>成功。</td></tr>
-      <tr><td>1</td><td>泛化错误（解析、IO、网络）。</td></tr>
-      <tr><td>2</td><td>校验错误（L1 / L3 暴露的诊断）。</td></tr>
-      <tr><td>3</td><td>CLI 用法错（缺必填参数、未知命令）。</td></tr>
+      <tr><td>1</td><td>一般错误（解析、IO、网络）。</td></tr>
+      <tr><td>2</td><td>校验错误（L1 / L3 抛出的诊断）。</td></tr>
+      <tr><td>3</td><td>命令用法错（缺必填参数、命令名不认识）。</td></tr>
     </tbody>
   </table>
 
   <h2>环境变量</h2>
   <ul>
-    <li><code>PRIME_DIR</code> —— 运行时 + MCP server 默认使用的编译产物目录。</li>
+    <li><code>PRIME_DIR</code> —— 运行时和 MCP server 默认读的编译产物目录。</li>
     <li><code>DEEPSEEK_API_KEY</code> —— 启用 L2 LLM 检查。</li>
-    <li><code>ANTHROPIC_API_KEY</code> —— 备选 L2 后端。</li>
-    <li><code>PRIME_REGISTRY</code> —— 没指定 <code>--remote</code> 时的默认值。</li>
+    <li><code>ANTHROPIC_API_KEY</code> —— 备选的 L2 后端。</li>
+    <li><code>PRIME_REGISTRY</code> —— 没传 <code>--remote</code> 时的默认值。</li>
   </ul>
 
   <h2>Help 输出</h2>
@@ -82,9 +82,9 @@ Registry (local):
   install <@scope/name>   Resolve atom + verify deps locally
 
 Distribution:
-  install [name]          Install pack(s) from prime.dev
+  install [name]          Install Skill(s) from prime.dev
   publish                 Publish to prime.dev
   search <query>          Search the registry
-  info <name>             View pack details
-  ls                      List installed packs (.primes/)`}</code></pre>
+  info <name>             View Skill details
+  ls                      List installed Skills (.primes/)`}</code></pre>
 </DocsLayout>

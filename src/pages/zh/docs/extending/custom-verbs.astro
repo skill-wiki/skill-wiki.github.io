@@ -4,21 +4,21 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 <DocsLayout title="自定义 verb" slug="extending/custom-verbs" lang="zh" description="加一个新 verb —— 流程跟加 kind 一样，外加一份 L3 推理钩子。">
   <h1>自定义 verb</h1>
   <p style="color: var(--fg-muted);">
-    14 个 verb 在 v1 是固定的。加一个 verb 走的流程和
+    14 个 verb 在 v1 是固定的。加一个 verb 走的流程跟
     <a href="/zh/docs/extending/custom-kinds">自定义 kind</a> 一样，多一步：L3 检查器要知道怎么处理它。
   </p>
 
-  <h2>什么时候加 verb</h2>
+  <h2>什么时候该加 verb</h2>
   <p>
-    多数领域特定的关系都能装进 14 个里（尤其是 <code>related</code> 和 <code>see-also</code>，是逃生通道）。
-    什么时候才该加？
+    多数领域里特定的关系都能塞进 14 个里（尤其 <code>related</code> 和 <code>see-also</code> 是逃生通道）。
+    新加 verb，只在两种情况下值得：
   </p>
   <ul>
-    <li>这个关系有<strong>操作语义</strong>，运行时需要响应（比如某个 verb 触发 contract 解析）。</li>
-    <li>这个关系有<strong>校验语义</strong>，L3 要查（比如 "kind X 在这个 verb 下必须指向 kind Y"）。</li>
+    <li>这条关系带<strong>操作语义</strong>，运行时要对它做出反应（比如某个 verb 触发 contract 解析）。</li>
+    <li>这条关系带<strong>校验语义</strong>，L3 要查（比如"在这个 verb 下，kind X 必须指向 kind Y"）。</li>
   </ul>
 
-  <h2>要 patch 的 5 个文件</h2>
+  <h2>要改的 5 个文件</h2>
 
   <h3>1. Verb 字面量 —— <code>packages/types/src/ast.ts</code></h3>
 <pre><code>{`export type EdgeVerb =
@@ -36,7 +36,7 @@ const EDGE_VERBS = new Set<EdgeVerb>([
 ]);`}</code></pre>
 
   <h3>3. L1 verb 形状校验 —— <code>packages/compiler/src/checker-l1.ts</code></h3>
-  <p>这条 verb 允许的源/目标 kind：</p>
+  <p>这条 verb 允许的源 / 目标 kind：</p>
 <pre><code>{`const VERB_KIND_RULES: Record<EdgeVerb, KindRule> = {
   // ...
   'measures': {
@@ -63,7 +63,7 @@ function checkMeasuresInvariants(graph: EdgeGraph): Diagnostic[] {
   return ds;
 }`}</code></pre>
 
-  <h3>5. Fixture + 测试</h3>
+  <h3>5. Fixture 加测试</h3>
 <pre><code>{`// packages/compiler/test/fixtures/measures.prime
 metric Latency {
   id: "@perf/metric-latency"
@@ -73,14 +73,14 @@ metric Latency {
 
   <h2>L3 检查器做什么</h2>
   <p>
-    新 verb 要让 L3 抓什么，由你决定。例子：
+    新 verb 要让 L3 抓什么，由你决定。几个例子：
   </p>
   <ul>
     <li><strong>基数：</strong>"每个 <code>metric</code> 至少要有一条 <code>measures</code> 边。"</li>
     <li><strong>可达性：</strong>"通过 <code>measures</code> 引用的原子，目标必须有反向边。"</li>
-    <li><strong>领域匹配：</strong>"<code>measures</code> 的源和目标必须在同一个 domain。"</li>
+    <li><strong>领域匹配：</strong>"<code>measures</code> 的源和目标必须落在同一个 domain。"</li>
   </ul>
 
   <h2>RFC 流程</h2>
-  <p>跟自定义 kind 同样的 Tier-2 RFC 流程。流程见 <a href="/zh/docs/extending/custom-kinds">自定义 kind</a>。</p>
+  <p>跟自定义 kind 同一套 Tier-2 RFC 流程。详见 <a href="/zh/docs/extending/custom-kinds">自定义 kind</a>。</p>
 </DocsLayout>

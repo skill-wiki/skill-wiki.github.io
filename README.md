@@ -34,3 +34,7 @@ bun run build   # produces dist/ — deploy anywhere
 - Not a publishing portal. Publishing happens via `prime publish --remote …`.
 - Not analytics-instrumented. Zero trackers.
 - Not a search engine. The corpus is small enough to browse.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request, and follow the [PR template](./.github/PULL_REQUEST_TEMPLATE.md). For questions and ideas, use [Discussions](https://github.com/skill-wiki/skill-wiki.github.io/discussions); for defects or proposals, use [Issues](https://github.com/skill-wiki/skill-wiki.github.io/issues).

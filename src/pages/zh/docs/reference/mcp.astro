@@ -1,14 +1,14 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="MCP 工具 schema" slug="reference/mcp" lang="zh" description="5 个核心 MCP 工具的完整输入 / 输出 JSON Schema。">
+<DocsLayout title="MCP 工具 schema" slug="reference/mcp" lang="zh" description="5 个核心 MCP 工具完整的输入输出 JSON Schema。">
   <h1>MCP 工具 schema</h1>
   <p style="color: var(--fg-muted);">
     <code>@prime-lang/mcp-server-core</code> 暴露的 5 个工具。schema 在启动时通过 MCP SDK 注册。
   </p>
 
   <h2><code>prime_query</code></h2>
-  <p>按 intent + 预算搜排序后的原子。</p>
+  <p>按 intent 加预算搜排序后的原子。</p>
 <pre><code>{`Input:
 {
   "scope":          string,           // optional, e.g. "focus:cta"
@@ -34,7 +34,7 @@ Output:
 }`}</code></pre>
 
   <h2><code>prime_resolve</code></h2>
-  <p>brief → 排序后的原子（内部走 L1 + L2 + L3）。</p>
+  <p>brief 转排序后的原子（内部把 L1、L2、L3 走完）。</p>
 <pre><code>{`Input:
 {
   "brief":      string,                // free-text task
@@ -54,7 +54,7 @@ Output:
 }`}</code></pre>
 
   <h2><code>prime_intent</code></h2>
-  <p>brief → IntentObject（只跑 L1，对测试分类器有用）。</p>
+  <p>brief 转 IntentObject（只走 L1，做分类器测试时有用）。</p>
 <pre><code>{`Input:
 {
   "brief": string,
@@ -64,7 +64,7 @@ Output:
 Output: IntentObject  // domain-defined shape (per domain.yaml)`}</code></pre>
 
   <h2><code>prime_validate</code></h2>
-  <p>生成产物 + 原子集合 → 裁决（L5）。</p>
+  <p>生成产物加原子集合，给出裁决（L5）。</p>
 <pre><code>{`Input:
 {
   "artifact":  string,                  // generated output
@@ -86,7 +86,7 @@ Output:
 }`}</code></pre>
 
   <h2><code>prime_compile</code></h2>
-  <p>临时编译一个 <code>.prime</code> 源。测试用。</p>
+  <p>临时编译一份 <code>.prime</code> 源码，调试用。</p>
 <pre><code>{`Input:
 {
   "source": string,                     // .prime file content
@@ -128,7 +128,7 @@ type Diagnostic = {
 
   <h2>版本</h2>
   <p>
-    工具 schema 是协议表面的一部分。破坏性变更走 <code>@prime-lang/mcp-server-core</code> 的主版本；
-    非破坏性新增走 minor。
+    工具 schema 是协议表面的一部分。破坏性改动走 <code>@prime-lang/mcp-server-core</code> 的主版本号；
+    非破坏性新增走次版本号。
   </p>
 </DocsLayout>

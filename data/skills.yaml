@@ -81,3 +81,33 @@ skills:
     homepage: https://github.com/skill-wiki/skill-corpus-security
     maintainers: [skill-wiki]
     tags: [security, owasp, web, backend]
+
+  - slug: web-style
+    repo: skill-wiki/skill-corpus-web-style
+    compiledSubdir: compiled
+    description: |
+      Airbnb JavaScript + Google styleguides distilled into typed atoms —
+      naming, functions, modules, anti-patterns. Starter set.
+    homepage: https://github.com/skill-wiki/skill-corpus-web-style
+    maintainers: [skill-wiki]
+    tags: [web, javascript, style, airbnb, google]
+
+  - slug: android-compose
+    repo: skill-wiki/skill-corpus-android-compose
+    compiledSubdir: compiled
+    description: |
+      Jetpack Compose API guidelines + Material 3 design tokens as typed
+      atoms — composable rules, state hoisting, accessibility, motion.
+    homepage: https://github.com/skill-wiki/skill-corpus-android-compose
+    maintainers: [skill-wiki]
+    tags: [android, compose, material3, mobile]
+
+  - slug: ios-swift
+    repo: skill-wiki/skill-corpus-ios-swift
+    compiledSubdir: compiled
+    description: |
+      Swift API Design Guidelines + Google Swift style as typed atoms —
+      naming, protocols, optionals, concurrency.
+    homepage: https://github.com/skill-wiki/skill-corpus-ios-swift
+    maintainers: [skill-wiki]
+    tags: [ios, swift, mobile, api-design]

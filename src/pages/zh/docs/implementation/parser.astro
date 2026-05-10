@@ -2,16 +2,16 @@
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 import Mermaid from '../../../../components/Mermaid.astro';
 ---
-<DocsLayout title="Parser & AST" slug="implementation/parser" lang="zh" description="把 .prime 源码变成带类型节点的 lexer + parser + AST。">
+<DocsLayout title="Parser & AST" slug="implementation/parser" lang="zh" description="把 .prime 源码变成带类型节点的 lexer、parser 与 AST。">
   <h1>Parser & AST</h1>
   <p style="color: var(--fg-muted);">
-    <code>@prime-lang/parser</code> 是手写的递归下降 parser。约 1.5k 行代码、125 个测试、
-    除 <code>typescript</code> 外零依赖。它产出一个带类型的 AST，工具链其它部分都吃这个。
+    <code>@prime-lang/parser</code> 是手写的递归下降 parser。约 1.5k 行代码、125 个测试，
+    除 <code>typescript</code> 以外零依赖。它产出一个带类型的 AST，工具链其它部分都吃这个。
   </p>
 
   <h2>Lexer</h2>
   <p>
-    Lexer 读 <code>.prime</code> 源，吐出一串 token。token 包括：关键字（每个 kind 一个）、
+    Lexer 读 <code>.prime</code> 源码，吐出一串 token。token 的种类有：关键字（每种 kind 一个）、
     标点（<code>{`{`} {`}`} [ ] : ,</code>）、标识符（<code>@scope/name</code>）、
     字符串、数字和注释。
   </p>
@@ -55,7 +55,7 @@ export type ValueNode =
 `}</code></pre>
 
   <h2>递归下降</h2>
-  <p>parser 有 6 个入口；其余就是直白的下降：</p>
+  <p>parser 有 6 个入口，剩下都是直白的下降：</p>
 
   <Mermaid>{`graph LR
     PF["parsePrimeFile"]
@@ -82,7 +82,7 @@ export type ValueNode =
 
   <h2>错误报告</h2>
   <p>
-    解析错误带行号 + 一段<em>位置区间</em>，把出错的文本高亮出来：
+    解析报错带行号，加上一段<em>位置区间</em>，把出错的文本高亮出来：
   </p>
 
 <pre><code>{`Error: expected ',' or '}' before end of object body
@@ -97,15 +97,15 @@ export type ValueNode =
 
   <h2>为什么手写</h2>
   <p>
-    parser 生成器（Tree-sitter、ANTLR、peg.js）都会引入运行时依赖，错误信息也含混。
+    parser 生成器（Tree-sitter、ANTLR、peg.js）都会拖一份运行时依赖，错误信息也含混。
     Skill Wiki 的语法足够小（28 个关键字、14 个 verb 字段名、约 6 类标点），
-    递归下降比生成版本更短 —— 错误信息也更对作者友好。
+    递归下降比生成版本反而更短 —— 错误信息也更对作者友好。
   </p>
 
   <h2>性能</h2>
   <p>
-    解析 frontend-design Skill（898 个原子，约 3 MB 源码），M1 上约 140 ms。
-    每个原子约 150 µs。L1 检查器再加约 100 ms。即便是当前 corpus 的 10 倍，
-    编译时间也不是瓶颈。
+    解析 frontend-design Prime（898 个原子，源码约 3 MB），M1 上约 140 ms，
+    每个原子约 150 µs。L1 检查器再加约 100 ms。
+    哪怕语料涨到现在的 10 倍，编译时间也不是瓶颈。
   </p>
 </DocsLayout>

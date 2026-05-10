@@ -1,15 +1,14 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="发布与安装" slug="usage/publish-install" lang="zh" description="prime publish / prime install 的闭环 —— Skill tarball、semver、registry。">
+<DocsLayout title="发布与安装" slug="usage/publish-install" lang="zh" description="prime publish 与 prime install 的闭环：Skill tarball、semver、registry。">
   <h1>发布与安装</h1>
   <p style="color: var(--fg-muted);">
-    分发只走 HTTP —— 任何实现了
-    <a href="/zh/docs/spec/registry">registry 契约</a>的服务都是 registry。
-    参考实现就一个文件。
+    分发只走 HTTP。任何实现了
+    <a href="/zh/docs/spec/registry">registry 契约</a>的服务都算 registry，参考实现只有一个文件。
   </p>
 
-  <h2>起一个 registry</h2>
+  <h2>跑起一个 registry</h2>
 <pre><code>{`# Run the reference registry on port 4000 (SQLite-backed pack store).
 bun run packages/registry/src/index.ts --port 4000
 
@@ -18,8 +17,8 @@ docker run -p 4000:4000 \\
   -v $(pwd)/registry-data:/data \\
   ghcr.io/skill-wiki/registry:0.1.0`}</code></pre>
 
-  <h2>写一份 Skill manifest</h2>
-  <p>在 Skill 根目录放一份 <code>pack.yaml</code>：</p>
+  <h2>写 Skill manifest</h2>
+  <p>在 Skill 根目录加一份 <code>pack.yaml</code>：</p>
 
 <pre><code>{`name: "@my/cooking"
 version: "1.0.0"
@@ -30,7 +29,35 @@ prime-version: "1.0"
 sources: "primes/sources"
 compiled: "primes/compiled"`}</code></pre>
 
-  <h2>发布</h2>
+  <h2>一行命令发布到 marketplace</h2>
+  <p>
+    想把自己的 Skill 挂到公开的
+    <a href="https://skill-wiki.github.io">skill-wiki.github.io</a> marketplace 上，不需要手动 fork、也不用改 YAML：
+  </p>
+
+<pre><code>{`# 在你的 corpus 仓库根目录执行（需要有 pack.yaml + compiled/）
+prime publish-marketplace \\
+  --description "X 领域的 typed atom 集合" \\
+  --tags "x,y,z"
+
+# 只想看一眼会写出什么 YAML、不真的 fork 和 push：
+prime publish-marketplace --dry-run --description "..." --tags "..."`}</code></pre>
+
+  <p>它做的事：</p>
+  <ol>
+    <li>读 <code>pack.yaml</code>，拿到 name / version / compiled 子目录。</li>
+    <li>从 <code>git remote get-url origin</code> 推断 GitHub 仓库地址。</li>
+    <li>用 <code>gh repo fork</code> 幂等 fork <code>skill-wiki/skill-wiki.github.io</code>。</li>
+    <li>克隆 fork、往 <code>data/skills.yaml</code> 追加一条记录、切分支、commit、push。</li>
+    <li>调 <code>gh pr create</code> 开 PR，并把 PR URL 打回终端。</li>
+  </ol>
+
+  <p>
+    前置条件：装好 <a href="https://cli.github.com">GitHub CLI</a>（<code>gh</code>）并完成
+    <code>gh auth login</code>。如果中途出错，分支已经推到你的 fork 上，可以手动开 PR 收尾。
+  </p>
+
+  <h2>发布到 registry 服务</h2>
 <pre><code>{`# Compile first (publish bundles compiled/)
 bun scripts/build-atom-dirs.ts \\
   --src primes/sources \\
@@ -55,14 +82,14 @@ prime install '@my/cooking@^1.0' --remote http://localhost:4000
 # Install everything declared in SKILL.md frontmatter
 prime install --remote http://localhost:4000`}</code></pre>
 
-  <h2>版本</h2>
+  <h2>版本管理</h2>
   <ul>
-    <li><strong>Skill semver：</strong>patch = 原子内容修改，minor = 新增原子，major = 删原子或删 verb。</li>
-    <li><strong>原子 semver：</strong>每个原子内部通过 <code>version: "x.y.z"</code> 字段独立版本。</li>
-    <li><strong>解析：</strong>取匹配范围的最新版本；锁文件是 <code>.primes/lock.yaml</code>。</li>
+    <li><strong>Skill 层 semver：</strong>patch 表示改原子内容，minor 表示新增原子，major 表示删原子或删 <code>verb</code>。</li>
+    <li><strong>原子层 semver：</strong>每个原子用自己的 <code>version: "x.y.z"</code> 字段单独管理版本。</li>
+    <li><strong>版本解析：</strong>取匹配范围内的最新版本，锁文件落在 <code>.primes/lock.yaml</code>。</li>
   </ul>
 
-  <h2>验证安装</h2>
+  <h2>验证安装结果</h2>
 <pre><code>{`prime ls --dir .primes
 # → @my/cooking @ 1.0.0
 
@@ -70,7 +97,7 @@ prime list --dir .primes/@my/cooking/primes/compiled
 # → ... atoms ...`}</code></pre>
 
   <h2>闭环测试</h2>
-  <p>完整闭环在 <code>scripts/test-registry-roundtrip.sh</code>：</p>
+  <p>完整流程封装在 <code>scripts/test-registry-roundtrip.sh</code>：</p>
 
 <pre><code>{`bash scripts/test-registry-roundtrip.sh
 # 1. Boot a clean registry
@@ -79,10 +106,10 @@ prime list --dir .primes/@my/cooking/primes/compiled
 # 4. Diff compiled artifacts
 # 5. Tear down`}</code></pre>
 
-  <h2>认证</h2>
+  <h2>鉴权</h2>
   <p>
-    参考 registry 用 bearer token 鉴权 <code>POST /publish</code>；读操作公开。
-    通过 registry CLI 签发 token：
+    参考 registry 对 <code>POST /publish</code> 走 bearer token 鉴权，读操作完全公开。
+    用 registry CLI 即可签发 token：
   </p>
 
 <pre><code>{`bun run packages/registry/src/cli.ts token create --org skill-wiki
@@ -91,10 +118,10 @@ prime list --dir .primes/@my/cooking/primes/compiled
 # Use it
 prime publish --remote http://localhost:4000 --token pri_token_...`}</code></pre>
 
-  <h2>托管选项</h2>
+  <h2>托管方式</h2>
   <ul>
-    <li><strong>自托管：</strong>在任何能跑 Node 的虚机上跑参考 registry，约 50 MB 内存。</li>
-    <li><strong>Cloudflare Workers：</strong>参考实现可平滑移植，pack 存储用 R2。</li>
-    <li><strong>静态 + CDN：</strong>只读分发，公开的 S3 桶 + 一份 manifest 索引就够。</li>
+    <li><strong>自托管：</strong>参考 registry 可以直接跑在任何支持 Node 的虚机上，内存占用约 50 MB。</li>
+    <li><strong>Cloudflare Workers：</strong>参考实现可以平滑迁移过去，Skill 存储改用 R2 即可。</li>
+    <li><strong>静态文件 + CDN：</strong>只读分发场景下，一个公开的 S3 桶外加一份 manifest 索引就够用。</li>
   </ul>
 </DocsLayout>

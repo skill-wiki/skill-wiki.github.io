@@ -1,11 +1,11 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Chunker" slug="implementation/chunker" lang="zh" description="原子如何变成 summary.md、core.md 和 full.md。">
+<DocsLayout title="Chunker" slug="implementation/chunker" lang="zh" description="原子怎么变成 summary.md、core.md 和 full.md。">
   <h1>Chunker</h1>
   <p style="color: var(--fg-muted);">
     Chunker 把解析过的 <code>AtomDeclaration</code> 切成三份 Markdown 投影。
-    切法<em>按 kind 走</em> —— 每种 kind 都有自己的规则，决定 summary、core、full 各装什么。
+    切法<em>按 kind 走</em> —— 每种 kind 都有自己的规矩，决定 summary、core、full 各装什么。
   </p>
 
   <h2>函数签名</h2>
@@ -26,9 +26,9 @@ export function chunk(atom: AtomDeclaration): ChunkLevels {
 
   <h2>每种 kind 的 splitter</h2>
   <p>
-    每个 kind 都有一个 splitter 函数。chunker 按 <code>atom.kind</code> 派发。
+    每种 kind 配一个 splitter 函数。chunker 按 <code>atom.kind</code> 派发。
     新 kind（见 <a href="/zh/docs/extending/custom-kinds">自定义 kind</a>）通过
-    <code>SPLITTERS</code> map 注册自己的 splitter。
+    <code>SPLITTERS</code> 这张表注册自己的 splitter。
   </p>
 
 <pre><code>{`const SPLITTERS: Record<AtomKind, Splitter> = {
@@ -70,15 +70,15 @@ function ruleSplitter(atom: AtomDeclaration): ChunkLevels {
 
   <h2>Token 计数</h2>
   <p>
-    Token 目标是近似的；编译期 chunker 用一个快速的字符级启发式（约 3.5 字符/token），
-    不调 LLM tokenizer。<code>_index.xml</code> 里 <code>&lt;atom&gt;</code> 上的
-    <code>tokens</code> 属性是发射后 full 投影的实际长度。
+    Token 目标是粗估值。编译期 chunker 用一个快速的字符级启发式（约 3.5 字符一个 token），
+    不调 LLM 的 tokenizer。<code>_index.xml</code> 里 <code>&lt;atom&gt;</code> 上的
+    <code>tokens</code> 属性才是发射后 full 投影的实际长度。
   </p>
 
   <h2>从一层到下一层丢什么</h2>
   <table>
     <thead>
-      <tr><th>从 → 到</th><th>丢弃</th></tr>
+      <tr><th>从 → 到</th><th>丢掉</th></tr>
     </thead>
     <tbody>
       <tr><td>full → core</td><td>sources、counter-example、例外情形、软性 verb 关联</td></tr>
@@ -87,8 +87,8 @@ function ruleSplitter(atom: AtomDeclaration): ChunkLevels {
   </table>
 
   <p>
-    原则：原子在<em>每一层都应有用</em>。一份只剩名字的 summary 是错的 —— agent 需要 claim。
-    一份只有名字 + claim 的 full 也是错的 —— agent 需要 body。
+    原则只有一条：原子在<em>每一层都得有用</em>。一份只剩名字的 summary 是错的 —— agent 要的是 claim。
+    一份只有名字加 claim 的 full 同样是错的 —— agent 要的是 body。
   </p>
 
   <h2>输出文件</h2>

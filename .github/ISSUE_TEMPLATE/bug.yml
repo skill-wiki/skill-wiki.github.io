@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a defect on the Skill Wiki website.
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. The more reproducible the report, the faster the fix.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the defect.
+      placeholder: e.g. The /browse page renders 0 atoms after a fresh build.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      render: shell
+      placeholder: |
+        $ bun install
+        $ bun run build
+        $ open dist/browse/index.html
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: e.g. macOS 15.1, Bun 1.3.12, Chrome 138
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: 0.1.0 or commit hash
