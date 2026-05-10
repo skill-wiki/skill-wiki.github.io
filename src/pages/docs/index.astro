@@ -1,71 +1,80 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Skill Wiki Documentation" slug="" description="The Skill Wiki documentation hub — protocol, architecture, usage, and extension guides.">
+<DocsLayout title="Skill Wiki Documentation" slug="" description="Skill Wiki turns SKILL.md into a typed wiki of atoms — addressable, edge-linked, and retrieved on demand. Start here.">
+  <p class="docs-eyebrow" style="text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--t-xs); color: var(--fg-muted); margin-bottom: 8px;">Documentation</p>
   <h1>Skill Wiki documentation</h1>
   <p style="font-size: var(--t-md); color: var(--fg-muted); max-width: 70ch;">
-    Skill Wiki is a protocol for AI knowledge: <strong>typed atoms with a declared
-    edge graph, retrieved on demand</strong>. This site documents the protocol,
-    explains why it exists, and walks through the v0.1.0 reference implementation.
+    Skill Wiki turns a skill from one bulky <code>SKILL.md</code> blob into a
+    <strong>typed wiki of atoms</strong> — each atom addressable, linked into a
+    declared edge graph, and retrieved on demand. This page is a map of how the
+    docs are organised; the rest is in the sidebar.
   </p>
 
+  <h2>The mental model</h2>
+  <p>Three ideas carry the whole protocol. Once they click, every other page in this site is a footnote.</p>
+
+  <h3>Typed atoms</h3>
   <p>
-    If you came here from the marketing landing, this is where the actual content
-    lives. The site is organised in four kinds of pages:
+    Every piece of knowledge is one <strong>atom</strong> — and an atom always
+    declares what kind it is: a <code>rule</code>, a <code>pattern</code>, a
+    <code>value</code>, a <code>fact</code>, a <code>tradeoff</code>, and so on.
+    The spec defines 28 kinds. Kinds aren't decoration; they tell the runtime
+    what fields to expect, how to render the atom at each projection level, and
+    which retrieval strategies make sense. Free prose has no kind, and that is
+    why <code>SKILL.md</code> can't be queried — Skill Wiki replaces prose with
+    types.
   </p>
 
-  <table>
-    <thead>
-      <tr><th>Section</th><th>For</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><strong><a href="/docs/spec/overview">Specification</a></strong></td><td>The protocol surface — kinds, verbs, projection, contracts, registry. The <em>canonical</em> reference.</td></tr>
-      <tr><td><strong><a href="/docs/background/problem">Background</a></strong></td><td>Why the protocol has the shape it has. The bulk-loading problem, the existence/content split, prior art.</td></tr>
-      <tr><td><strong><a href="/docs/architecture/pipeline">Architecture</a></strong></td><td>How the v0.1.0 implementation is designed — pipeline, compile-time, runtime, domain plugin.</td></tr>
-      <tr><td><strong><a href="/docs/implementation/parser">Implementation</a></strong></td><td>How each component is built — parser, checkers, chunker, runtime, MCP server.</td></tr>
-      <tr><td><strong><a href="/docs/usage/install">Usage</a></strong></td><td>Step-by-step: install, author, compile, wire into Claude, publish.</td></tr>
-      <tr><td><strong><a href="/docs/extending/custom-kinds">Extending</a></strong></td><td>Adding a kind, a verb, a domain plugin, a domain MCP server.</td></tr>
-      <tr><td><strong><a href="/docs/reference/cli">Reference</a></strong></td><td>API surfaces — CLI flags, DSL grammar, MCP tool schemas, HTTP registry endpoints.</td></tr>
-    </tbody>
-  </table>
-
-  <h2>Status of v0.1.0</h2>
+  <h3>A declared edge graph</h3>
   <p>
-    Spec is frozen. Implementation covers ~75 % of the spec — see <a href="/docs/spec/overview#status">spec status</a>
-    and the <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/roadmap.md" rel="noopener">roadmap</a>
-    for what's next.
+    Atoms link to other atoms through <strong>14 typed verbs</strong> —
+    <code>requires</code>, <code>contradicts</code>, <code>refines</code>,
+    <code>validates-with</code>, and the rest. The graph is declared in the
+    atom files, compiled into <code>_index.xml</code>, and traversable at query
+    time. An agent doesn't search a flat document; it walks a graph from a
+    seed atom outward, pruning by verb and by intent.
   </p>
 
-  <table>
-    <thead>
-      <tr><th>Component</th><th>Package</th><th>Status</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Parser</td><td><code>@skill-wiki/parser</code></td><td><strong>Stable</strong> · 125 tests</td></tr>
-      <tr><td>Compiler L1 + L3</td><td><code>@skill-wiki/compiler</code></td><td><strong>Stable</strong></td></tr>
-      <tr><td>Compiler L2 (LLM)</td><td><code>@skill-wiki/compiler</code></td><td>Opt-in · gated by <code>DEEPSEEK_API_KEY</code></td></tr>
-      <tr><td>Runtime</td><td><code>@skill-wiki/runtime</code></td><td><strong>Stable</strong></td></tr>
-      <tr><td>Generic MCP server</td><td><code>@skill-wiki/mcp-server-core</code></td><td><strong>Stable</strong> · 5 tools</td></tr>
-      <tr><td>HTTP registry</td><td><code>@skill-wiki/registry</code></td><td><strong>Stable</strong> · publish/install round-trip</td></tr>
-      <tr><td>CLI</td><td><code>@skill-wiki/cli</code></td><td><strong>Stable</strong></td></tr>
-      <tr><td>Lifecycle / <code>deprecated</code> warnings</td><td>—</td><td>v0.2 · partial</td></tr>
-      <tr><td>Type expression AST</td><td>—</td><td>v0.2 · partial</td></tr>
-    </tbody>
-  </table>
+  <h3>Lazy projection</h3>
+  <p>
+    A skill ships up-front as a <strong>~3 KB index</strong> — the names,
+    kinds, and edges of every atom, no bodies. When the agent's brief actually
+    calls for an atom, the runtime streams in one of three projections:
+    <code>summary</code> (~30 tokens), <code>core</code> (~150), or
+    <code>full</code> (~380). The agent pays for what it reads, not for what
+    the corpus contains.
+  </p>
 
-  <h2>Quick links</h2>
+  <h2>Why this exists</h2>
+  <p>
+    The default way to give an agent a skill is to dump a <code>SKILL.md</code>
+    into context. It works for a thousand tokens; it falls apart at ten
+    thousand. The blob can't be queried, can't declare its own structure, and
+    blows past the budget long before the agent has read anything that matters.
+    Skill Wiki is an answer: keep skills as wikis of typed, linked atoms, ship
+    only the index, and let the runtime fetch what the task needs.
+  </p>
+
+  <h2>Where to go next</h2>
   <ul>
-    <li><a href="/docs/usage/install">Install in 30 seconds</a></li>
-    <li><a href="/docs/spec/atoms">The 28 atom kinds</a></li>
-    <li><a href="/docs/spec/edges">The 14 edge verbs</a></li>
-    <li><a href="/docs/architecture/pipeline">5-layer pipeline</a></li>
-    <li><a href="/docs/extending/custom-kinds">Adding a custom kind</a></li>
+    <li><strong><a href="/docs/spec/overview">Spec</a></strong> — the protocol itself: kinds, verbs, projection, contracts, registry.</li>
+    <li><strong><a href="/docs/background/problem">Background</a></strong> — why the design is what it is, and the prior art it borrows from.</li>
+    <li><strong><a href="/docs/architecture/pipeline">Architecture</a></strong> — how the v0.1.0 reference implementation is built, layer by layer.</li>
+    <li><strong><a href="/docs/usage/install">Usage</a></strong> — install, write your first atom, compile, hook into Claude.</li>
+    <li><strong><a href="/docs/extending/custom-kinds">Extending</a></strong> — add your own kind, verb, or domain plugin.</li>
+    <li><strong><a href="/docs/reference/cli">Reference</a></strong> — CLI, DSL, MCP tool schemas, HTTP registry endpoints.</li>
   </ul>
+
+  <p style="color: var(--fg-muted);">
+    Want to know what's actually shipped today and what's planned? See the
+    <a href="/docs/community/roadmap">roadmap</a>.
+  </p>
 
   <h2>Conventions</h2>
   <p>Throughout these docs:</p>
   <ul>
-    <li><strong>Prime</strong> — public-facing name for a corpus (a self-contained <code>@scope</code> of typed atoms).</li>
+    <li><strong>Prime</strong> — the underlying protocol. A <em>Prime</em> is a self-contained <code>@scope</code> of typed atoms — what gets published and installed.</li>
     <li><strong>Atom</strong> — one typed unit of knowledge. Has a kind, a domain, an id, projection levels, and edges.</li>
     <li><strong>Edge</strong> — a typed relationship between two atoms. 14 verbs in v1.</li>
     <li><strong>Projection</strong> — one of three rendered Markdown views: <code>summary</code> (~30 tok), <code>core</code> (~150 tok), <code>full</code> (~380 tok).</li>

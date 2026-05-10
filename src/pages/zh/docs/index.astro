@@ -1,68 +1,74 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Skill Wiki 文档" slug="" lang="zh" description="Skill Wiki 的文档中心 —— 协议、架构、用法与拓展指南。">
+<DocsLayout title="Skill Wiki 文档" slug="" lang="zh" description="Skill Wiki 把一份 SKILL.md 拆成带类型的原子 wiki —— 可寻址、按边相连、按需取用。从这里开始。">
+  <p class="docs-eyebrow" style="text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--t-xs); color: var(--fg-muted); margin-bottom: 8px;">文档</p>
   <h1>Skill Wiki 文档</h1>
   <p style="font-size: var(--t-md); color: var(--fg-muted); max-width: 70ch;">
-    Skill Wiki 是一套面向 AI 知识的协议：<strong>带类型的原子，配上声明式的边图，按需取用</strong>。
-    本站记录协议本身，解释它为何长这样，并带你走完 v0.1.0 参考实现。
+    Skill Wiki 把一项 skill 从整块 <code>SKILL.md</code> 改写成一座
+    <strong>带类型的原子 wiki</strong> —— 每个原子可寻址、按边相连、按需取用。
+    这一页只做一件事：告诉你文档怎么组织，剩下的内容在侧边栏。
   </p>
 
+  <h2>三个核心概念</h2>
+  <p>整套协议立在三个想法上。这三个想法捏顺了，后面所有页面都只是注脚。</p>
+
+  <h3>带类型的原子</h3>
   <p>
-    如果你是从首页过来的，那真正的内容都在这里。文档分四类页面：
+    每一条知识都是一个<strong>原子</strong>，而且每个原子必须挑明自己是哪种类型 ——
+    一条 <code>rule</code>、一种 <code>pattern</code>、一个 <code>value</code>、一项
+    <code>fact</code>、一处 <code>tradeoff</code>……规范里一共定义了 28 种 kind。
+    类型不是装饰：它告诉运行时这个原子有哪些字段、各档投影该露出哪些信息、检索该走哪条路径。
+    散文式的内容没有类型，这也是 <code>SKILL.md</code> 没法被查询的根本原因 ——
+    Skill Wiki 把散文换成了类型。
   </p>
 
-  <table>
-    <thead>
-      <tr><th>章节</th><th>读者</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><strong><a href="/zh/docs/spec/overview">规范</a></strong></td><td>协议本身 —— kinds、verbs、projection、contracts、registry。<em>权威</em>参考。</td></tr>
-      <tr><td><strong><a href="/zh/docs/background/problem">背景</a></strong></td><td>协议为什么长这样：批量加载的代价、存在/内容拆分、prior art。</td></tr>
-      <tr><td><strong><a href="/zh/docs/architecture/pipeline">架构</a></strong></td><td>v0.1.0 实现是怎么搭的：流水线、编译期、运行时、领域插件。</td></tr>
-      <tr><td><strong><a href="/zh/docs/implementation/parser">实现</a></strong></td><td>每个组件的内部细节：parser、checkers、chunker、runtime、MCP server。</td></tr>
-      <tr><td><strong><a href="/zh/docs/usage/install">用法</a></strong></td><td>分步指南：安装、写第一个原子、编译、接 Claude、发布。</td></tr>
-      <tr><td><strong><a href="/zh/docs/extending/custom-kinds">拓展</a></strong></td><td>加新的 kind、新的 verb、领域插件、领域 MCP server。</td></tr>
-      <tr><td><strong><a href="/zh/docs/reference/cli">参考</a></strong></td><td>各种 API 表面：CLI 选项、DSL 文法、MCP 工具 schema、HTTP registry 端点。</td></tr>
-    </tbody>
-  </table>
-
-  <h2>v0.1.0 状态</h2>
+  <h3>声明式的边图</h3>
   <p>
-    规范已冻结。实现覆盖了规范约 75% —— 详见 <a href="/zh/docs/spec/overview#status">规范状态</a>
-    与 <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/roadmap.md" rel="noopener">roadmap</a>。
+    原子之间用 <strong>14 个带类型的动词</strong>串起来 ——
+    <code>requires</code>、<code>contradicts</code>、<code>refines</code>、
+    <code>validates-with</code> 等等。这些边写在原子文件里，编译进
+    <code>_index.xml</code>，查询时可以沿着图遍历。Agent 拿到的不是一块铺平的文档，
+    而是一张图：从一个种子原子出发往外走，按 verb 与 intent 沿途裁枝。
   </p>
 
-  <table>
-    <thead>
-      <tr><th>组件</th><th>包名</th><th>状态</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Parser</td><td><code>@skill-wiki/parser</code></td><td><strong>稳定</strong> · 125 个测试</td></tr>
-      <tr><td>Compiler L1 + L3</td><td><code>@skill-wiki/compiler</code></td><td><strong>稳定</strong></td></tr>
-      <tr><td>Compiler L2 (LLM)</td><td><code>@skill-wiki/compiler</code></td><td>可选 · 需要 <code>DEEPSEEK_API_KEY</code></td></tr>
-      <tr><td>Runtime</td><td><code>@skill-wiki/runtime</code></td><td><strong>稳定</strong></td></tr>
-      <tr><td>通用 MCP server</td><td><code>@skill-wiki/mcp-server-core</code></td><td><strong>稳定</strong> · 5 个工具</td></tr>
-      <tr><td>HTTP registry</td><td><code>@skill-wiki/registry</code></td><td><strong>稳定</strong> · publish/install 闭环</td></tr>
-      <tr><td>CLI</td><td><code>@skill-wiki/cli</code></td><td><strong>稳定</strong></td></tr>
-      <tr><td>Lifecycle / <code>deprecated</code> 警告</td><td>—</td><td>v0.2 · 部分实现</td></tr>
-      <tr><td>类型表达式 AST</td><td>—</td><td>v0.2 · 部分实现</td></tr>
-    </tbody>
-  </table>
+  <h3>惰性投影</h3>
+  <p>
+    一份 skill 启动时只塞给 agent 一份<strong>约 3 KB 的索引</strong> ——
+    每个原子的名字、类型、边都在，但正文都不在。等到任务真的需要某个原子，
+    运行时才把三档投影之一送进上下文：<code>summary</code>（约 30 token）、
+    <code>core</code>（约 150）或 <code>full</code>（约 380）。Agent 只为读到的部分付费，
+    不为整个 corpus 的体量付费。
+  </p>
 
-  <h2>快速链接</h2>
+  <h2>为什么需要它</h2>
+  <p>
+    给 agent 教一项 skill，最常见的做法就是把一整块 <code>SKILL.md</code> 灌进上下文。
+    内容只有一千 token 时还撑得住；一旦做到一万 token，整套打法就崩了：
+    这块大 blob 不能被查询、说不清自己内部结构、还会在 agent 真正读到关键内容前先把上下文预算耗光。
+    Skill Wiki 给出的回答很直接 —— 把 skill 写成由带类型、带边的原子组成的 wiki，
+    上来只发索引，正文按任务需要再取。
+  </p>
+
+  <h2>接下来去哪儿</h2>
   <ul>
-    <li><a href="/zh/docs/usage/install">30 秒装好</a></li>
-    <li><a href="/zh/docs/spec/atoms">28 种原子 kind</a></li>
-    <li><a href="/zh/docs/spec/edges">14 个边 verb</a></li>
-    <li><a href="/zh/docs/architecture/pipeline">5 层流水线</a></li>
-    <li><a href="/zh/docs/extending/custom-kinds">加一个自定义 kind</a></li>
+    <li><strong><a href="/zh/docs/spec/overview">规范</a></strong> —— 协议本身：kinds、verbs、projection、contracts、registry。</li>
+    <li><strong><a href="/zh/docs/background/problem">背景</a></strong> —— 协议为何长这样，以及它从哪些前人工作里借东西。</li>
+    <li><strong><a href="/zh/docs/architecture/pipeline">架构</a></strong> —— v0.1.0 参考实现是怎么一层一层搭起来的。</li>
+    <li><strong><a href="/zh/docs/usage/install">用法</a></strong> —— 安装、写出第一个原子、编译、接进 Claude。</li>
+    <li><strong><a href="/zh/docs/extending/custom-kinds">拓展</a></strong> —— 加一个自己的 kind、verb 或者领域插件。</li>
+    <li><strong><a href="/zh/docs/reference/cli">参考</a></strong> —— CLI 命令、DSL 文法、MCP 工具 schema、HTTP registry 端点。</li>
   </ul>
+
+  <p style="color: var(--fg-muted);">
+    想知道现在到底实现到了哪一步、下一步要做什么？看
+    <a href="/zh/docs/community/roadmap">路线图</a>。
+  </p>
 
   <h2>术语约定</h2>
   <p>本套文档里：</p>
   <ul>
-    <li><strong>Prime</strong> —— 对外名称，指一个 corpus（一个自包含的 <code>@scope</code>，里面是带类型的原子）。</li>
+    <li><strong>Prime</strong> —— 底层协议本身。一个 <em>Prime</em> 就是一个自包含的 <code>@scope</code>，里面装着带类型的原子，也是发布和安装的单位。</li>
     <li><strong>原子（Atom）</strong> —— 一个带类型的知识单元。包含 kind、domain、id、projection 层级和边。</li>
     <li><strong>边（Edge）</strong> —— 两个原子之间带类型的关系。v1 共 14 个 verb。</li>
     <li><strong>Projection</strong> —— 三种 Markdown 渲染视图之一：<code>summary</code>（约 30 token）、<code>core</code>（约 150 token）、<code>full</code>（约 380 token）。</li>
