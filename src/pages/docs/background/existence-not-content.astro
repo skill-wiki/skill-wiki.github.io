@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Existence ≠ content" slug="background/existence-not-content" description="The load-bearing line of Skill Wiki's design.">
   <h1>Existence ≠ content</h1>
@@ -79,17 +80,21 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
     the agent decides whether to read its summary, core, or full projection.
   </p>
 
-  <pre><code>{`Push (skill bulk-loading):
-  ┌────────────────────────────────┐
-  │  All 60 SKILL.md               │ → agent
-  │  ~30 KB context every turn     │
-  └────────────────────────────────┘
+  <Mermaid>{`flowchart LR
+    subgraph PUSH["Push (skill bulk-loading)"]
+      direction LR
+      P1["All 60 SKILL.md<br/>~30 KB context every turn"]
+      Pagent(["agent"])
+      P1 --> Pagent
+    end
 
-Pull (Skill Wiki):
-  ┌─────────────┐  retrieval    ┌─────────────────┐
-  │ _index.xml  │ ───picks 3 ──▶│ chunks/core.md  │ → agent
-  │ ~3 KB       │   atoms        │ ~450 tok        │
-  └─────────────┘                └─────────────────┘`}</code></pre>
+    subgraph PULL["Pull (Skill Wiki)"]
+      direction LR
+      Idx["_index.xml<br/>~3 KB"]
+      Core["chunks/core.md<br/>~450 tok"]
+      Lagent(["agent"])
+      Idx -- "retrieval picks 3 atoms" --> Core --> Lagent
+    end`}</Mermaid>
 
   <h2>Why "exact" is exact</h2>
   <p>

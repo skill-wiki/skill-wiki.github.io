@@ -635,4 +635,29 @@ const fmt = new Intl.NumberFormat('en-US');
   }
   .atom-foot a { color: var(--fg-default); text-decoration: none; transition: color 120ms ease; }
   .atom-foot a:hover { color: var(--accent-fg); }
+
+  /* Mobile — tabs scroll horizontally, shrink padding; hide token pill <400px */
+  @media (max-width: 720px) {
+    .proj-tabs {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .proj-tabs::-webkit-scrollbar { display: none; }
+    .proj-tab {
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .proj-tab-name { font-size: 12px; }
+    .proj-tab-tok { font-size: 10px; padding: 1px 6px; }
+  }
+  @media (max-width: 400px) {
+    .proj-tab-tok { display: none; }
+    .atom-meta-strip { grid-template-columns: 1fr; }
+    .atom-meta-strip > div { border-right: 0; border-bottom: 1px solid var(--border-muted); }
+    .atom-meta-strip > div:last-child { border-bottom: 0; }
+    .atom-meta-strip dt { font-size: 10px; }
+    .atom-meta-strip dd { font-size: 12px; }
+  }
 </style>

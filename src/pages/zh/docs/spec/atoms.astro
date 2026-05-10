@@ -63,7 +63,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
       <tr>
         <td><strong>Voice & style</strong> <em>（领域风格相关）</em></td>
         <td><code>persona</code> <code>voice</code> <code>template</code> <code>provocation</code></td>
-        <td>"怎么表达"。设计/内容/品牌类 corpus 用得多。</td>
+        <td>"怎么表达"。各 corpus 使用程度不同 —— 实测样本：creative-writing 约 10 种 kind、security 约 12 种、frontend-design 22 种（当前上限）。</td>
       </tr>
     </tbody>
   </table>
@@ -99,7 +99,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
       <tr><td><code>tradeoff</code></td><td>两个价值彼此拉扯的决策。</td><td><code>tension</code></td></tr>
       <tr><td><code>principle</code></td><td>支撑 rule 的更高层信念。</td><td><code>statement</code></td></tr>
       <tr><td><code>feedback</code></td><td>对历史决策的回顾观察。</td><td><code>observation</code></td></tr>
-      <tr><td><code>persona</code></td><td>agent 应当采取的声音 / 姿态。</td><td><code>posture</code></td></tr>
+      <tr><td><code>persona</code></td><td>对一组风格的具名集合（设计流派、写作风格、品牌系等），表征连贯的声音 / 姿态。</td><td><code>posture</code></td></tr>
       <tr><td><code>voice</code></td><td>书写声音（节奏、语域）。</td><td><code>register</code></td></tr>
       <tr><td><code>template</code></td><td>可复用的输出脚手架。</td><td><code>template</code></td></tr>
       <tr><td><code>provocation</code></td><td>用来推 agent 的创意性 prompt。</td><td><code>prompt</code></td></tr>
@@ -159,9 +159,10 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 
   <h2>怎么挑 kind</h2>
   <p>
-    一个小 corpus 一般用 5–8 种 kind。frontend-design Skill 用了 22 种 —— 这是上限。
-    一个安全 Skill 可能用 12 种（偏 Data + Composition + Behaviour）。
-    一个创意写作 Skill 可能用 10 种（偏 Voice & Style）。没用上的 kind，干脆不出现。
+    一个小 corpus 一般用 5–8 种 kind。来自真实 corpus 的数据点：
+    一个创意写作 Skill 可能用约 10 种（偏 Voice & Style）；
+    一个安全 Skill 约 12 种（偏 Data + Composition + Behaviour）；
+    frontend-design Skill 用了 22 种（当前上限）。没用上的 kind，干脆不出现。
   </p>
 
   <p>

@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // Skill Wiki website — static-first, zero-JS by default.
 // Pages render at build time from corpora on disk; no DB, no auth, no telemetry.
@@ -12,4 +13,5 @@ export default defineConfig({
     format: 'directory',
   },
   devToolbar: { enabled: false },
+  integrations: [sitemap()],
 });

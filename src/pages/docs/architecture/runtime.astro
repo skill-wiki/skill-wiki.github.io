@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Runtime" slug="architecture/runtime" description="The runtime — atom loader, projection resolver, MCP server. Never reads chunk content.">
   <h1>Runtime</h1>
@@ -12,21 +13,19 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <h2>Query flow</h2>
   <p><img src="/runtime-query-flow.png" alt="Runtime query flow — agent, MCP server, atom index, disk" /></p>
 
-<pre><code>{`agent                   mcp-server-core        atom index    disk
- │                            │                     │           │
- │── prime_query(brief) ─────▶│                     │           │
- │                            │── search index ────▶│           │
- │                            │                     │           │
- │                            │  score atoms        │           │
- │                            │  + apply domain tag │           │
- │                            │  boost              │           │
- │                            │                     │           │
- │◀── results: [{ id, kind, ──│                     │           │
- │       description, level,  │                     │           │
- │       path }]              │                     │           │
- │                                                              │
- │── Read(path/chunks/core.md) ────────────────────────────────▶│
- │◀── selected atom content ───────────────────────────────────│`}</code></pre>
+  <Mermaid>{`sequenceDiagram
+    autonumber
+    participant agent
+    participant server as mcp-server-core
+    participant idx as atom index
+    participant disk
+
+    agent->>server: prime_query(brief)
+    server->>idx: search index
+    Note right of server: score atoms<br/>+ apply domain tag boost
+    server-->>agent: results [{ id, kind, description, level, path }]
+    agent->>disk: Read(path/chunks/core.md)
+    disk-->>agent: selected atom content`}</Mermaid>
 
   <p>
     Notice the runtime <em>returns paths</em> — never atom body content. Two reasons:

@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../../components/Mermaid.astro';
 ---
 <DocsLayout title="5 层流水线" slug="architecture/pipeline" lang="zh" description="从 brief 到验证产物 —— Skill Wiki 一轮的五个层。">
   <h1>5 层流水线</h1>
@@ -14,17 +15,19 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     上面这张架构图展示完整表面（8 条横向带）。一次 agent 轮次内的数据路径是：
   </p>
 
-<pre><code>{`Brief (free text)
-  ↓ L1 — Intent classification         (plugin)
-IntentObject  ──────────────────────── domain-defined shape
-  ↓ L2 — Retrieval                     (protocol)
-ranked atom set
-  ↓ L3 — Composition                   (protocol)
-contracted atom set + projections
-  ↓ L4 — Generation                    (agent)
-artifact (HTML / JSON / prose)
-  ↓ L5 — Validation                    (plugin)
-verdict { ok | fix-instructions }`}</code></pre>
+  <Mermaid>{`flowchart TD
+    Brief["Brief（自由文本）"]
+    Intent["IntentObject<br/><i>领域定义的形状</i>"]
+    Ranked["排序后的原子集合"]
+    Contracted["已契约化的原子集合 + 投影"]
+    Artifact["产物（HTML / JSON / 散文）"]
+    Verdict["裁决 { ok | 修复指令 }"]
+
+    Brief -->|"L1 — 意图分类（plugin）"| Intent
+    Intent -->|"L2 — 检索（protocol）"| Ranked
+    Ranked -->|"L3 — 组合（protocol）"| Contracted
+    Contracted -->|"L4 — 生成（agent）"| Artifact
+    Artifact -->|"L5 — 验证（plugin）"| Verdict`}</Mermaid>
 
   <h2>逐层细看</h2>
 

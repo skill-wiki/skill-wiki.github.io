@@ -1,0 +1,294 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Roadmap" slug="community/roadmap" description="Where Skill Wiki / Prime is going. v0.1 baseline shipped; next pillars are self-evolution, evaluation, and optimization.">
+  <h1>Roadmap</h1>
+  <p style="color: var(--fg-muted);">
+    Where Skill Wiki / Prime is going. Annotated with status and rationale.
+    See the <a href="https://github.com/skill-wiki/prime-system/blob/main/CHANGELOG.md" rel="noopener">CHANGELOG</a>
+    for what's already shipped.
+  </p>
+
+  <p>
+    This roadmap covers only the <strong>system</strong> repo. Corpus repos
+    (e.g. <code>prime-corpus-frontend</code>) maintain their own roadmaps; the
+    protocol moves at its own pace, independent of any single corpus.
+  </p>
+
+  <p>Status legend:</p>
+  <ul>
+    <li>Shipped — in v0.1.0</li>
+    <li>Underway — being worked on now</li>
+    <li>Planned — committed, not started</li>
+    <li>Considering — open question, may or may not happen</li>
+    <li>Out of scope — explicitly not pursuing</li>
+  </ul>
+
+  <h2>v0.1.0 — protocol baseline <span style="color: var(--fg-muted);">[shipped 2026-05-09]</span></h2>
+  <p>The protocol baseline: implementation separated from any domain corpus.</p>
+  <ul>
+    <li>Parser + L1 structural checker</li>
+    <li>L3 cross-atom graph checker</li>
+    <li>Runtime atom loader + projection resolver</li>
+    <li>HTTP registry with publish / install</li>
+    <li><code>prime</code> CLI with 10 verbs</li>
+    <li>Generic MCP server (<code>prime_query</code> over any compiled corpus)</li>
+    <li>3 example corpora demonstrating cross-domain applicability</li>
+    <li>Protocol spec at <code>spec/PRIME-PROTOCOL-v1.md</code></li>
+    <li>Apache-2.0 license + NOTICE attributions</li>
+  </ul>
+
+  <h2>v0.2 — lifecycle and AST <span style="color: var(--fg-muted);">[planned · Q3 2026]</span></h2>
+  <p>The two pieces of v1 spec the v0.1 implementation didn't honor.</p>
+
+  <h3>Lifecycle enforcement</h3>
+  <p>
+    The atom DSL allows <code>version: "1.2.0"</code> and a status field —
+    <code>active</code> | <code>deprecated</code> | <code>experimental</code>.
+    Today the parser accepts these but the compiler does nothing with them:
+    <code>deprecated</code> atoms appear in retrieval without warnings.
+  </p>
+  <p>
+    Plan: when a <code>deprecated</code> atom is selected by
+    <code>prime_query</code>, the response includes
+    <code>{`warnings: [{ kind: "deprecated", atom_id, message, replacement }]`}</code>.
+    The runtime API surfaces this; the CLI prints a yellow warning line.
+    Optional follow-up: <code>prime check --strict-deprecation</code> fails the
+    build when the corpus contains active references <em>to</em> deprecated
+    atoms.
+  </p>
+
+  <h3>Structured type AST</h3>
+  <p>
+    Atoms can declare types using a small expression language: function
+    signatures, unions, ranges. Today the parser preserves these as opaque
+    strings — they round-trip but the compiler can't reason over them.
+    Plan: build a <code>TypeExpr</code> AST and use it to enforce that, for
+    example, a <code>fact</code> atom's <code>confidence:</code> parses as
+    <code>0.0-1.0</code>.
+  </p>
+
+  <h2>Skill self-evolution <span style="color: var(--fg-muted);">[planned · 2026 → 2027]</span></h2>
+  <p>
+    A corpus that only grows by hand-written PRs goes stale. Real usage is
+    the best signal for what's missing — which atoms get queried with no hit,
+    which intents return low-confidence results, which projections get
+    rewritten by the agent before use. v0.1 throws all that signal away.
+    v0.2+ keeps it, opt-in, and feeds it back into the corpus.
+  </p>
+
+  <h3>Telemetry ingest API</h3>
+  <p>
+    A small, opt-in HTTP endpoint the runtime can POST to on every
+    <code>prime_query</code>: intent, kinds asked, ids returned, projection
+    level, hit / miss, latency. No content, no PII. Off by default; enabled
+    per-corpus via <code>domain.yaml</code>.
+  </p>
+
+  <h3>Atom-proposal PR-bot from usage gaps</h3>
+  <p>
+    A scheduled job reads the telemetry stream, finds repeated zero-hit
+    queries, and uses an LLM extractor (DSPy-style program) to propose new
+    atoms. Output: a draft PR against the corpus repo with a stub
+    <code>.prime</code> file the maintainers can edit and merge.
+  </p>
+
+  <h3>Edge inference reflective pass</h3>
+  <p>
+    After authors write atoms, a TextGrad-style pass proposes likely edges
+    (<code>requires</code>, <code>contradicts</code>,
+    <code>validates-with</code>) by reflecting on each pair. Maintainers
+    approve / reject; nothing auto-merges.
+  </p>
+
+  <h3>Atom-diff viewer in marketplace UI</h3>
+  <p>
+    When a corpus version bumps, show the diff at the atom level: which atoms
+    changed, which edges moved, which projections re-rendered. Helps
+    consumers audit upgrades.
+  </p>
+
+  <h3>DSPy-style auto-tuning of projection priors</h3>
+  <p>
+    The chunker's projection prior (which fields to keep at <code>summary</code>
+    vs <code>core</code> vs <code>full</code>) is hand-coded per kind today.
+    A DSPy-style program could tune those priors per corpus, optimising for
+    downstream task accuracy.
+  </p>
+
+  <p>
+    <strong>Moonshot:</strong> schema evolution. Atom kinds are fixed by spec
+    today. A corpus accumulating telemetry could <em>propose its own kinds</em>
+    — à la <a href="https://arxiv.org/abs/2402.14531" rel="noopener">AutoSchemaKG</a>
+    — and bubble them up as v2 spec candidates.
+  </p>
+
+  <p>
+    References:
+    <a href="https://dspy.ai/" rel="noopener">DSPy</a> ·
+    <a href="https://textgrad.com/" rel="noopener">TextGrad</a>
+  </p>
+
+  <h2>Skill evaluation <span style="color: var(--fg-muted);">[planned · 2026 Q4]</span></h2>
+  <p>
+    A protocol is only as useful as it is measurable. Today, the only
+    evaluation is "does the agent cite the right atoms" — checked by hand on
+    a 20-task benchmark. v0.2 makes this a first-class verb so corpus
+    authors can prove a change improves something.
+  </p>
+
+  <h3><code>prime eval</code> CLI verb</h3>
+  <p>
+    A corpus-scoped harness that wraps
+    <a href="https://inspect.aisi.org.uk/" rel="noopener">Inspect AI</a>
+    under the hood. Reads an <code>eval/</code> directory of task definitions,
+    runs them against a configured agent, scores against expected atom
+    citations and domain-specific scorers.
+  </p>
+
+  <h3>MCP-Bench adapter</h3>
+  <p>
+    An adapter that exposes a Skill Wiki corpus to
+    <a href="https://github.com/Accenture/mcp-bench" rel="noopener">MCP-Bench</a>
+    so corpora can be benchmarked head-to-head against other MCP servers on
+    the same task suite.
+  </p>
+
+  <h3>Domain-specific scorer plugins</h3>
+  <p>
+    The harness ships with kind-aware scorers; corpora can register more.
+    For <code>prime-corpus-frontend</code>: axe-core pass-rate, Lighthouse
+    score, visual-regression delta. For a security corpus: OWASP-rule
+    pass-rate.
+  </p>
+
+  <h3>Three-arm A/B harness</h3>
+  <p>
+    <code>prime eval --arms prime,skill,raw</code> runs the same task three
+    times — once with the corpus mounted via Skill Wiki, once with bulk-loaded
+    SKILL.md, once with no skill — and reports the deltas. Lets corpus
+    authors prove the protocol pays its keep.
+  </p>
+
+  <h3>Citation-precision metric</h3>
+  <p>
+    Of the atoms <code>prime_query</code> returned, how many appeared in the
+    agent's final output? A high-precision corpus is one whose retrieval is
+    well-calibrated; a low-precision corpus is over-fetching or under-using.
+  </p>
+
+  <p>
+    <strong>Moonshot:</strong> a public Skill leaderboard. Corpora register;
+    the harness runs a fixed task suite weekly; results are published with
+    version pinning. Same spirit as
+    <a href="https://github.com/openai/human-eval" rel="noopener">HumanEval</a>
+    for code.
+  </p>
+
+  <p>
+    References:
+    <a href="https://arxiv.org/abs/2508.20453" rel="noopener">MCP-Bench</a> ·
+    <a href="https://inspect.aisi.org.uk/" rel="noopener">Inspect AI</a>
+  </p>
+
+  <h2>Skill optimization <span style="color: var(--fg-muted);">[planned · 2027]</span></h2>
+  <p>
+    The v0.1 retrieval path is naïve: load <code>_index.xml</code>, rank,
+    fetch projections. That's fine at 1k atoms. At 10k it's wasteful; at
+    100k it stops fitting in context at all. v0.3+ tightens the loop without
+    changing the protocol surface.
+  </p>
+
+  <h3>Per-intent edge-graph pruning at query time</h3>
+  <p>
+    Walk the edge graph from the seed atoms outward up to <code>max_depth</code>,
+    <em>but</em> prune branches whose verb mix doesn't match the intent
+    (e.g., for an "implementation" intent, drop <code>tradeoff</code> and
+    <code>provocation</code> edges). Smaller candidate set, same recall on
+    the relevant kinds.
+  </p>
+
+  <h3>LLMLingua-style projection compressor (<code>--compress</code> flag)</h3>
+  <p>
+    A compressor applied to <code>core</code> and <code>full</code>
+    projections at serve time, selectable per query. Trades a small amount of
+    fidelity for ~2× tokens saved.
+  </p>
+
+  <h3>Atom-result cache with content-addressed keys</h3>
+  <p>
+    Keyed by <code>(intent_hash, kinds, max_atoms)</code>. Same query inside
+    a session = zero retrieval cost. Invalidates on corpus recompile.
+  </p>
+
+  <h3>Multi-Skill composition budget allocation</h3>
+  <p>
+    When multiple corpora are mounted (per the v0.3 multi-corpus MCP), the
+    runtime allocates a token budget across them based on per-corpus intent
+    score, instead of fixed per-corpus quotas.
+  </p>
+
+  <h3>Compile-time projection profiles per intent class</h3>
+  <p>
+    Compile a corpus <em>N</em> times, once per intent class (e.g., "design",
+    "implementation", "review"), producing per-class <code>core</code>
+    projections that emphasise different fields. Runtime picks the profile
+    based on intent.
+  </p>
+
+  <p>
+    <strong>Moonshot:</strong>
+    <a href="https://arxiv.org/abs/2505.23416" rel="noopener">KVzip</a>-style
+    key-value memory per atom. Cache the decoder KV state for each
+    <code>core</code> projection at compile time; on retrieval, splice it in
+    instead of re-encoding. Removes the per-turn re-encoding cost entirely.
+  </p>
+
+  <p>
+    References:
+    <a href="https://github.com/microsoft/LLMLingua" rel="noopener">LLMLingua</a> ·
+    <a href="https://arxiv.org/abs/2505.23416" rel="noopener">KVzip</a>
+  </p>
+
+  <h2>Top 5 v0.2 ships</h2>
+  <p>If we ship nothing else in v0.2, these five carry the release:</p>
+  <ol>
+    <li><strong><code>prime eval</code> CLI</strong> — the harness that makes every other claim measurable.</li>
+    <li><strong>Telemetry ingest + atom-proposal bot</strong> — closes the corpus-staleness loop.</li>
+    <li><strong>Atom-diff viewer</strong> — required for users to trust corpus version bumps.</li>
+    <li><strong>Per-intent edge-graph pruning</strong> — the first retrieval optimisation that pays for itself on day one.</li>
+    <li><strong>Citation-precision metric</strong> — the single number that tells a corpus author whether their atoms are pulling their weight.</li>
+  </ol>
+
+  <h2>v0.3 — formal domain plugin protocol <span style="color: var(--fg-muted);">[planned · Q4 2026]</span></h2>
+  <p>
+    Today, <code>domain:</code> is a metadata tag on each atom. The runtime
+    treats <code>frontend-design</code>, <code>security</code>,
+    <code>recipes</code> identically. The spec already imagines multiple
+    corpora coexisting under one server, with domain-aware routing — v0.3
+    lands the plugin interface, multi-corpus MCP, and an optional
+    auto-disambiguation pass when an intent is ambiguous between corpora.
+  </p>
+
+  <h2>v0.4 — better registry <span style="color: var(--fg-muted);">[planned · 2027]</span></h2>
+  <p>
+    The v0.1 registry is barebones HTTP: PUT to publish, GET to install. No
+    semver resolution, no signing, no audit log. v0.4 adds semver-aware
+    install with <code>prime.lock</code>, cryptographic signing, and an audit
+    log. A web UI is considered out of scope unless someone actually
+    self-hosts the public registry.
+  </p>
+
+  <h2>How priorities are set</h2>
+  <p>Three questions for any addition:</p>
+  <ol>
+    <li>Does it unblock a corpus team that exists today?</li>
+    <li>Does it generalise across corpora? (Protocol-level features must.)</li>
+    <li>Does it preserve the "tiny system, expressive corpus" balance? The system repo aims to stay under ~15k LoC.</li>
+  </ol>
+  <p>
+    The fastest path for a feature: prototype in a corpus repo, prove it
+    generalises by porting to a second corpus, then propose the protocol
+    change.
+  </p>
+</DocsLayout>

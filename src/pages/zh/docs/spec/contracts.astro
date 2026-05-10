@@ -4,15 +4,15 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 <DocsLayout title="组合契约" slug="spec/contracts" lang="zh" description="method、persona、scope 上的 must-include / must-avoid 声明。">
   <h1>组合契约</h1>
   <p style="color: var(--fg-muted);">
-    contract 块声明哪些原子必须（或不能）一起加载。
-    它确保 agent 加载父原子时，看到的是一个"构造完整"的集合。
+    contract 块用来声明哪些原子必须（或绝不能）同时加载。
+    这样 agent 加载父原子时，拿到的一定是一个完整可用的集合。
   </p>
 
-  <h2>为什么要 contract</h2>
+  <h2>为什么需要 contract</h2>
   <p>
-    agent 可以自由组合原子 —— 但不是每个组合都安全。某个 method 可能需要某条 term
-    在上下文里它的指令才说得通，或者它跟某个对立 anti-pattern 一起加载会胡说八道。
-    contract 把这些约束变成可声明的。
+    agent 可以自由组合原子，但不是每种组合都安全。一个 method 往往要靠某条 term 同时在场，指令才有意义；
+    或者它根本不能和对立的 anti-pattern 一起加载，否则模型只会胡说八道。
+    contract 就是把这类约束写成可声明、可校验的规则。
   </p>
 
   <h2>三种 contract 子句</h2>
@@ -21,19 +21,19 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
       <tr><th>子句</th><th>含义</th><th>运行时行为</th></tr>
     </thead>
     <tbody>
-      <tr><td><code>must-include</code></td><td>加载父原子就会加载这些原子。</td><td>自动塞进 agent 的原子集合。</td></tr>
-      <tr><td><code>must-avoid</code></td><td>这些原子不能与父原子同时加载。</td><td>从候选中过滤掉；强制加载会警告。</td></tr>
-      <tr><td><code>conditionally-required</code></td><td>满足<em>条件</em>时必须加载。</td><td>L3 阶段对照 IntentObject 计算。</td></tr>
+      <tr><td><code>must-include</code></td><td>父原子一旦加载，这些原子也会被一起加载。</td><td>自动并入 agent 的原子集合。</td></tr>
+      <tr><td><code>must-avoid</code></td><td>这些原子不能与父原子共存。</td><td>从候选里过滤掉；强行加载会触发警告。</td></tr>
+      <tr><td><code>conditionally-required</code></td><td>满足<em>条件</em>时才必须加载。</td><td>L3 阶段对照 IntentObject 求值。</td></tr>
     </tbody>
   </table>
 
-  <h2>哪些 kind 可以挂 contract</h2>
-  <p>contract 可以声明在以下 kind 上：</p>
+  <h2>contract 能挂在哪些 kind 上</h2>
+  <p>contract 可以声明在下面这些 kind 上：</p>
   <ul>
-    <li><code>method</code> —— 最常见。每一步都需要支撑的 term / fact / source。</li>
-    <li><code>persona</code> —— 定义这个姿态对应的 voice 和伴随原子。</li>
-    <li><code>scope</code> —— 声明一个排他子集（比如 "regulated-fintech-mode"）。</li>
-    <li><code>collection</code> —— 隐式：所有成员都是 <code>must-include</code>。</li>
+    <li><code>method</code>：最常见。每一步都得有对应的 term / fact / source 撑着。</li>
+    <li><code>persona</code>：定义这个姿态对应的 voice 和配套原子。</li>
+    <li><code>scope</code>：声明一个排他子集（比如 "regulated-fintech-mode"）。</li>
+    <li><code>collection</code>：隐式约束，所有成员都视为 <code>must-include</code>。</li>
   </ul>
 
   <h2>例子</h2>
@@ -67,21 +67,20 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 
   <h2>运行时如何解析</h2>
   <p>
-    检索器把 <code>method-pan-sauce</code> 选为命中后，运行时走 contract，确保
-    agent 的原子集合包含 <code>term-fond</code>、<code>term-deglazing</code>、
-    <code>fact-water-evaporation-temp</code>。同时把 <code>anti-pattern-microwave-reduce</code>
-    标记为本轮不可加载。
+    当检索器把 <code>method-pan-sauce</code> 选为命中，运行时会顺着 contract 走一遍，
+    把 <code>term-fond</code>、<code>term-deglazing</code> 和 <code>fact-water-evaporation-temp</code>
+    一并放进 agent 的原子集合，同时把 <code>anti-pattern-microwave-reduce</code> 标记为本轮不可加载。
   </p>
 
   <p>
-    agent 永远拿不到一个"半解析"的集合。缺失的 must-include 会在编译期作为 L3 错误暴露出来 ——
-    所以运行时的 agent 只会见到已经验证过的 contract。
+    agent 永远不会拿到一个只解析了一半的集合。少掉的 must-include 在编译期就会以 L3 错误的形式暴露，
+    所以运行时跑到 agent 面前的，一定是已经校验通过的 contract。
   </p>
 
-  <h2>Contract 与显式边的对比</h2>
+  <h2>contract 与显式边的区别</h2>
   <p>
-    contract 是比 <code>requires</code> 边更强的承诺。verb <code>requires</code> 说的是
-    "如果你加载 A，应该也加载 B"。contract 的 <code>must-include</code> 说的是
-    "协议保证加载 A 时一定会加载 B"。当正确性依赖于打包时，用 contract。
+    contract 比 <code>requires</code> 边的承诺更硬。<code>requires</code> 这个 verb 表达的是
+    "加载 A 的时候，建议也加载 B"；而 contract 的 <code>must-include</code> 表达的是
+    "协议层面保证：A 一旦加载，B 必然也加载"。只要正确性依赖于这种打包关系，就用 contract。
   </p>
 </DocsLayout>

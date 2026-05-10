@@ -40,34 +40,39 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
           • L5 validator hooks`}</code></pre>
 
   <h2>What <code>domain.yaml</code> declares</h2>
-<pre><code>{`name: frontend-design
+  <p>
+    A worked example, taken from a hypothetical <code>security</code> corpus. The
+    same shape works for any domain — the field names are protocol-level; the
+    <em>values</em> are domain-specific.
+  </p>
+<pre><code>{`name: security
 version: "1.0.0"
-description: "Design knowledge for AI agents — color, type, motion, …"
+description: "Application security knowledge for AI agents — input validation, authn/authz, crypto, …"
 
 # Hierarchical taxonomy of sub-domains.
-hierarchy: visual-hierarchy
+hierarchy: threat-model
 
 # Multi-axis tags the retriever can boost on.
 axes:
-  - layout
-  - typography
-  - spacing
-  - color
-  - motion
+  - risk-class
+  - attack-surface
+  - data-sensitivity
+  - control-family
+  - severity
 
 # Composition contract scaffold (defaults).
 contract:
-  typography: atom-12-array
-  color: atom-token-semantic
+  input-validation: atom-checklist
+  authn: atom-token-flow
 
 # L5 validators (optional).
 validators:
-  - name: html-semantic
+  - name: sql-injection-shape
     checker: regex
-    pattern: "^[<]([a-z][a-z0-9]*)\\b[^>]*[>]"
-  - name: color-token
+    pattern: "(?i)\\\\b(or|and)\\\\b\\\\s+1\\\\s*=\\\\s*1"
+  - name: owasp-input-validation
     checker: ai-judge
-    rubric: "@frontend-design/rubric-color-token"`}</code></pre>
+    rubric: "@security/rubric-owasp-input-validation"`}</code></pre>
 
   <h2>How the runtime uses it</h2>
 
@@ -75,15 +80,15 @@ validators:
   <p>
     Atoms carrying tags from <code>axes:</code> get a multiplicative boost when the
     retriever's <code>IntentObject</code> matches. e.g. an atom tagged
-    <code>typography</code> ranks higher when intent says
-    <code>focus: "typography-and-rhythm"</code>.
+    <code>owasp-input-validation</code> ranks higher when intent says
+    <code>focus: "input-validation"</code>.
   </p>
 
   <h3>Intent fields</h3>
   <p>
     L1 (intent classification) reads <code>axes</code> to know what fields to populate
-    in the IntentObject. A frontend-design L1 produces <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>;
-    a security-Skill L1 produces a different shape entirely.
+    in the IntentObject. A security L1 produces <code>{`{ axes: ["attack-surface", "control-family"], persona: "@security-auditor", ... }`}</code>;
+    a different domain's L1 produces a different shape entirely.
   </p>
 
   <h3>L5 validator hooks</h3>
@@ -112,5 +117,11 @@ validators:
 
   <p>
     Authoring a <code>domain.yaml</code>: see <a href="/docs/extending/domain-yaml">Extending → domain.yaml</a>.
+  </p>
+
+  <p>
+    See also: <a href="/docs/skills/frontend-design">Skills → frontend-design</a> for the
+    flagship design corpus — its <code>domain.yaml</code> is a concrete reference for a
+    visual / aesthetic domain.
   </p>
 </DocsLayout>

@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="MCP server" slug="implementation/mcp-server" description="@prime-lang/mcp-server-core — five tools that expose the runtime to MCP-capable agents.">
   <h1>MCP server</h1>
@@ -44,20 +45,30 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
   <p>See <a href="/docs/usage/mcp-claude">Wire into Claude</a> for the full setup.</p>
 
   <h2>Server architecture</h2>
-<pre><code>{`agent  ◀──MCP stdio──▶  mcp-server-core
-                              │
-                              ├── handlers/
-                              │   ├── prime_query.ts
-                              │   ├── prime_resolve.ts
-                              │   ├── prime_intent.ts
-                              │   ├── prime_validate.ts
-                              │   └── prime_compile.ts
-                              │
-                              └── runtime (in-process)
-                                  ├── index loader
-                                  ├── atom loader
-                                  ├── domain registry
-                                  └── projection resolver`}</code></pre>
+  <Mermaid>{`graph LR
+    agent(["agent"])
+    server["mcp-server-core"]
+
+    subgraph H["handlers/"]
+      direction TB
+      h1["prime_query.ts"]
+      h2["prime_resolve.ts"]
+      h3["prime_intent.ts"]
+      h4["prime_validate.ts"]
+      h5["prime_compile.ts"]
+    end
+
+    subgraph R["runtime (in-process)"]
+      direction TB
+      r1["index loader"]
+      r2["atom loader"]
+      r3["domain registry"]
+      r4["projection resolver"]
+    end
+
+    agent <-- "MCP stdio" --> server
+    server --> H
+    server --> R`}</Mermaid>
 
   <h2>Tool input/output JSON Schema</h2>
   <p>

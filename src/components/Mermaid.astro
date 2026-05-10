@@ -1,0 +1,125 @@
+---
+/**
+ * <Mermaid> — render a mermaid diagram, theme-aware, lazy-loaded.
+ *
+ * Slot content is the raw mermaid source. We stash it in a data attribute
+ * (so it's safe whether the loader has run yet or not), then a single
+ * loader script per page boots mermaid on first idle, runs all diagrams,
+ * and re-runs them whenever <html data-theme> flips.
+ *
+ * Why lazy + dynamic import: mermaid is ~1 MB minified. Pulling it in via
+ * a static import would parse + execute on every docs page. We import only
+ * when at least one wrapper exists in the DOM.
+ */
+const code = await Astro.slots.render('default');
+// Strip the surrounding <p> Astro wraps slot text with, plus any HTML entities
+// the slot renderer escaped (Mermaid wants raw `>` and `&` in arrow labels).
+const clean = code
+  .replace(/^\s*<p>/, '')
+  .replace(/<\/p>\s*$/, '')
+  .replace(/&gt;/g, '>')
+  .replace(/&lt;/g, '<')
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
+  .replace(/&#39;/g, "'")
+  .trim();
+---
+<div class="mermaid-wrapper" data-mermaid-src={clean}></div>
+
+<script>
+  // Run-once, page-scoped. Multiple <Mermaid> on the same page share a single
+  // dynamic import + a single MutationObserver for the theme attribute.
+  // @ts-ignore — guard against double-eval if the snippet ends up duplicated.
+  if (!(window as any).__mermaidLoaderInit) {
+    (window as any).__mermaidLoaderInit = true;
+
+    const wrappers = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('.mermaid-wrapper'));
+
+    const currentTheme = (): 'dark' | 'default' => {
+      const t = document.documentElement.dataset.theme;
+      return t === 'dark' ? 'dark' : 'default';
+    };
+
+    let mermaidMod: typeof import('mermaid') | null = null;
+    let renderId = 0;
+
+    async function ensureMermaid() {
+      if (mermaidMod) return mermaidMod;
+      mermaidMod = await import('mermaid');
+      return mermaidMod;
+    }
+
+    async function renderAll() {
+      const targets = wrappers();
+      if (targets.length === 0) return;
+      const mod = await ensureMermaid();
+      const mermaid = mod.default;
+      const theme = currentTheme();
+      mermaid.initialize({
+        startOnLoad: false,
+        theme,
+        securityLevel: 'strict',
+        fontFamily:
+          'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      });
+
+      // Reset prior renders (so theme switches re-emit fresh SVG).
+      const localId = ++renderId;
+      for (const el of targets) {
+        const src = el.dataset.mermaidSrc;
+        if (!src) continue;
+        try {
+          const id = `mmd-${Math.random().toString(36).slice(2, 9)}`;
+          const { svg, bindFunctions } = await mermaid.render(id, src);
+          // Bail out if the user toggled theme again mid-render.
+          if (localId !== renderId) return;
+          el.innerHTML = svg;
+          el.classList.add('mermaid-rendered');
+          if (bindFunctions) bindFunctions(el);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('[Mermaid] render failed:', err, src);
+          el.textContent = `Mermaid render failed. See console.`;
+        }
+      }
+    }
+
+    // Initial render — defer until the page is idle so we don't block paint.
+    const start = () => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(renderAll, { timeout: 1000 });
+      } else {
+        setTimeout(renderAll, 0);
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start, { once: true });
+    } else {
+      start();
+    }
+
+    // Re-render on theme switch — the Base layout flips
+    // <html data-theme="dark|light"> on the toggle button.
+    const themeObserver = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.attributeName === 'data-theme') {
+          renderAll();
+          break;
+        }
+      }
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+  }
+</script>
+
+<style>
+  /* Component-scoped — global rules live in src/styles/mermaid.css. */
+  .mermaid-wrapper {
+    margin: 16px 0;
+  }
+</style>

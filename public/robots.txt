@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://skill-wiki.github.io/sitemap-index.xml

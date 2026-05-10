@@ -1,0 +1,63 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Skill · frontend-design" slug="skills/frontend-design" lang="zh" description="旗舰设计 corpus —— 视觉 / 美学领域的 domain.yaml、axes 与 validator 示范。">
+  <h1>Skill · frontend-design</h1>
+  <p style="color: var(--fg-muted);">
+    协议本身是领域无关的。<code>frontend-design</code> 是在协议之上演示一个视觉 / 美学领域的旗舰 Skill ——
+    颜色、字体、运动、间距、可访问性、组件 pattern。本页汇集了原本散落在协议文档里的设计风味示例。
+  </p>
+
+  <h2>domain.yaml</h2>
+  <p>
+    Skill 的 <code>domain.yaml</code> 声明了它的 axes 和 L5 validator。
+    运行时从 <code>$PRIME_DIR</code> 递归发现它；core 不需要改一行代码。
+  </p>
+
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: Design knowledge for AI agents — color, typography, motion, spacing,
+             accessibility, and component patterns.
+
+# 提示检索器主导的分类法。
+hierarchy: visual-hierarchy
+
+# Intent 命中时检索器加权的多轴 tag。
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+  - accessibility
+
+# 当 method 没显式 override 时应用的默认 contract 骨架。
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# L5 validator hook。
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: '^<([a-z][a-z0-9]*)\\b[^>]*>'
+  - name: color-token
+    checker: ai-judge
+    rubric: '@frontend-design/rubric-color-token'`}</code></pre>
+
+  <h2>用 persona 表征设计流派</h2>
+  <p>
+    <code>persona</code> kind 在这里被用来打包一组连贯的美学 —— 一种 "设计流派" 或品牌系。
+    一个 frontend-design 的 L1 产出 intent，例如
+    <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>；
+    对应的 <code>persona</code> 原子带着定义该流派的 voice + 伴生原子。
+  </p>
+
+  <h2>延伸阅读</h2>
+  <ul>
+    <li><a href="/zh/docs/architecture/domain-plugin">架构 → 领域插件</a> ——<code>domain.yaml</code> 如何接入运行时。</li>
+    <li><a href="/zh/docs/extending/domain-yaml">拓展 → domain.yaml</a> —— 完整字段参考。</li>
+    <li><a href="/zh/docs/spec/atoms">规范 → Atoms</a> —— <code>persona</code> kind。</li>
+    <li><a href="/zh/marketplace">市场</a> —— 安装该 corpus。</li>
+  </ul>
+</DocsLayout>

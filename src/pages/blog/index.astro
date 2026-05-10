@@ -4,7 +4,11 @@ import { loadPosts } from '../../lib/blog';
 
 const posts = loadPosts().filter((p) => p.lang === 'en');
 ---
-<Base title="Blog" current="blog">
+<Base
+  title="Blog"
+  current="blog"
+  description="Release notes, design notes, and field reports on building a typed knowledge graph for AI agents."
+>
   <div class="blog-list-wrap">
     <header class="blog-list-head">
       <p class="blog-list-eyebrow">Blog · {posts.length} {posts.length === 1 ? 'post' : 'posts'}</p>

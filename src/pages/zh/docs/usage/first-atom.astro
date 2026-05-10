@@ -61,9 +61,14 @@ mkdir -p primes/sources/@my`}</code></pre>
 }`}</code></pre>
 
   <h2>5. 编译</h2>
-<pre><code>{`bun scripts/build-atom-dirs.ts \\
-  --src primes/sources \\
-  --out primes/compiled
+  <p>目录级编译脚本住在 <code>prime-system</code> 仓库里（见
+  <a href="/zh/docs/usage/install">安装</a>）。从那个仓库里跑，
+  <code>--src</code> / <code>--out</code> 指向这个工作目录：</p>
+
+<pre><code>{`# 在你的 prime-system clone 里跑
+bun /abs/path/to/prime-system/scripts/build-atom-dirs.ts \\
+  --src /abs/path/to/my-pack/primes/sources \\
+  --out /abs/path/to/my-pack/primes/compiled
 
 # → output:
 #   primes/compiled/@my/fact-water-boils-at-100c/{atom.yaml, chunks/}
@@ -71,6 +76,11 @@ mkdir -p primes/sources/@my`}</code></pre>
 #   primes/compiled/@my/rule-altitude-affects-boiling/{atom.yaml, chunks/}
 #   primes/compiled/_index.xml
 `}</code></pre>
+
+  <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
+    <strong>即将到来：</strong>v0.1.1 计划提供原生的
+    <code>prime compile --dir &lt;src&gt; --out &lt;dst&gt;</code> 子命令，替代上面的脚本调用。
+  </p>
 
   <p>
     L1 会抓到 <code>@my/source-nist-water-properties</code> 这条引用不存在（你还没写它）。两种处理方式：
@@ -93,7 +103,8 @@ cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
 # Prints the ~30-token summary.`}</code></pre>
 
   <h2>7. 启动 MCP server</h2>
-<pre><code>{`PRIME_DIR=./primes/compiled bunx @prime-lang/mcp-server-core
+<pre><code>{`PRIME_DIR=$PWD/primes/compiled \\
+  bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 # Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
 
   <h2>你刚刚做了什么</h2>

@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="5-layer pipeline" slug="architecture/pipeline" description="From brief to validated output — the five layers of a Skill Wiki turn.">
   <h1>5-layer pipeline</h1>
@@ -16,17 +17,19 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
     a single agent turn, the data path is:
   </p>
 
-<pre><code>{`Brief (free text)
-  ↓ L1 — Intent classification         (plugin)
-IntentObject  ──────────────────────── domain-defined shape
-  ↓ L2 — Retrieval                     (protocol)
-ranked atom set
-  ↓ L3 — Composition                   (protocol)
-contracted atom set + projections
-  ↓ L4 — Generation                    (agent)
-artifact (HTML / JSON / prose)
-  ↓ L5 — Validation                    (plugin)
-verdict { ok | fix-instructions }`}</code></pre>
+  <Mermaid>{`flowchart TD
+    Brief["Brief (free text)"]
+    Intent["IntentObject<br/><i>domain-defined shape</i>"]
+    Ranked["ranked atom set"]
+    Contracted["contracted atom set + projections"]
+    Artifact["artifact (HTML / JSON / prose)"]
+    Verdict["verdict { ok | fix-instructions }"]
+
+    Brief -->|"L1 — Intent classification (plugin)"| Intent
+    Intent -->|"L2 — Retrieval (protocol)"| Ranked
+    Ranked -->|"L3 — Composition (protocol)"| Contracted
+    Contracted -->|"L4 — Generation (agent)"| Artifact
+    Artifact -->|"L5 — Validation (plugin)"| Verdict`}</Mermaid>
 
   <h2>Layer-by-layer</h2>
 

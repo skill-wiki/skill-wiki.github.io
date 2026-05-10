@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Compile time" slug="architecture/compile-time" description="The compiler pipeline — parser, three checkers, chunker, dual emitters.">
   <h1>Compile time</h1>
@@ -11,21 +12,28 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <h2>The compile pipeline</h2>
   <p><img src="/compile-pipeline.png" alt="Compile pipeline — .prime to runtime artifacts" /></p>
 
-<pre><code>{`primes/sources/*.prime
-    │
-    ▼
-[ Lexer ]         packages/parser/src/lexer.ts          → tokens
-[ Parser ]        packages/parser/src/parser.ts         → PrimeAST
-[ L1 Checker ]    packages/compiler/src/checker-l1.ts   → schema OK
-[ L3 Cross-Atom ] packages/compiler/src/checker-l3.ts   → cycles, contradicts
-[ L2 Checker ]*   packages/compiler/src/checker-l2.ts   → semantic check
-[ Chunker ]       packages/compiler/src/chunker.ts      → 3 projections
-[ Edge Resolver ] packages/compiler/src/edge-resolver.ts→ graph.yaml
-[ Emitters ]
-    ├─ Atom dir emitter:   compiled/@scope/name/{atom.yaml,chunks/}
-    └─ Global index:       compiled/_index.xml
+  <Mermaid>{`flowchart LR
+    src["primes/sources/*.prime"]
+    Lexer["Lexer<br/><i>parser/lexer.ts</i>"]
+    Parser["Parser<br/><i>parser/parser.ts</i>"]
+    L1["L1 Checker<br/><i>checker-l1.ts</i><br/>schema OK"]
+    L3["L3 Cross-Atom<br/><i>checker-l3.ts</i><br/>cycles, contradicts"]
+    L2["L2 Checker*<br/><i>checker-l2.ts</i><br/>semantic check"]
+    Chunker["Chunker<br/><i>chunker.ts</i><br/>3 projections"]
+    Edges["Edge Resolver<br/><i>edge-resolver.ts</i><br/>graph.yaml"]
+    EmitDir["Atom dir emitter<br/>compiled/@scope/name/"]
+    EmitIdx["Global index<br/>compiled/_index.xml"]
 
-* L2 is opt-in (gated by ANTHROPIC_API_KEY or DEEPSEEK_API_KEY).`}</code></pre>
+    src --> Lexer --> Parser --> L1 --> L3 --> L2 --> Chunker --> Edges
+    Edges --> EmitDir
+    Edges --> EmitIdx
+
+    classDef optional stroke-dasharray: 4 3;
+    class L2 optional;`}</Mermaid>
+
+  <p style="color: var(--fg-muted); font-size: 0.9em;">
+    <em>* L2 is opt-in (gated by <code>ANTHROPIC_API_KEY</code> or <code>DEEPSEEK_API_KEY</code>).</em>
+  </p>
 
   <h2>L1 — schema (mandatory)</h2>
   <p>

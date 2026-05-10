@@ -61,9 +61,14 @@ mkdir -p primes/sources/@my`}</code></pre>
 }`}</code></pre>
 
   <h2>5. Compile</h2>
-<pre><code>{`bun scripts/build-atom-dirs.ts \\
-  --src primes/sources \\
-  --out primes/compiled
+  <p>The directory-level compile script lives inside the <code>prime-system</code>
+  repo (see <a href="/docs/usage/install">Install</a>). Run it from there, pointing
+  <code>--src</code> / <code>--out</code> at this workspace:</p>
+
+<pre><code>{`# Run from inside your prime-system clone
+bun /abs/path/to/prime-system/scripts/build-atom-dirs.ts \\
+  --src /abs/path/to/my-Skill/primes/sources \\
+  --out /abs/path/to/my-Skill/primes/compiled
 
 # → output:
 #   primes/compiled/@my/fact-water-boils-at-100c/{atom.yaml, chunks/}
@@ -71,6 +76,11 @@ mkdir -p primes/sources/@my`}</code></pre>
 #   primes/compiled/@my/rule-altitude-affects-boiling/{atom.yaml, chunks/}
 #   primes/compiled/_index.xml
 `}</code></pre>
+
+  <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
+    <strong>Coming soon:</strong> a first-class <code>prime compile --dir &lt;src&gt; --out &lt;dst&gt;</code>
+    subcommand is planned for v0.1.1, replacing the script invocation above.
+  </p>
 
   <p>
     L1 catches the missing <code>@my/source-nist-water-properties</code> reference (you
@@ -94,7 +104,8 @@ cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
 # Prints the ~30-token summary.`}</code></pre>
 
   <h2>7. Boot the MCP server</h2>
-<pre><code>{`PRIME_DIR=./primes/compiled bunx @prime-lang/mcp-server-core
+<pre><code>{`PRIME_DIR=$PWD/primes/compiled \\
+  bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 # Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
 
   <h2>What you just did</h2>

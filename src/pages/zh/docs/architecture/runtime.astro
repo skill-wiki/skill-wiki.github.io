@@ -1,87 +1,86 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../../components/Mermaid.astro';
 ---
 <DocsLayout title="运行时" slug="architecture/runtime" lang="zh" description="运行时 —— atom loader、projection resolver、MCP server。永远不读 chunk 内容。">
   <h1>运行时</h1>
   <p style="color: var(--fg-muted);">
-    运行时通过 MCP 把编译好的 corpus 喂给 agent。它只有一条规矩：
-    <strong>永远不读 chunk 内容</strong>。运行时只返 metadata 和投影路径。
-    原子正文由 agent 用自己的 <code>Read</code> 工具去读。
+    运行时通过 MCP 把编译后的 corpus 提供给 agent，只有一条铁律：
+    <strong>绝不读取 chunk 内容</strong>。它只返回 metadata 和投影路径，
+    原子正文交给 agent 自己的 <code>Read</code> 工具去取。
   </p>
 
   <h2>查询流</h2>
   <p><img src="/runtime-query-flow.png" alt="Runtime query flow — agent, MCP server, atom index, disk" /></p>
 
-<pre><code>{`agent                   mcp-server-core        atom index    disk
- │                            │                     │           │
- │── prime_query(brief) ─────▶│                     │           │
- │                            │── search index ────▶│           │
- │                            │                     │           │
- │                            │  score atoms        │           │
- │                            │  + apply domain tag │           │
- │                            │  boost              │           │
- │                            │                     │           │
- │◀── results: [{ id, kind, ──│                     │           │
- │       description, level,  │                     │           │
- │       path }]              │                     │           │
- │                                                              │
- │── Read(path/chunks/core.md) ────────────────────────────────▶│
- │◀── selected atom content ───────────────────────────────────│`}</code></pre>
+  <Mermaid>{`sequenceDiagram
+    autonumber
+    participant agent
+    participant server as mcp-server-core
+    participant idx as atom index
+    participant disk
+
+    agent->>server: prime_query(brief)
+    server->>idx: search index
+    Note right of server: 打分原子<br/>+ 叠加 domain tag boost
+    server-->>agent: 结果 [{ id, kind, description, level, path }]
+    agent->>disk: Read(path/chunks/core.md)
+    disk-->>agent: 选中的原子正文`}</Mermaid>
 
   <p>
-    注意运行时只<em>返路径</em> —— 永远不返原子正文。两个原因：
+    注意：运行时只返回<em>路径</em>，从不返回原子正文。原因有两条：
   </p>
   <ol>
-    <li>agent 自己的 <code>Read</code> 工具已经能高效流式读取，运行时没必要重做这件事。</li>
-    <li>把正文留在运行时一侧，会诱使你做服务端缓存，那会跟 agent 的上下文预算抢资源。</li>
+    <li>agent 已经自带 <code>Read</code> 工具，能高效流式读取内容，运行时没必要再做一遍。</li>
+    <li>正文如果留在运行时这一侧，很容易催生服务端缓存，而那会和 agent 自己的上下文预算抢资源。</li>
   </ol>
 
   <h2>两个阶段</h2>
 
   <h3>启动</h3>
   <p>
-    第一次 MCP 请求触发启动。运行时读 <code>_index.xml</code>，递归发现各处的
-    <code>domain.yaml</code>，把它们注册进进程内的 <code>DomainRegistry</code>。
-    它<em>不</em>读任何 <code>chunks/*.md</code>。
+    第一个 MCP 请求触发启动。运行时读取 <code>_index.xml</code>，递归扫描各处的
+    <code>domain.yaml</code>，把它们注册到进程内的 <code>DomainRegistry</code>，
+    全程<em>不会</em>读任何 <code>chunks/*.md</code>。
   </p>
 
   <h3>稳态查询</h3>
-  <p>每次 MCP 查询是一次同步的内存操作：</p>
+  <p>每次 MCP 查询都是一次同步的内存操作：</p>
   <ol>
     <li>按 6 轴打分（kind / tag / edge / fit / persona / quality）。</li>
-    <li>套上 <code>domain.yaml</code> 里的 domain tag boost。</li>
+    <li>叠加 <code>domain.yaml</code> 中配置的 domain tag boost。</li>
     <li>解析 contract（must-include / must-avoid / conditional）。</li>
-    <li>在请求预算下计算每个原子的投影层级。</li>
-    <li>返 <code>{`{ hits: [{ id, kind, path, tokens, ... }] }`}</code>。</li>
+    <li>在请求预算约束下，为每个原子算出投影层级。</li>
+    <li>返回 <code>{`{ hits: [{ id, kind, path, tokens, ... }] }`}</code>。</li>
   </ol>
 
   <h2>5 个 MCP 工具</h2>
-  <p>参考 server 对外暴露五个工具，任何 MCP 客户端都能用：</p>
+  <p>参考实现的 server 对外暴露五个工具，任意 MCP 客户端都能调用：</p>
   <table>
     <thead>
       <tr><th>工具</th><th>用途</th></tr>
     </thead>
     <tbody>
-      <tr><td><code>prime_query</code></td><td>按 tag / kind / scope / 预算搜原子。</td></tr>
-      <tr><td><code>prime_resolve</code></td><td>brief → 排序后的原子（内部走 L1 + L2 + L3）。</td></tr>
-      <tr><td><code>prime_intent</code></td><td>brief → IntentObject（只跑 L1）。</td></tr>
-      <tr><td><code>prime_validate</code></td><td>生成产物 + 原子集合 → 裁决（L5）。</td></tr>
-      <tr><td><code>prime_compile</code></td><td>临时编译一个 <code>.prime</code> 源（测试用）。</td></tr>
+      <tr><td><code>prime_query</code></td><td>按 tag / kind / scope / 预算搜索原子。</td></tr>
+      <tr><td><code>prime_resolve</code></td><td>brief 转成排序后的原子集合（内部依次跑 L1 + L2 + L3）。</td></tr>
+      <tr><td><code>prime_intent</code></td><td>brief 转成 IntentObject（只跑 L1）。</td></tr>
+      <tr><td><code>prime_validate</code></td><td>给定生成产物和原子集合，得出裁决（L5）。</td></tr>
+      <tr><td><code>prime_compile</code></td><td>临时编译一份 <code>.prime</code> 源码，便于测试。</td></tr>
     </tbody>
   </table>
 
-  <p>完整输入/输出 JSON-Schema 见 <a href="/zh/docs/reference/mcp">MCP 工具 schema</a>。</p>
+  <p>完整的输入/输出 JSON-Schema 参见 <a href="/zh/docs/reference/mcp">MCP 工具 schema</a>。</p>
 
   <h2>缓存</h2>
   <p>
-    Index 解析后的内存图：在 server 进程生命周期内一直缓存。
-    Atom-yaml metadata：被 query 引用到时再懒加载。
-    图查询：不缓存（≤ 10k 原子规模下足够便宜）。
+    Index 解析后的内存图，在 server 进程生命周期内常驻缓存；
+    atom-yaml metadata 在第一次被查询命中时才懒加载；
+    图查询不做缓存（≤ 10k 原子的规模下足够便宜）。
   </p>
 
   <h2>重载</h2>
   <p>
-    运行时默认监听 index 文件的 mtime；touch 一下 <code>_index.xml</code> 就触发 metadata 热更新。
-    chunk 内容的变化对运行时是透明的（设计如此）—— 只有 agent 在读的时候才看得到。
+    运行时默认监听 index 文件的 mtime，<code>touch</code> 一下 <code>_index.xml</code> 就会触发 metadata 热更新。
+    chunk 内容的变化对运行时是不可见的——这是有意为之，只有 agent 真正去读的时候才会看到。
   </p>
 </DocsLayout>

@@ -4,7 +4,12 @@ import { loadPosts } from '../../../lib/blog';
 
 const posts = loadPosts().filter((p) => p.lang === 'zh');
 ---
-<Base title="日志" current="blog" lang="zh">
+<Base
+  title="日志"
+  current="blog"
+  lang="zh"
+  description="发布日志、设计笔记与一线实践 —— 关于为 AI 代理构建类型化知识图谱的过程记录。"
+>
   <div class="blog-list-wrap">
     <header class="blog-list-head">
       <p class="blog-list-eyebrow">日志 · {posts.length} 篇</p>

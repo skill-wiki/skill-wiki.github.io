@@ -94,6 +94,20 @@ export const DOCS_TREE: DocSection[] = [
       { slug: 'reference/http-registry', title: 'HTTP registry',    zhTitle: 'HTTP 注册表' },
     ],
   },
+  {
+    heading: 'Skills',
+    zhHeading: 'Skill 示例',
+    pages: [
+      { slug: 'skills/frontend-design', title: 'frontend-design', zhTitle: 'frontend-design' },
+    ],
+  },
+  {
+    heading: 'Community',
+    zhHeading: '社区',
+    pages: [
+      { slug: 'community/roadmap',       title: 'Roadmap',          zhTitle: '路线图' },
+    ],
+  },
 ];
 
 // Flat list for prev/next pagination.

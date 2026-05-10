@@ -4,29 +4,28 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 <DocsLayout title="批量加载的问题" slug="background/problem" lang="zh" description="为什么把整份 markdown skill 文件塞进每一轮对话，撑不到 50 个 skill。">
   <h1>批量加载的问题</h1>
   <p style="color: var(--fg-muted);">
-    主流做法是每轮把整份 markdown 喂进 prompt —— 这条路已经走到头。
-    替代方案需要长成什么样，本页给一个轮廓。
+    把整份 markdown 文件每轮都塞进 prompt——这套主流做法已经撞墙了。本页讨论的是：替代方案应该长什么样。
   </p>
 
-  <h2>这个模式</h2>
+  <h2>现状的做法</h2>
   <p>
-    教前沿模型 agent 一件事，默认做法是写一个 markdown 文件（一个 "skill"），
-    丢进 <code>.claude/skills/</code> 之类的目录，agent 一旦判定相关就把它注入到 system prompt。
+    要教会前沿模型 agent 干一件事，最常见的做法是写一份 markdown 文件（也就是一个 "skill"），
+    放进 <code>.claude/skills/</code> 这类目录里，等 agent 判断相关时再把它注入 system prompt。
     Anthropic 的 <a href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview" rel="noopener">SKILL.md 格式</a>
-    就是典型例子。一个 skill 通常是 100–500 行散文、YAML frontmatter 加上若干例子。
+    就是这种做法的代表。一个 skill 一般包含 100–500 行说明文、YAML frontmatter，再加几个例子。
   </p>
 
   <p>
-    小规模没问题。5 个 skill，几乎没成本。50 个开始能感觉到。500 个，agent 直接崩。
+    在小规模下这套做法没什么问题：5 个 skill 几乎察觉不到成本，50 个时已经能感觉到压力，到 500 个 agent 就直接崩了。
   </p>
 
-  <h2>三种可量化的失败</h2>
+  <h2>三种可以量化的失败</h2>
 
-  <h3>失败 1 —— token 成本随 skill 数量增长，与任务复杂度无关</h3>
+  <h3>失败 1：token 成本只跟 skill 数量挂钩，跟任务复杂度无关</h3>
   <p>
-    每一轮都把所有"可能相关"的 skill 全部加载。60 个 skill，每个平均 200 行，
-    那就是约 30k token 的上下文，全花在 agent 可能根本不需要的知识上。
-    多数轮次只用到一两个 skill 的内容，但要为全部 60 个买单。
+    每一轮都把所有"可能相关"的 skill 一股脑加载进来。60 个 skill、每个平均 200 行，
+    就是大约 30k token 的上下文，全砸在 agent 可能根本用不上的知识上。
+    多数对话其实只用到一两个 skill 的内容，但要为全部 60 个买单。
   </p>
   <pre><code>{`# A real measurement (frontend-design corpus, v3 benchmark)
 
@@ -37,59 +36,59 @@ Atom bodies on demand:                              =  ~600–2,000 tok per turn
 Saving:                                                ~10 ×  index reduction
                                                        ~6 ×   typical-turn token cost`}</code></pre>
 
-  <h3>失败 2 —— 上下文污染比上下文预算更致命</h3>
+  <h3>失败 2：上下文污染比上下文预算更要命</h3>
   <p>
-    "token 预算"这个视角抓不到真正严重的失败：错的 token 进了 prompt，会主动把模型带偏。
-    把"OWASP 输入校验"的 skill 塞进一个写<em>邮件文案</em>的 prompt，
-    它不只是浪费 token —— 它会把模型推向带安全色彩的回答，跑偏。
-    我们在同一份 20 任务基准上测了批量加载和按需加载，质量分差出 −13。
+    只盯着"token 预算"会忽视真正严重的问题：错的 token 一旦进了 prompt，会主动把模型带偏。
+    把一份"OWASP 输入校验"的 skill 塞进一个写<em>邮件文案</em>的 prompt 里，
+    损失的不只是 token，模型还会被推向一种带安全味道的语气，整个回答都会跑偏。
+    我们在同一份 20 任务基准上对比批量加载和按需加载，质量分相差 −13。
   </p>
   <p>
-    一个 200 行的 markdown 大块没有<em>边界</em>。如果你只想用其中三条 fact 加一条 rule，
-    对不起，整块都得加载。粗粒度知识 + 急加载 = 失败模式。
+    一份 200 行的 markdown 是一整块、没有<em>边界</em>。哪怕你只想用其中三条 fact 加一条 rule，
+    也只能整块加载。粗粒度知识加上急加载，就是这种典型的失败模式。
   </p>
 
-  <h3>失败 3 —— skill 之间无法有意义地互相引用</h3>
+  <h3>失败 3：skill 之间没法有意义地互相引用</h3>
   <p>
-    在 SKILL.md 格式里，两个 skill 之间的关系，最多就是一条"see also"超链接。
-    没有任何机器可校验的方式去说"这条 rule <em>requires</em> 那个 term"、
+    在 SKILL.md 格式下，两个 skill 之间的关系顶多是一条"see also"超链接。
+    没有任何机器可校验的方式去表达"这条 rule <em>requires</em> 那个 term"、
     "这个 pattern <em>contradicts</em> 那个 anti-pattern"，或者
     "这个 example <em>validates</em> 那条 fact"。
-    所以校验器抓不到矛盾、检索器走不了依赖、chunker 也没有 kind 感知去决定保留还是丢弃。
+    校验器因此抓不到矛盾，检索器没法顺着依赖走，chunker 也没有 kind 这一层概念来判断什么该留、什么该丢。
   </p>
   <p>
-    最终 skill 退化成 JavaScript：一坨没有类型的东西，恰好在作者测过的场景下能跑。
+    结果就是 skill 越来越像 JavaScript：一团没有类型的东西，只是恰好在作者测过的场景里跑得通。
   </p>
 
-  <h2>替代方案需要什么</h2>
-  <p>替代方案要同时具备三件事：</p>
+  <h2>替代方案需要满足什么</h2>
+  <p>替代方案需要同时具备这三点：</p>
   <ol>
     <li>
-      <strong>原子粒度。</strong>知识单元要小到可以单独加载。
-      不是"一个 skill" —— 而是一条 fact、一条 rule、一个 pattern、一个 method。
+      <strong>原子粒度。</strong>知识单元要小到可以单独加载，
+      不是"一个 skill"，而是一条 fact、一条 rule、一个 pattern、一个 method。
     </li>
     <li>
-      <strong>带类型的边。</strong>原子之间的关系要表达成带类型的 verb
+      <strong>带类型的边。</strong>原子之间的关系要用带类型的 verb 来表达
       （<code>requires</code>、<code>validates-with</code>、<code>contradicts</code>），
-      校验器才能推理，检索器才能沿着走。
+      这样校验器才能推理，检索器也才能顺着走。
     </li>
     <li>
-      <strong>惰性投影。</strong>agent 必须先看到<em>哪些</em>原子存在（便宜），
-      不用加载它们的内容（贵）。加载按 id、按需触发，发生在检索挑出目标之后。
+      <strong>惰性投影。</strong>agent 要能先看到<em>有哪些</em>原子存在（这是便宜的），
+      而不必加载它们的正文（这是昂贵的）。等检索挑出目标后，再按 id 按需加载。
     </li>
   </ol>
 
   <p>
-    这就是 Skill Wiki 所在的设计空间。下一页 ——
-    <a href="/zh/docs/background/existence-not-content">存在 ≠ 内容</a> —— 解释那条承重墙；
-    再之后 <a href="/zh/docs/spec/atoms">Atoms</a>、
-    <a href="/zh/docs/spec/edges">Edges</a>、
-    <a href="/zh/docs/spec/projection">Projection</a> 把协议正式定下来。
+    这就是 Skill Wiki 所处的设计空间。下一页
+    <a href="/zh/docs/background/existence-not-content">存在 ≠ 内容</a> 会解释整套设计的承重墙；
+    再往后 <a href="/zh/docs/spec/atoms">Atoms</a>、
+    <a href="/zh/docs/spec/edges">Edges</a> 和
+    <a href="/zh/docs/spec/projection">Projection</a> 把协议正式落到纸面上。
   </p>
 
   <h2>延伸阅读</h2>
   <ul>
-    <li><a href="/blog/prime-vs-skill-graphs">Field note: Prime vs SKILL.md graphs —— 批量加载为何失败</a></li>
-    <li><a href="/zh/docs/background/prior-art">Prior art</a> —— 与 RAG、知识图谱、agent skills 的对比</li>
+    <li><a href="/blog/prime-vs-skill-graphs">Field note：Prime vs SKILL.md graphs——批量加载为什么输了</a></li>
+    <li><a href="/zh/docs/background/prior-art">Prior art</a>：与 RAG、知识图谱、agent skills 的对比</li>
   </ul>
 </DocsLayout>

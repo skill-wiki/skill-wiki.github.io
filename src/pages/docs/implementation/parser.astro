@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Parser & AST" slug="implementation/parser" description="The lexer + parser + AST shape that turns .prime source into typed nodes.">
   <h1>Parser & AST</h1>
@@ -57,19 +58,28 @@ export type ValueNode =
   <h2>Recursive descent</h2>
   <p>The parser has 6 entry points; the rest is straightforward descent:</p>
 
-<pre><code>{`parsePrimeFile  ──▶  parseAtomDeclaration
-                       │
-                       ├─▶ parseKindKeyword
-                       ├─▶ parseAtomBody
-                       │     │
-                       │     └─▶ parseField
-                       │            │
-                       │            └─▶ parseValue
-                       │                  │
-                       │                  ├─▶ parseString / parseNumber
-                       │                  ├─▶ parseAtomId
-                       │                  ├─▶ parseList
-                       │                  └─▶ parseObject (recurse)`}</code></pre>
+  <Mermaid>{`graph LR
+    PF["parsePrimeFile"]
+    PAD["parseAtomDeclaration"]
+    PKK["parseKindKeyword"]
+    PAB["parseAtomBody"]
+    PF_["parseField"]
+    PV["parseValue"]
+    PS["parseString / parseNumber"]
+    PAI["parseAtomId"]
+    PL["parseList"]
+    PO["parseObject (recurse)"]
+
+    PF --> PAD
+    PAD --> PKK
+    PAD --> PAB
+    PAB --> PF_
+    PF_ --> PV
+    PV --> PS
+    PV --> PAI
+    PV --> PL
+    PV --> PO
+    PO -.recurse.-> PV`}</Mermaid>
 
   <h2>Error reporting</h2>
   <p>

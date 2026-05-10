@@ -1,14 +1,26 @@
 ---
 import '../styles/global.css';
+import '../styles/mermaid.css';
 
 interface Props {
   title: string;
   description?: string;
   current?: 'home' | 'marketplace' | 'docs' | 'browse' | 'blog' | 'about';
   lang?: 'en' | 'zh';
+  image?: string;
+  type?: 'website' | 'article';
+  published?: string;
 }
 
-const { title, description, current, lang = 'en' } = Astro.props;
+const {
+  title,
+  description,
+  current,
+  lang = 'en',
+  image = '/og-default.png',
+  type = 'website',
+  published,
+} = Astro.props;
 const isZh = lang === 'zh';
 
 const fullTitle = title === 'Skill Wiki' ? title : `${title} · Skill Wiki`;
@@ -17,6 +29,61 @@ const desc =
   (isZh
     ? 'Skill Wiki — 类型化原子、边图、懒加载投影。AI 知识的协议层。'
     : 'Skill Wiki — typed atoms, edge graph, lazy projection. A protocol layer for AI knowledge.');
+
+// Canonical URL — prefer Astro's configured site, fall back to org root.
+const SITE = (import.meta.env.SITE as string | undefined) ?? 'https://skill-wiki.github.io';
+const pathname = Astro.url.pathname;
+const canonicalUrl = new URL(pathname, SITE).toString();
+const ogImage = new URL(image, SITE).toString();
+const ogLocale = isZh ? 'zh_CN' : 'en_US';
+
+// hreflang alternates — strip /zh prefix for EN, add /zh for ZH.
+// Edge case: root "/" <-> "/zh" (no trailing slash). Path "/zh" is treated
+// the same as "/zh/". Anything that doesn't start with /zh is treated as EN.
+function stripZh(p: string): string {
+  if (p === '/zh' || p === '/zh/') return '/';
+  if (p.startsWith('/zh/')) return p.slice(3); // "/zh/foo" -> "/foo"
+  return p;
+}
+function addZh(p: string): string {
+  if (p === '/' || p === '') return '/zh';
+  return `/zh${p}`;
+}
+const enPath = pathname.startsWith('/zh') ? stripZh(pathname) : pathname;
+const zhPath = pathname.startsWith('/zh') ? pathname : addZh(pathname);
+const enUrl = new URL(enPath, SITE).toString();
+const zhUrl = new URL(zhPath, SITE).toString();
+
+// JSON-LD structured data — Organization on every page; Article on article pages.
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Skill Wiki',
+  url: SITE,
+  logo: new URL('/logo.png', SITE).toString(),
+  sameAs: [
+    'https://github.com/skill-wiki',
+    'https://github.com/skill-wiki/prime-system',
+  ],
+};
+const articleLd =
+  type === 'article'
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: title,
+        description: desc,
+        image: ogImage,
+        datePublished: published,
+        author: { '@type': 'Organization', name: 'Skill Wiki' },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Skill Wiki',
+          logo: { '@type': 'ImageObject', url: new URL('/logo.png', SITE).toString() },
+        },
+        mainEntityOfPage: canonicalUrl,
+      }
+    : null;
 
 const T = isZh
   ? {
@@ -47,10 +114,37 @@ const prefix = (p: string) => (isZh ? `/zh${p}` : p);
     <title>{fullTitle}</title>
     <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href="/favicon.png" />
+
+    {/* Canonical + hreflang — tells Google which URL is the source of truth
+        and which alternates exist for the same page in another language. */}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="zh" href={zhUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+
+    {/* Open Graph — shared link preview across Facebook, LinkedIn, Slack, etc. */}
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={desc} />
-    <meta property="og:image" content="/logo.png" />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:site_name" content="Skill Wiki" />
+    {type === 'article' && published && (
+      <meta property="article:published_time" content={published} />
+    )}
+
+    {/* Twitter card — large summary preview. */}
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {/* JSON-LD structured data — Organization always, Article on blog posts. */}
+    <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
+    {articleLd && (
+      <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+    )}
 
     {/* Pre-paint theme application — avoids flash on first load + on every nav. */}
     <script is:inline>

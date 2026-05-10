@@ -1,0 +1,67 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Skill · frontend-design" slug="skills/frontend-design" description="The flagship design corpus — domain.yaml, axes, and validators for visual / aesthetic knowledge.">
+  <h1>Skill · frontend-design</h1>
+  <p style="color: var(--fg-muted);">
+    The protocol is domain-blind. <code>frontend-design</code> is the flagship Skill
+    that demonstrates a visual / aesthetic domain on top of the protocol — colour,
+    typography, motion, spacing, accessibility, and component patterns. This page
+    collects the design-flavoured examples that used to live in the protocol docs.
+  </p>
+
+  <h2>domain.yaml</h2>
+  <p>
+    The Skill's <code>domain.yaml</code> declares its axes and L5 validators. The
+    runtime discovers it recursively from <code>$PRIME_DIR</code>; no code change in
+    the core needed.
+  </p>
+
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: Design knowledge for AI agents — color, typography, motion, spacing,
+             accessibility, and component patterns.
+
+# Hints to the retriever about the dominant taxonomy.
+hierarchy: visual-hierarchy
+
+# Multi-axis tags the retriever boosts on when intent matches.
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+  - accessibility
+
+# Default contract scaffolds applied when a method doesn't override.
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# L5 validator hooks.
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: '^<([a-z][a-z0-9]*)\\b[^>]*>'
+  - name: color-token
+    checker: ai-judge
+    rubric: '@frontend-design/rubric-color-token'`}</code></pre>
+
+  <h2>Personas as design lineage</h2>
+  <p>
+    The <code>persona</code> kind is used here to bundle a coherent aesthetic — a
+    "design lineage" or brand system. A frontend-design L1 produces an intent like
+    <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>;
+    the matching <code>persona</code> atom carries the voice + companion atoms that
+    define that lineage.
+  </p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture/domain-plugin">Architecture → Domain plugin</a> — how <code>domain.yaml</code> is wired into the runtime.</li>
+    <li><a href="/docs/extending/domain-yaml">Extending → domain.yaml</a> — full field reference.</li>
+    <li><a href="/docs/spec/atoms">Spec → Atoms</a> — the <code>persona</code> kind.</li>
+    <li><a href="/marketplace">Marketplace</a> — install the corpus.</li>
+  </ul>
+</DocsLayout>

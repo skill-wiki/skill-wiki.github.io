@@ -1,0 +1,30 @@
+/* Mermaid diagram styles — keep SVGs responsive and centred. */
+
+.mermaid-wrapper {
+  margin: 16px 0;
+  /* Hide the raw mermaid source until rendered. Avoids a flash of unstyled
+     pre-formatted text on first paint. */
+  min-height: 1em;
+}
+
+.mermaid-wrapper > svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+}
+
+/* Pre-render: the source text shouldn't show. We render via a hidden
+   <template>-like data attribute instead of in-DOM <pre>. */
+.mermaid-wrapper:not(.mermaid-rendered) {
+  /* small placeholder height so layout doesn't jump */
+  min-height: 80px;
+}
+
+/* Slight contrast bump on dark theme so the default mermaid edge strokes
+   stay readable. Mermaid's own dark-theme already covers most of this. */
+[data-theme='dark'] .mermaid-wrapper svg .messageText,
+[data-theme='dark'] .mermaid-wrapper svg .nodeLabel,
+[data-theme='dark'] .mermaid-wrapper svg .edgeLabel {
+  color: var(--fg-default, #e6edf3);
+}

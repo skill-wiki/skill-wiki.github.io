@@ -4,60 +4,63 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 <DocsLayout title="Install" slug="usage/install" description="Install Skill Wiki — bun, Node 22+, the prime CLI, and the MCP server.">
   <h1>Install</h1>
   <p style="color: var(--fg-muted);">
-    Skill Wiki ships as a set of npm packages. The CLI handles compile / publish /
-    install; the MCP server exposes the compiled corpus to your agent.
+    Skill Wiki is a set of bun-runnable TypeScript packages. The CLI handles
+    compile / publish / install; the MCP server exposes the compiled corpus to your
+    agent.
   </p>
 
   <h2>Requirements</h2>
   <ul>
     <li><strong>Node 22+</strong> (<a href="https://nodejs.org" rel="noopener">nodejs.org</a>)</li>
-    <li><strong>Bun 1.3+</strong> recommended (<a href="https://bun.sh" rel="noopener">bun.sh</a>) — much faster than Node for the compile step</li>
+    <li><strong>Bun 1.3+</strong> required for the CLI and MCP server (<a href="https://bun.sh" rel="noopener">bun.sh</a>)</li>
     <li>An MCP-capable client (Claude Code, Cursor, Continue, Aider, …)</li>
   </ul>
 
   <h2>Install the CLI</h2>
-<pre><code>{`# Bun (recommended)
-bun add -g @prime-lang/cli
+  <p>The current install path is from source — npm publishing is queued for v0.1.1.</p>
 
-# Or npm
-npm install -g @prime-lang/cli
+<pre><code>{`# Clone, install deps, link the CLI globally
+git clone https://github.com/skill-wiki/prime-system.git
+cd prime-system
+bun install
+bun link
+
+# In a fresh shell, link the binary by name (one-time)
+bun link @prime-lang/cli
 
 # Verify
 prime --version
 # → prime 0.1.0`}</code></pre>
 
-  <h2>Install a Skill from the marketplace</h2>
-<pre><code>{`# The flagship Skill — frontend-design
-prime install @frontend-design
-
-# A minimal example
-prime install @recipes`}</code></pre>
-
-  <p>
-    By default Skills go into <code>./.primes/</code>. Use <code>--dir</code> to
-    customise.
+  <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
+    <strong>Coming soon:</strong> once <code>@prime-lang/cli</code> is published to npm
+    in v0.1.1, you'll be able to <code>bun add -g @prime-lang/cli</code> instead.
   </p>
 
+  <h2>Install a Skill from the marketplace</h2>
+<pre><code>{`# The flagship Skill — frontend-design (clone for now; registry coming in v0.1.1)
+git clone https://github.com/skill-wiki/prime-corpus-frontend.git
+
+# A minimal example ships inside the prime-system repo
+cd prime-system/examples/hello-world`}</code></pre>
+
   <h2>Boot the MCP server</h2>
-<pre><code>{`# Stdio transport (for Claude Code / Cursor)
-PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
+  <p>The server entry is a bun-runnable TypeScript file inside the cloned repo.</p>
 
-# HTTP transport (for browser-based clients)
-PRIME_DIR=./.primes/@recipes \\
-  bunx @prime-lang/mcp-server-core --http --port 4001`}</code></pre>
+<pre><code>{`# Generic 1-tool server (any compiled corpus)
+PRIME_DIR=/abs/path/to/compiled \\
+  bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 
-  <h2>From source</h2>
-  <p>If you want to develop against Skill Wiki itself or run an unreleased version:</p>
+# Frontend 5-tool server (frontend-design corpus)
+PRIME_DIR=/abs/path/to/prime-corpus-frontend/compiled-v3-final \\
+  bun /abs/path/to/prime-corpus-frontend/app/mcp-server-frontend/index.ts`}</code></pre>
 
-<pre><code>{`git clone https://github.com/skill-wiki/prime-system.git
-cd prime-system
-bun install
-bun run build
-bun run packages/cli/src/index.ts --version`}</code></pre>
+  <p>For wiring into Claude Code / Cursor / Desktop, see the
+  <a href="/docs/usage/mcp-claude">MCP setup page</a>.</p>
 
   <h2>Verify the install</h2>
 <pre><code>{`# Compile and inspect the bundled hello-world example
-cd examples/hello-world
+cd prime-system/examples/hello-world
 prime compile
 
 # List atoms
@@ -71,6 +74,6 @@ prime list
   <ul>
     <li><a href="/docs/usage/first-atom">Author your first atom</a></li>
     <li><a href="/docs/usage/mcp-claude">Wire into Claude Code</a></li>
-    <li><a href="/docs/usage/publish-install">Publish & install your own Skill</a></li>
+    <li><a href="/docs/usage/publish-install">Publish &amp; install your own Skill</a></li>
   </ul>
 </DocsLayout>

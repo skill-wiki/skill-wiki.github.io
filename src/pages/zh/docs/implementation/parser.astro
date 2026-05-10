@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Parser & AST" slug="implementation/parser" lang="zh" description="把 .prime 源码变成带类型节点的 lexer + parser + AST。">
   <h1>Parser & AST</h1>
@@ -56,19 +57,28 @@ export type ValueNode =
   <h2>递归下降</h2>
   <p>parser 有 6 个入口；其余就是直白的下降：</p>
 
-<pre><code>{`parsePrimeFile  ──▶  parseAtomDeclaration
-                       │
-                       ├─▶ parseKindKeyword
-                       ├─▶ parseAtomBody
-                       │     │
-                       │     └─▶ parseField
-                       │            │
-                       │            └─▶ parseValue
-                       │                  │
-                       │                  ├─▶ parseString / parseNumber
-                       │                  ├─▶ parseAtomId
-                       │                  ├─▶ parseList
-                       │                  └─▶ parseObject (recurse)`}</code></pre>
+  <Mermaid>{`graph LR
+    PF["parsePrimeFile"]
+    PAD["parseAtomDeclaration"]
+    PKK["parseKindKeyword"]
+    PAB["parseAtomBody"]
+    PF_["parseField"]
+    PV["parseValue"]
+    PS["parseString / parseNumber"]
+    PAI["parseAtomId"]
+    PL["parseList"]
+    PO["parseObject（递归）"]
+
+    PF --> PAD
+    PAD --> PKK
+    PAD --> PAB
+    PAB --> PF_
+    PF_ --> PV
+    PV --> PS
+    PV --> PAI
+    PV --> PL
+    PV --> PO
+    PO -.递归.-> PV`}</Mermaid>
 
   <h2>错误报告</h2>
   <p>

@@ -8,38 +8,108 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     形状都一样 —— 只是配置文件位置不同。
   </p>
 
-  <h2>Claude Code</h2>
-  <p>编辑 <code>~/.config/claude-code/mcp.json</code>（macOS / Linux）或 Windows 上对应路径：</p>
+  <p style="color: var(--fg-muted);">
+    目前发布了两个 server，挑一个用：
+  </p>
+  <ul>
+    <li><strong>通用 Skill Wiki MCP</strong> —— 1 个工具（<code>prime_query</code>）。对接任意编译好的 corpus。空 corpus 起步就用它。</li>
+    <li><strong>前端领域 MCP</strong> —— 5 个工具（<code>prime_query</code>、<code>prime_resolve</code>、<code>prime_intent</code>、<code>prime_validate</code>、<code>prime_compile</code>）。和 frontend-design 这个 corpus 配套。</li>
+  </ul>
+
+  <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
+    <strong>TODO：</strong> npm 包（<code>@prime-lang/mcp-server-core</code> 等）还没发布 ——
+    计划在 v0.1.1 发。在那之前，按下面的步骤从本地 clone 跑。
+  </p>
+
+  <h2>1 · 通用 Skill Wiki MCP（1 个工具）</h2>
+  <p>用于全新 / 空 corpus。只暴露 <code>prime_query</code>。</p>
+
+<pre><code>{`# 克隆并安装
+git clone https://github.com/skill-wiki/prime-system.git
+cd prime-system
+bun install
+
+# 记下 server 入口的绝对路径：
+#   <repo>/packages/mcp-server-core/src/index.ts`}</code></pre>
+
+  <p>然后让客户端跑 <code>bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts</code>，
+  并用 <code>PRIME_DIR</code> 指向你编译好的 corpus 目录。</p>
+
+  <h2>2 · 前端领域 MCP（5 个工具）</h2>
+  <p>和精选的 frontend-design corpus 配套。在 query 之上加了 resolve / intent / validate / compile。</p>
+
+<pre><code>{`# 克隆 corpus 仓库
+git clone https://github.com/skill-wiki/prime-corpus-frontend.git
+cd prime-corpus-frontend
+bun install
+
+# server 入口在：
+#   <repo>/app/mcp-server-frontend/index.ts`}</code></pre>
+
+  <p>客户端指向 <code>bun /abs/path/to/prime-corpus-frontend/app/mcp-server-frontend/index.ts</code>。
+  这个仓库自带 corpus 在 <code>compiled-v3-final/</code>；把 <code>PRIME_DIR</code> 指过去。</p>
+
+  <h2>3 · 编辑器配置</h2>
+  <p>跨客户端 JSON 形状一样 —— 只是文件位置不同。把 <code>args</code> 路径
+  和 <code>PRIME_DIR</code> 换成你选的 server（1 或 2）的。</p>
+
+  <h3>Claude Code —— 项目级</h3>
+  <p>项目根目录放一个 <code>.mcp.json</code>，Claude Code 会自动读取。</p>
 
 <pre><code>{`{
   "mcpServers": {
-    "skill-wiki": {
-      "command": "bunx",
-      "args": ["@prime-lang/mcp-server-core"],
+    "prime": {
+      "command": "bun",
+      "args": ["/abs/path/to/prime-system/packages/mcp-server-core/src/index.ts"],
       "env": {
-        "PRIME_DIR": "/abs/path/to/your/primes/compiled"
+        "PRIME_DIR": "/abs/path/to/your/compiled/corpus"
       }
     }
   }
 }`}</code></pre>
 
-  <p>重启 Claude Code。agent 的工具列表里应当出现这 5 个工具：</p>
-  <ul>
-    <li><code>prime_query</code></li>
-    <li><code>prime_resolve</code></li>
-    <li><code>prime_intent</code></li>
-    <li><code>prime_validate</code></li>
-    <li><code>prime_compile</code></li>
-  </ul>
+  <p>用前端 MCP 时，把 <code>args</code> 换成
+  <code>["/abs/path/to/prime-corpus-frontend/app/mcp-server-frontend/index.ts"]</code>，
+  <code>PRIME_DIR</code> 指向 <code>.../prime-corpus-frontend/compiled-v3-final</code>。</p>
 
-  <h2>Cursor</h2>
+  <h3>Claude Code —— 全局</h3>
+  <p>编辑 <code>~/.claude.json</code>，在顶层 <code>mcpServers</code> 键下加同样的形状：</p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "prime": {
+      "command": "bun",
+      "args": ["/abs/path/to/prime-system/packages/mcp-server-core/src/index.ts"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/your/compiled/corpus"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <h3>Claude Desktop（macOS）</h3>
+  <p>编辑 <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>：</p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "prime": {
+      "command": "bun",
+      "args": ["/abs/path/to/prime-system/packages/mcp-server-core/src/index.ts"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/your/compiled/corpus"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <h3>Cursor</h3>
 <pre><code>{`# Cursor settings → MCP servers → Add
-Server name: skill-wiki
-Command:     bunx
-Args:        @prime-lang/mcp-server-core
-Env:         PRIME_DIR=/abs/path/to/compiled`}</code></pre>
+Server name: prime
+Command:     bun
+Args:        /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
+Env:         PRIME_DIR=/abs/path/to/your/compiled/corpus`}</code></pre>
 
-  <h2>Continue</h2>
+  <h3>Continue</h3>
   <p>编辑 <code>~/.continue/config.json</code>：</p>
 
 <pre><code>{`{
@@ -48,28 +118,19 @@ Env:         PRIME_DIR=/abs/path/to/compiled`}</code></pre>
       {
         "transport": {
           "type": "stdio",
-          "command": "bunx",
-          "args": ["@prime-lang/mcp-server-core"]
+          "command": "bun",
+          "args": ["/abs/path/to/prime-system/packages/mcp-server-core/src/index.ts"]
         },
         "env": {
-          "PRIME_DIR": "/abs/path/to/compiled"
+          "PRIME_DIR": "/abs/path/to/your/compiled/corpus"
         }
       }
     ]
   }
 }`}</code></pre>
 
-  <h2>HTTP 传输</h2>
-  <p>用于浏览器端客户端或共享部署：</p>
-
-<pre><code>{`# Server side
-PRIME_DIR=/abs/path/to/compiled \\
-  bunx @prime-lang/mcp-server-core --http --port 4001
-
-# Client side — connect to http://your-host:4001/mcp`}</code></pre>
-
   <h2>测试连接</h2>
-  <p>连上以后，问 agent 一个 corpus 知道的事情：</p>
+  <p>重启客户端。连上以后，问 agent 一个 corpus 知道的事情：</p>
 
 <blockquote>
   <em>"corpus 里哪些原子描述了 'pan sauce'？用 prime_query。"</em>
@@ -85,8 +146,9 @@ PRIME_DIR=/abs/path/to/compiled \\
     </thead>
     <tbody>
       <tr><td>看不到工具</td><td>配置文件没被加载</td><td>检查文件路径；重启客户端</td></tr>
-      <tr><td><code>spawn bunx ENOENT</code></td><td>Bun 没装或不在 PATH 中</td><td>全局装 bun，或用绝对路径</td></tr>
-      <tr><td><code>PRIME_DIR not found</code></td><td>路径没指向编译产物</td><td>先跑 <code>prime compile</code></td></tr>
+      <tr><td><code>spawn bun ENOENT</code></td><td>Bun 没装或不在 PATH 中</td><td>全局装 bun，或用 bun 二进制的绝对路径</td></tr>
+      <tr><td><code>npm / bunx 404</code></td><td>用了老配置 <code>bunx @prime-lang/mcp-server-core</code></td><td>改用上面这种本地 clone 路径。npm 包还没发布。</td></tr>
+      <tr><td><code>PRIME_DIR not found</code></td><td>路径没指向编译产物</td><td>先跑编译；并用绝对路径</td></tr>
       <tr><td>命中返回了，但正文加载失败</td><td>agent 的 <code>Read</code> 工具够不到那个路径</td><td><code>PRIME_DIR</code> 用绝对路径</td></tr>
     </tbody>
   </table>

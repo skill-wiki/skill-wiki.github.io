@@ -1113,28 +1113,80 @@ li > p { margin: 8px 0; }
   padding: var(--s-4) 0 var(--s-5);
   font-size: var(--t-sm);
 }
-.docs-toc h4 {
+.docs-toc-title {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--fg-muted);
-  margin: 0 0 var(--s-2);
-  border: 0;
-  padding: 0;
+  margin: 0 0 8px;
 }
-.docs-toc ul { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--border-muted); }
-.docs-toc li { margin: 0; }
-.docs-toc a {
+#docs-toc-nav ul,
+#docs-toc-nav-mobile ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+#docs-toc-nav ul ul,
+#docs-toc-nav-mobile ul ul {
+  padding-left: 12px;
+}
+#docs-toc-nav li,
+#docs-toc-nav-mobile li {
+  margin: 0;
+}
+#docs-toc-nav li a,
+#docs-toc-nav-mobile li a {
   display: block;
-  padding: 4px 12px;
+  padding: 4px 0 4px 12px;
+  border-left: 2px solid transparent;
   color: var(--fg-muted);
-  text-decoration: none;
-  border-left: 1px solid transparent;
-  margin-left: -1px;
   font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: color 0.12s, border-left-color 0.12s;
 }
-.docs-toc a:hover { color: var(--fg-default); text-decoration: none; }
+#docs-toc-nav li a:hover,
+#docs-toc-nav-mobile li a:hover {
+  color: var(--fg-default);
+  text-decoration: none;
+}
+#docs-toc-nav li a.active,
+#docs-toc-nav-mobile li a.active {
+  border-left-color: var(--accent-fg);
+  color: var(--fg-default);
+}
+
+/* Mobile fallback — collapsible TOC inside .docs-content, hidden when right rail is visible. */
+details.docs-toc-mobile {
+  margin: 0 0 var(--s-5);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--r-2);
+  padding: var(--s-2) var(--s-3);
+  background: var(--bg-muted);
+  font-size: var(--t-sm);
+}
+details.docs-toc-mobile > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  list-style: none;
+  user-select: none;
+}
+details.docs-toc-mobile > summary::-webkit-details-marker { display: none; }
+details.docs-toc-mobile > summary::before {
+  content: '▸ ';
+  display: inline-block;
+  transition: transform 0.15s;
+}
+details.docs-toc-mobile[open] > summary::before { content: '▾ '; }
+details.docs-toc-mobile #docs-toc-nav-mobile { margin-top: var(--s-2); }
+@media (min-width: 1280px) {
+  details.docs-toc-mobile { display: none; }
+}
 
 .docs-pager {
   display: grid;
@@ -1436,8 +1488,18 @@ li > p { margin: 8px 0; }
   table th, table td { padding: 6px 8px; min-width: 5em; font-size: 12px; }
 
   /* Code blocks: smaller on mobile */
-  pre { padding: 12px; font-size: 12px; }
+  pre { padding: 12px; font-size: 12px; -webkit-overflow-scrolling: touch; }
   code { font-size: 12px; }
+
+  /* Atom detail — install snippet shrinks; side card sheds inner widths */
+  .atom-install { font-size: 11px !important; padding: 10px 12px !important; }
+  .atom-install code { font-size: 11px !important; }
+  .atom-side,
+  .atom-side-card { width: 100%; max-width: 100%; min-width: 0; position: static; }
+
+  /* Marketplace flagship aside chips — long namespaces overflow */
+  .flagship-aside .chips { gap: 6px; }
+  .flagship-aside .chips code { font-size: 11px; word-break: break-all; }
 
   /* Mobile blog list */
   .blog-row { padding: 24px 0; }
@@ -1478,6 +1540,12 @@ li > p { margin: 8px 0; }
   .gh-brand img { width: 20px; height: 20px; }
   .marquee { font-size: 11px; }
   .blog-list-title { font-size: 32px; }
+
+  /* Hero install snippet: snippet has indented multi-token lines; allow
+     horizontal scroll rather than wrap (preserves the syntax-highlighted
+     structure) and shrink padding/font. */
+  .hero-snippet { font-size: 11px; }
+  .hero-snippet pre { padding: 10px 12px; font-size: 11px; overflow-x: auto; }
 }
 
 /* Tablets in portrait — between 720 and 900 */

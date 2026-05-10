@@ -63,9 +63,15 @@ jobs:
           while IFS=' ' read -r repo dir; do
             [ -z "$repo" ] && continue
             echo "→ cloning $repo into external/$dir"
-            git clone --depth 1 "https://github.com/$repo.git" "external/$dir"
+            # Soft-fail: a Skill listed in skills.yaml whose repo isn't pushed
+            # yet should not block the whole site deploy. The corpus loader
+            # tolerates a missing dir and just omits that Skill from the
+            # marketplace; the next deploy after the repo exists picks it up.
+            if ! git clone --depth 1 "https://github.com/$repo.git" "external/$dir" 2>&1; then
+              echo "::warning::Skipping $repo — clone failed (repo may not be public yet)"
+            fi
           done < .vendor-list.txt
-          echo "Vendored:"; ls external
+          echo "Vendored:"; ls external 2>/dev/null || echo "(none)"
 
       - uses: oven-sh/setup-bun@v2
         with:

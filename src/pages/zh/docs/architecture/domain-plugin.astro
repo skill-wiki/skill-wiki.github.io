@@ -38,49 +38,53 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
           • L5 validator hooks`}</code></pre>
 
   <h2><code>domain.yaml</code> 声明什么</h2>
-<pre><code>{`name: frontend-design
+  <p>
+    一个示例，取自一个假想的 <code>security</code> corpus。同样的形状对任何领域都适用 ——
+    字段名是协议层的；<em>值</em>才是领域特定的。
+  </p>
+<pre><code>{`name: security
 version: "1.0.0"
-description: "Design knowledge for AI agents — color, type, motion, …"
+description: "Application security knowledge for AI agents — input validation, authn/authz, crypto, …"
 
 # Hierarchical taxonomy of sub-domains.
-hierarchy: visual-hierarchy
+hierarchy: threat-model
 
 # Multi-axis tags the retriever can boost on.
 axes:
-  - layout
-  - typography
-  - spacing
-  - color
-  - motion
+  - risk-class
+  - attack-surface
+  - data-sensitivity
+  - control-family
+  - severity
 
 # Composition contract scaffold (defaults).
 contract:
-  typography: atom-12-array
-  color: atom-token-semantic
+  input-validation: atom-checklist
+  authn: atom-token-flow
 
 # L5 validators (optional).
 validators:
-  - name: html-semantic
+  - name: sql-injection-shape
     checker: regex
-    pattern: "^[<]([a-z][a-z0-9]*)\\b[^>]*[>]"
-  - name: color-token
+    pattern: "(?i)\\\\b(or|and)\\\\b\\\\s+1\\\\s*=\\\\s*1"
+  - name: owasp-input-validation
     checker: ai-judge
-    rubric: "@frontend-design/rubric-color-token"`}</code></pre>
+    rubric: "@security/rubric-owasp-input-validation"`}</code></pre>
 
   <h2>运行时怎么用它</h2>
 
   <h3>Tag boost</h3>
   <p>
     带有 <code>axes:</code> 中标签的原子，在检索器的 <code>IntentObject</code> 命中时获得乘性加权。
-    比如打了 <code>typography</code> 标签的原子，在 intent 是
-    <code>focus: "typography-and-rhythm"</code> 时排名更靠前。
+    比如打了 <code>owasp-input-validation</code> 标签的原子，在 intent 是
+    <code>focus: "input-validation"</code> 时排名更靠前。
   </p>
 
   <h3>Intent 字段</h3>
   <p>
     L1（意图分类）读 <code>axes</code> 决定要在 IntentObject 里填哪些字段。
-    一个 frontend-design 的 L1 产出 <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>；
-    一个安全 Skill 的 L1 产出的形状完全不同。
+    一个 security 的 L1 产出 <code>{`{ axes: ["attack-surface", "control-family"], persona: "@security-auditor", ... }`}</code>；
+    另一个领域的 L1 产出的形状完全不同。
   </p>
 
   <h3>L5 validator hook</h3>
@@ -107,5 +111,10 @@ validators:
 
   <p>
     怎么写 <code>domain.yaml</code>，见 <a href="/zh/docs/extending/domain-yaml">拓展 → domain.yaml</a>。
+  </p>
+
+  <p>
+    延伸阅读：<a href="/zh/docs/skills/frontend-design">Skills → frontend-design</a> ——
+    旗舰设计 corpus，它的 <code>domain.yaml</code> 是视觉 / 美学领域的具体参照。
   </p>
 </DocsLayout>

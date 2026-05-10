@@ -65,7 +65,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
       <tr>
         <td><strong>Voice & style</strong> <em>(domain-flavoured)</em></td>
         <td><code>persona</code> <code>voice</code> <code>template</code> <code>provocation</code></td>
-        <td>How to express. Mostly used by design / content / brand corpora.</td>
+        <td>How to express. Used to varying degrees across corpora — observed in the wild: creative-writing ~10 kinds, security ~12, frontend-design 22 (current upper bound).</td>
       </tr>
     </tbody>
   </table>
@@ -101,7 +101,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
       <tr><td><code>tradeoff</code></td><td>A decision where two values are in tension.</td><td><code>tension</code></td></tr>
       <tr><td><code>principle</code></td><td>A higher-level belief that justifies rules.</td><td><code>statement</code></td></tr>
       <tr><td><code>feedback</code></td><td>Retrospective observation about prior decisions.</td><td><code>observation</code></td></tr>
-      <tr><td><code>persona</code></td><td>A voice / posture an agent should adopt.</td><td><code>posture</code></td></tr>
+      <tr><td><code>persona</code></td><td>A named bundle of style for a coherent voice / posture (design lineage, writing style, brand system, …).</td><td><code>posture</code></td></tr>
       <tr><td><code>voice</code></td><td>A writing voice (cadence, register).</td><td><code>register</code></td></tr>
       <tr><td><code>template</code></td><td>A reusable scaffold for output.</td><td><code>template</code></td></tr>
       <tr><td><code>provocation</code></td><td>A creative prompt to push the agent.</td><td><code>prompt</code></td></tr>
@@ -161,10 +161,10 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 
   <h2>Picking kinds</h2>
   <p>
-    A small corpus uses 5–8 kinds. The frontend-design Skill uses 22 — that's an upper
-    bound. A security Skill might use 12 (heavy on Data + Composition + Behaviour).
-    A creative-writing Skill might use 10 (heavy on Voice & Style). The kinds you
-    don't use simply don't appear in your corpus.
+    A small corpus uses 5–8 kinds. As datapoints from real corpora: a creative-writing
+    Skill might use ~10 kinds (heavy on Voice & Style); a security Skill ~12 (heavy on
+    Data + Composition + Behaviour); the frontend-design Skill 22 (the current upper
+    bound). The kinds you don't use simply don't appear in your corpus.
   </p>
 
   <p>

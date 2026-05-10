@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
+import Mermaid from '../../../../components/Mermaid.astro';
 ---
 <DocsLayout title="存在 ≠ 内容" slug="background/existence-not-content" lang="zh" description="Skill Wiki 设计的承重线。">
   <h1>存在 ≠ 内容</h1>
@@ -77,17 +78,21 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
     summary、core 还是 full projection。
   </p>
 
-  <pre><code>{`Push (skill bulk-loading):
-  ┌────────────────────────────────┐
-  │  All 60 SKILL.md               │ → agent
-  │  ~30 KB context every turn     │
-  └────────────────────────────────┘
+  <Mermaid>{`flowchart LR
+    subgraph PUSH["Push（skill 批量加载）"]
+      direction LR
+      P1["全部 60 个 SKILL.md<br/>每轮约 30 KB 上下文"]
+      Pagent(["agent"])
+      P1 --> Pagent
+    end
 
-Pull (Skill Wiki):
-  ┌─────────────┐  retrieval    ┌─────────────────┐
-  │ _index.xml  │ ───picks 3 ──▶│ chunks/core.md  │ → agent
-  │ ~3 KB       │   atoms        │ ~450 tok        │
-  └─────────────┘                └─────────────────┘`}</code></pre>
+    subgraph PULL["Pull（Skill Wiki）"]
+      direction LR
+      Idx["_index.xml<br/>约 3 KB"]
+      Core["chunks/core.md<br/>约 450 token"]
+      Lagent(["agent"])
+      Idx -- "检索挑出 3 个原子" --> Core --> Lagent
+    end`}</Mermaid>
 
   <h2>"完全对应"是字面意义上的对应</h2>
   <p>

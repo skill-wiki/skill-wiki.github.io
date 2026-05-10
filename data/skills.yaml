@@ -60,3 +60,24 @@ skills:
       making tea. Read this first to learn the DSL.
     maintainers: [skill-wiki]
     tags: [example, learning]
+
+  - slug: backend-architecture
+    repo: skill-wiki/skill-corpus-backend
+    compiledSubdir: compiled
+    description: |
+      12-Factor App + canonical microservices patterns (Saga, Circuit Breaker,
+      API Gateway, etc.). Atom-shaped principles for distributed-system
+      architecture decisions.
+    homepage: https://github.com/skill-wiki/skill-corpus-backend
+    maintainers: [skill-wiki]
+    tags: [backend, microservices, architecture, 12factor]
+
+  - slug: security-appsec
+    repo: skill-wiki/skill-corpus-security
+    compiledSubdir: compiled
+    description: |
+      OWASP Cheat Sheet distilled into typed atoms — input validation, auth,
+      sessions, crypto, SQLi/XSS/CSRF prevention. Starter set; growing.
+    homepage: https://github.com/skill-wiki/skill-corpus-security
+    maintainers: [skill-wiki]
+    tags: [security, owasp, web, backend]

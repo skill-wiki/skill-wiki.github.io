@@ -1,0 +1,268 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="路线图" slug="community/roadmap" lang="zh" description="Skill Wiki / Prime 接下来要去哪。v0.1 地基已发；下一阶段三大支柱：自演化、评测、优化。">
+  <h1>路线图</h1>
+  <p style="color: var(--fg-muted);">
+    Skill Wiki / Prime 接下来要去哪。每条都标了状态和理由。
+    已经做完的看 <a href="https://github.com/skill-wiki/prime-system/blob/main/CHANGELOG.md" rel="noopener">CHANGELOG</a>。
+  </p>
+
+  <p>
+    这份路线图只覆盖 <strong>system</strong> 仓库。Corpus 仓库（比如
+    <code>prime-corpus-frontend</code>）有自己的路线图；协议自己的节奏，
+    不绑死任何一个具体 corpus。
+  </p>
+
+  <p>状态图例：</p>
+  <ul>
+    <li>已发布 —— v0.1.0 已含</li>
+    <li>进行中 —— 在做</li>
+    <li>已计划 —— 已承诺，未开工</li>
+    <li>观望中 —— 还在权衡</li>
+    <li>不打算做 —— 明确不收</li>
+  </ul>
+
+  <h2>v0.1.0 — 协议地基 <span style="color: var(--fg-muted);">[已发布 2026-05-09]</span></h2>
+  <p>协议地基：与具体 corpus 解耦的协议实现。</p>
+  <ul>
+    <li>Parser + L1 结构校验</li>
+    <li>L3 跨原子图校验</li>
+    <li>Runtime 原子加载 + projection 解析</li>
+    <li>HTTP registry（publish / install）</li>
+    <li><code>prime</code> CLI，10 个 verb</li>
+    <li>通用 MCP server（<code>prime_query</code> 跑在任何编译好的 corpus 上）</li>
+    <li>3 个示例 corpus 证明跨领域适用</li>
+    <li>协议规范：<code>spec/PRIME-PROTOCOL-v1.md</code></li>
+    <li>Apache-2.0 + NOTICE</li>
+  </ul>
+
+  <h2>v0.2 — Lifecycle 与 AST <span style="color: var(--fg-muted);">[计划 · 2026 Q3]</span></h2>
+  <p>v1 spec 里写过、但 v0.1 没真正落地的两块。</p>
+
+  <h3>Lifecycle 强制</h3>
+  <p>
+    DSL 允许 <code>version: "1.2.0"</code> 和状态字段
+    <code>active</code> | <code>deprecated</code> | <code>experimental</code>。
+    今天 parser 接受这些字段，但 compiler 啥都没干 —— <code>deprecated</code>
+    原子照样进检索结果，没有警告。
+  </p>
+  <p>
+    计划：当 <code>prime_query</code> 选中 <code>deprecated</code> 原子，
+    响应里带 <code>{`warnings: [{ kind: "deprecated", atom_id, message, replacement }]`}</code>。
+    Runtime API 透出来，CLI 打一行黄字。可选追加：
+    <code>prime check --strict-deprecation</code> 在 corpus 里有"指向 deprecated
+    原子的活引用"时让构建失败。
+  </p>
+
+  <h3>结构化的类型 AST</h3>
+  <p>
+    原子可以声明类型，用一个小表达式语言：函数签名、联合、范围。
+    今天 parser 把这些当字符串原样进出 —— 正确，但 compiler 没法对它们推理。
+    计划：建 <code>TypeExpr</code> AST，比如强制 <code>fact</code> 原子的
+    <code>confidence:</code> 解析为 <code>0.0-1.0</code> 范围。
+  </p>
+
+  <h2>Skill 自演化 <span style="color: var(--fg-muted);">[计划 · 2026 → 2027]</span></h2>
+  <p>
+    只靠人工 PR 添加原子的 corpus 会变陈旧。真实使用本身就是最好的信号
+    —— 哪些原子被查了但没命中、哪些意图返回的置信度低、哪些 projection
+    被 agent 在使用前重写。v0.1 把这些信号全扔了。v0.2+ 留下来，opt-in，
+    反哺 corpus。
+  </p>
+
+  <h3>Telemetry ingest API</h3>
+  <p>
+    一个小的 opt-in HTTP 端点。Runtime 在每次 <code>prime_query</code> 后
+    POST：intent、查的 kinds、返回的 ids、projection 层级、命中 / 未命中、
+    延迟。不带正文，不带 PII。默认关闭，按 corpus 在 <code>domain.yaml</code>
+    里开启。
+  </p>
+
+  <h3>从使用缺口生成的原子提案 PR-bot</h3>
+  <p>
+    定时任务读 telemetry 流，找出反复零命中的查询，用 LLM 抽取器（DSPy 风格
+    的 program）提出新原子。产出：一份给 corpus 仓库的 draft PR，里面是
+    占位 <code>.prime</code> 文件，由 maintainer 编辑后合入。
+  </p>
+
+  <h3>边推断反思 pass</h3>
+  <p>
+    作者写完原子后，跑一个 TextGrad 风格的 pass：对每对原子做反思，提出
+    可能的边（<code>requires</code>、<code>contradicts</code>、
+    <code>validates-with</code>）。Maintainer 决定收 / 不收，不自动合并。
+  </p>
+
+  <h3>Marketplace UI 中的原子 diff 视图</h3>
+  <p>
+    当 corpus 版本上跳时，按原子粒度展示 diff：哪些原子改了、哪些边动了、
+    哪些 projection 重渲染了。让消费者审计升级。
+  </p>
+
+  <h3>DSPy 风格的 projection prior 自动调参</h3>
+  <p>
+    chunker 的 projection prior（哪些字段进 <code>summary</code>、哪些进
+    <code>core</code>、哪些进 <code>full</code>）今天是按 kind 手写的。
+    可以用 DSPy 风格的 program 按 corpus 调，目标函数是下游任务正确率。
+  </p>
+
+  <p>
+    <strong>Moonshot：</strong> schema 演化。今天原子 kind 由 spec 锁定。
+    攒了足够 telemetry 的 corpus 可以<em>提议自己的 kind</em> —— 类似
+    <a href="https://arxiv.org/abs/2402.14531" rel="noopener">AutoSchemaKG</a>
+    —— 再冒泡到 v2 spec 作候选。
+  </p>
+
+  <p>
+    参考：
+    <a href="https://dspy.ai/" rel="noopener">DSPy</a> ·
+    <a href="https://textgrad.com/" rel="noopener">TextGrad</a>
+  </p>
+
+  <h2>Skill 评测 <span style="color: var(--fg-muted);">[计划 · 2026 Q4]</span></h2>
+  <p>
+    协议有用，前提是可量化。今天唯一的评测是"agent 引用对了几个原子" ——
+    人工跑 20 题基准。v0.2 把它升级成一等动词，让 corpus 作者能拿出
+    "这次改动确实让某项指标变好"的证据。
+  </p>
+
+  <h3><code>prime eval</code> CLI 动词</h3>
+  <p>
+    corpus 作用域的评测 harness，底层包
+    <a href="https://inspect.aisi.org.uk/" rel="noopener">Inspect AI</a>。
+    读一个 <code>eval/</code> 目录里的任务定义，对配好的 agent 跑，
+    按预期原子引用和领域专属打分器评分。
+  </p>
+
+  <h3>MCP-Bench 适配器</h3>
+  <p>
+    把 Skill Wiki corpus 暴露给
+    <a href="https://github.com/Accenture/mcp-bench" rel="noopener">MCP-Bench</a>，
+    让 corpus 在同一套任务上和别的 MCP server 直接对比。
+  </p>
+
+  <h3>领域专属打分器插件</h3>
+  <p>
+    Harness 自带 kind-aware 打分器，corpus 可以再注册。
+    <code>prime-corpus-frontend</code> 的例子：axe-core 通过率、
+    Lighthouse 分、视觉回归 delta。安全 corpus 的例子：OWASP 规则通过率。
+  </p>
+
+  <h3>三臂 A/B harness</h3>
+  <p>
+    <code>prime eval --arms prime,skill,raw</code> 同一题跑三遍 —— 一遍挂
+    Skill Wiki corpus、一遍批量 SKILL.md、一遍裸跑 —— 报告 delta。
+    让 corpus 作者能拿出协议值不值这个钱的证据。
+  </p>
+
+  <h3>引用精度指标</h3>
+  <p>
+    <code>prime_query</code> 返回的原子里，有多少出现在 agent 最终输出里？
+    精度高的 corpus = 检索校准得好；精度低的 corpus = 过取或漏用。
+  </p>
+
+  <p>
+    <strong>Moonshot：</strong> 公共 Skill 排行榜。corpus 注册进来，harness
+    每周跑一套固定任务，发布带版本锁定的结果。和代码界的
+    <a href="https://github.com/openai/human-eval" rel="noopener">HumanEval</a>
+    一个意思。
+  </p>
+
+  <p>
+    参考：
+    <a href="https://arxiv.org/abs/2508.20453" rel="noopener">MCP-Bench</a> ·
+    <a href="https://inspect.aisi.org.uk/" rel="noopener">Inspect AI</a>
+  </p>
+
+  <h2>Skill 优化 <span style="color: var(--fg-muted);">[计划 · 2027]</span></h2>
+  <p>
+    v0.1 检索路径很朴素：加载 <code>_index.xml</code>、排序、取 projection。
+    1k 原子没问题，10k 就浪费，100k 装不下 context。v0.3+ 把这条路收紧，
+    不动协议表面。
+  </p>
+
+  <h3>查询时按意图剪枝边图</h3>
+  <p>
+    从种子原子按 <code>max_depth</code> 走边图，<em>但</em>剪掉动词组合
+    与意图不匹配的分支（比如 "implementation" 意图，丢掉
+    <code>tradeoff</code>、<code>provocation</code> 边）。候选集变小，
+    相关 kind 的 recall 不变。
+  </p>
+
+  <h3>LLMLingua 风格的 projection 压缩器（<code>--compress</code> 标志）</h3>
+  <p>
+    在 serve 时按需对 <code>core</code> 和 <code>full</code> projection 压
+    一遍。略损保真度，换约 2× token 节省。
+  </p>
+
+  <h3>原子结果缓存（内容寻址 key）</h3>
+  <p>
+    按 <code>(intent_hash, kinds, max_atoms)</code> 内容寻址。同一 session
+    里同样的查询零检索成本。corpus 重编译时失效。
+  </p>
+
+  <h3>多 Skill 组合预算分配</h3>
+  <p>
+    挂多个 corpus（v0.3 多 corpus MCP）时，runtime 按各 corpus 的意图分
+    分配 token 预算，不再用固定配额。
+  </p>
+
+  <h3>编译期意图 projection profile</h3>
+  <p>
+    把 corpus 编译 <em>N</em> 次，每个意图类（"design"、"implementation"、
+    "review" 等）一次，产出强调不同字段的 per-class <code>core</code>
+    projection。Runtime 按意图选 profile。
+  </p>
+
+  <p>
+    <strong>Moonshot：</strong> 每个原子一份
+    <a href="https://arxiv.org/abs/2505.23416" rel="noopener">KVzip</a>
+    风格的 key-value 记忆。编译期缓存 <code>core</code> projection 的
+    decoder KV state；检索时拼接进去，不再重编码。每轮的重编码成本被
+    消掉。
+  </p>
+
+  <p>
+    参考：
+    <a href="https://github.com/microsoft/LLMLingua" rel="noopener">LLMLingua</a> ·
+    <a href="https://arxiv.org/abs/2505.23416" rel="noopener">KVzip</a>
+  </p>
+
+  <h2>v0.2 五个核心交付</h2>
+  <p>如果 v0.2 只能发这五件东西，整个版本就靠它们撑：</p>
+  <ol>
+    <li><strong><code>prime eval</code> CLI</strong> —— 让所有别的主张可量化的 harness。</li>
+    <li><strong>Telemetry ingest + 原子提案 bot</strong> —— 关掉 corpus 陈旧化的回路。</li>
+    <li><strong>原子 diff 视图</strong> —— 用户信任 corpus 版本上跳的前提。</li>
+    <li><strong>按意图剪枝边图</strong> —— 第一项第一天就回本的检索优化。</li>
+    <li><strong>引用精度指标</strong> —— 一个数字告诉作者：你的原子有没有干活。</li>
+  </ol>
+
+  <h2>v0.3 — 正式的 domain plugin 协议 <span style="color: var(--fg-muted);">[计划 · 2026 Q4]</span></h2>
+  <p>
+    今天 <code>domain:</code> 是每个原子的元数据 tag。Runtime 对
+    <code>frontend-design</code>、<code>security</code>、<code>recipes</code>
+    一视同仁。spec 早就预想"多 corpus 共存于一个 server，按 domain 路由"。
+    v0.3 落地 plugin 接口、多 corpus MCP，以及当意图在多个 corpus 之间
+    模糊时的可选自动消歧。
+  </p>
+
+  <h2>v0.4 — 更好的 registry <span style="color: var(--fg-muted);">[计划 · 2027]</span></h2>
+  <p>
+    v0.1 的 registry 是裸 HTTP：PUT 发布、GET 安装。没 semver 解析、没签名、
+    没审计。v0.4 加 semver 安装（<code>prime.lock</code>）、加密签名、审计
+    日志。Web UI 暂列出 scope 之外，除非真有人自托管公开 registry。
+  </p>
+
+  <h2>优先级怎么定</h2>
+  <p>任何新增项要权衡三件事：</p>
+  <ol>
+    <li>能不能解锁一个 <em>现存</em> corpus 团队的卡点？</li>
+    <li>是否在多个 corpus 间通用？（协议层的特性必须通用。）</li>
+    <li>是否保留"小内核 + 表达力强的 corpus"的平衡？System 仓库目标 &lt; 15k LoC。</li>
+  </ol>
+  <p>
+    要加 feature 最快的路径是：先在某个 corpus 仓库里原型化，移植到第二个
+    corpus 证明它通用，再回来提议把它进协议。
+  </p>
+</DocsLayout>
