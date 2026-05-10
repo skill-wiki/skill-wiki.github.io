@@ -42,8 +42,6 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
   }
 }`}</code></pre>
 
-  <p>完整接入步骤见 <a href="/zh/docs/usage/mcp-claude">接入 Claude</a>。</p>
-
   <h2>Server 架构</h2>
   <Mermaid>{`graph LR
     agent(["agent"])
@@ -71,10 +69,7 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
     server --> R`}</Mermaid>
 
   <h2>工具的输入输出 JSON Schema</h2>
-  <p>
-    每个工具都带自己的 JSON Schema，启动时注册到 MCP SDK 上。完整 schema 见
-    <a href="/zh/docs/reference/mcp">参考 → MCP</a>。
-  </p>
+  <p>每个工具都带自己的 JSON Schema，启动时注册到 MCP SDK 上。</p>
 
   <h2>领域定制 MCP wrapper</h2>
   <p>
@@ -88,6 +83,5 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
 
   <p>
     参考 frontend Prime 自带 <code>@skill-wiki/mcp-server-frontend</code>，正是这种 wrapper。
-    详见 <a href="/zh/docs/extending/domain-mcp">扩展 → 领域 MCP</a>。
   </p>
 </DocsLayout>

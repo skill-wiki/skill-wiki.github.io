@@ -71,24 +71,13 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
     server --> R`}</Mermaid>
 
   <h2>Tool input/output JSON Schema</h2>
-  <p>
-    Each tool ships a JSON Schema, registered with the MCP SDK. See
-    <a href="/docs/reference/mcp">Reference → MCP</a> for the full schemas.
-  </p>
+  <p>Full schemas: <a href="/docs/reference/mcp">Reference → MCP</a>.</p>
 
   <h2>Domain-specific MCP wrappers</h2>
   <p>
-    <code>@skill-wiki/mcp-server-core</code> is domain-blind. A domain might want a
-    wrapper that adds:
-  </p>
-  <ul>
-    <li>Domain-specific tool names (<code>frontend_color_check</code>, <code>security_threat_model</code>).</li>
-    <li>Pre-baked persona+style tag sets.</li>
-    <li>Domain-specific L5 validators.</li>
-  </ul>
-
-  <p>
-    The reference frontend Prime ships <code>@skill-wiki/mcp-server-frontend</code> as
-    such a wrapper. See <a href="/docs/extending/domain-mcp">Extending → Domain MCP</a>.
+    <code>@skill-wiki/mcp-server-core</code> is domain-blind. A wrapper can add
+    domain-specific tool names (<code>frontend_color_check</code>), pre-baked tag sets,
+    and domain-specific L5 validators. Reference: <code>@skill-wiki/mcp-server-frontend</code>
+    — see <a href="/docs/extending/domain-mcp">Extending → Domain MCP</a>.
   </p>
 </DocsLayout>

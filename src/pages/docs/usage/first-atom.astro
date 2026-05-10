@@ -3,10 +3,6 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 ---
 <DocsLayout title="First atom" slug="usage/first-atom" description="Author, compile, and load your first .prime atom in 5 minutes.">
   <h1>First atom</h1>
-  <p style="color: var(--fg-muted);">
-    A 5-minute walk-through. We'll author one <code>fact</code>, one <code>term</code>,
-    and one <code>rule</code> linking the two. Compile, list, show.
-  </p>
 
   <h2>1. Make a workspace</h2>
 <pre><code>{`mkdir my-prime && cd my-prime
@@ -108,13 +104,4 @@ cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
   bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 # Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
 
-  <h2>What you just did</h2>
-  <p>
-    Three atoms with one typed dependency edge between them. The compiler validated
-    the link, generated three projection levels per atom, and put them where the
-    runtime can serve them.
-  </p>
-  <p>
-    Next: <a href="/docs/usage/mcp-claude">Wire into Claude Code</a>.
-  </p>
 </DocsLayout>

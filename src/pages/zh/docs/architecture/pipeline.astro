@@ -11,10 +11,6 @@ import Mermaid from '../../../../components/Mermaid.astro';
   <h2>流水线</h2>
   <p><img src="/architecture-system.png" alt="Skill Wiki system architecture — 8 layers from entry to model providers" /></p>
 
-  <p>
-    上面这张架构图展示完整表面（8 条横向带）。一次 agent 轮次内的数据路径是：
-  </p>
-
   <Mermaid>{`flowchart TD
     Brief["Brief（自由文本）"]
     Intent["IntentObject<br/><i>领域定义的形状</i>"]
@@ -93,9 +89,5 @@ interface SecurityIntentObject {
     </tbody>
   </table>
 
-  <p>
-    L2 + L3 + L5 在参考 v0.1.0 中怎么实现，见
-    <a href="/zh/docs/architecture/compile-time">编译期</a>和
-    <a href="/zh/docs/architecture/runtime">运行时</a>。
-  </p>
+
 </DocsLayout>

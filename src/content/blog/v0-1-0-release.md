@@ -12,9 +12,7 @@ knowledge in the reach of AI agents without bulk-loading SKILL.md files
 into every turn. Prime is the protocol and CLI; Skill Wiki is the site
 and community marketplace.
 
-If you're new to the project, start with [the spec overview](/docs/spec/overview)
-or the [bulk-loading problem](/docs/background/problem) page. If you've
-been following along, here's what's in the box.
+Background: [the spec overview](/docs/spec/overview) and the [bulk-loading problem](/docs/background/problem).
 
 ## What ships
 
@@ -47,7 +45,7 @@ been following along, here's what's in the box.
 
 - `prime-decompose` Claude Code skill — AI-assisted SKILL.md → atoms decomposition.
 - L2 cache (DeepSeek by default; configurable).
-- Docs site you're reading — 30 pages, dark + light, MIT (the docs themselves; the code is Apache-2.0).
+- Docs site — 30 pages, dark + light, MIT (the docs themselves; the code is Apache-2.0).
 
 ## What it replaces
 
@@ -132,10 +130,3 @@ influence on the registry shape.
 The full lineage is in [Prior art](/docs/background/prior-art).
 
 —
-
-**Read next:**
-
-- [Spec overview](/docs/spec/overview)
-- [The bulk-loading problem](/docs/background/problem)
-- [How to install + wire into Claude Code](/docs/usage/install)
-- [The marketplace](/marketplace)

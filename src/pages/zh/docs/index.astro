@@ -7,11 +7,9 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   <p style="font-size: var(--t-md); color: var(--fg-muted); max-width: 70ch;">
     Skill Wiki 把一项 skill 从整块 <code>SKILL.md</code> 改写成一座
     <strong>带类型的原子 wiki</strong> —— 每个原子可寻址、按边相连、按需取用。
-    这一页只做一件事：告诉你文档怎么组织，剩下的内容在侧边栏。
   </p>
 
   <h2>三个核心概念</h2>
-  <p>整套协议立在三个想法上。这三个想法捏顺了，后面所有页面都只是注脚。</p>
 
   <h3>带类型的原子</h3>
   <p>
@@ -50,23 +48,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
     上来只发索引，正文按任务需要再取。
   </p>
 
-  <h2>接下来去哪儿</h2>
-  <ul>
-    <li><strong><a href="/zh/docs/spec/overview">规范</a></strong> —— 协议本身：kinds、verbs、projection、contracts、registry。</li>
-    <li><strong><a href="/zh/docs/background/problem">背景</a></strong> —— 协议为何长这样，以及它从哪些前人工作里借东西。</li>
-    <li><strong><a href="/zh/docs/architecture/pipeline">架构</a></strong> —— v0.1.0 参考实现是怎么一层一层搭起来的。</li>
-    <li><strong><a href="/zh/docs/usage/install">用法</a></strong> —— 安装、写出第一个原子、编译、接进 Claude。</li>
-    <li><strong><a href="/zh/docs/extending/custom-kinds">拓展</a></strong> —— 加一个自己的 kind、verb 或者领域插件。</li>
-    <li><strong><a href="/zh/docs/reference/cli">参考</a></strong> —— CLI 命令、DSL 文法、MCP 工具 schema、HTTP registry 端点。</li>
-  </ul>
-
-  <p style="color: var(--fg-muted);">
-    想知道现在到底实现到了哪一步、下一步要做什么？看
-    <a href="/zh/docs/community/roadmap">路线图</a>。
-  </p>
-
   <h2>术语约定</h2>
-  <p>本套文档里：</p>
   <ul>
     <li><strong>Prime</strong> —— 底层协议本身。一个 <em>Prime</em> 就是一个自包含的 <code>@scope</code>，里面装着带类型的原子，也是发布和安装的单位。</li>
     <li><strong>原子（Atom）</strong> —— 一个带类型的知识单元。包含 kind、domain、id、projection 层级和边。</li>

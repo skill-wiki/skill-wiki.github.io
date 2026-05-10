@@ -4,10 +4,6 @@ import Mermaid from '../../../components/Mermaid.astro';
 ---
 <DocsLayout title="Existence ≠ content" slug="background/existence-not-content" description="The load-bearing line of Skill Wiki's design.">
   <h1>Existence ≠ content</h1>
-  <p style="color: var(--fg-muted);">
-    The architectural pivot that the rest of the protocol is downstream of.
-  </p>
-
   <blockquote>
     <strong>Knowing that an atom for "OWASP input-validation rules" exists is
     different from holding all 1,841 bytes of its prose in working memory.</strong>
@@ -106,16 +102,4 @@ import Mermaid from '../../../components/Mermaid.astro';
     with "MCP server" and you have Skill Wiki.
   </p>
 
-  <h2>Where this goes</h2>
-  <p>
-    Five further decisions follow from this line — typed atoms (not blob skills),
-    typed edges (not flat <code>related</code>), composition contracts (not free
-    composition), and small-LLM compile-time checking. They are all consequences of
-    taking <em>existence ≠ content</em> seriously.
-  </p>
-  <p>
-    Read on:
-    <a href="/docs/spec/atoms">Atoms</a> · <a href="/docs/spec/edges">Edges</a> ·
-    <a href="/docs/spec/projection">Projection</a> · <a href="/docs/architecture/pipeline">Pipeline</a>.
-  </p>
 </DocsLayout>

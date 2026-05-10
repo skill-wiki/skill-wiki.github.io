@@ -3,10 +3,6 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 ---
 <DocsLayout title="The bulk-loading problem" slug="background/problem" description="Why injecting markdown skill files into every agent turn doesn't scale.">
   <h1>The bulk-loading problem</h1>
-  <p style="color: var(--fg-muted);">
-    Why the dominant pattern — loading entire markdown files into the agent's prompt
-    on every turn — has reached its limit, and what shape the alternative needs.
-  </p>
 
   <h2>The pattern</h2>
   <p>
@@ -90,17 +86,4 @@ Saving:                                                ~10 ×  index reduction
     </li>
   </ol>
 
-  <p>
-    This is the design space Skill Wiki sits in. The next page —
-    <a href="/docs/background/existence-not-content">Existence ≠ content</a> —
-    explains the load-bearing line, then <a href="/docs/spec/atoms">Atoms</a>,
-    <a href="/docs/spec/edges">Edges</a>, and <a href="/docs/spec/projection">Projection</a>
-    formalise the protocol.
-  </p>
-
-  <h2>Read more</h2>
-  <ul>
-    <li><a href="/blog/prime-vs-skill-graphs">Field note: Prime vs SKILL.md graphs — why bulk loading lost</a></li>
-    <li><a href="/docs/background/prior-art">Prior art</a> — RAG, knowledge graphs, agent skills compared</li>
-  </ul>
 </DocsLayout>

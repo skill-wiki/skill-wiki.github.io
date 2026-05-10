@@ -3,10 +3,6 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
 <DocsLayout title="第一个原子" slug="usage/first-atom" lang="zh" description="5 分钟写好、编译并加载你的第一个 .prime 原子。">
   <h1>第一个原子</h1>
-  <p style="color: var(--fg-muted);">
-    5 分钟走一遍。我们写一个 <code>fact</code>、一个 <code>term</code>、加一条把它们连起来的 <code>rule</code>。
-    编译、列出、查看。
-  </p>
 
   <h2>1. 建工作目录</h2>
 <pre><code>{`mkdir my-pack && cd my-pack
@@ -107,12 +103,4 @@ cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
   bun /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 # Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
 
-  <h2>你刚刚做了什么</h2>
-  <p>
-    三个原子，中间一条带类型的依赖边。编译器校验了这条链接，
-    给每个原子生成了三种投影层级，并放在运行时能服务到的位置。
-  </p>
-  <p>
-    下一步：<a href="/zh/docs/usage/mcp-claude">接入 Claude Code</a>。
-  </p>
 </DocsLayout>

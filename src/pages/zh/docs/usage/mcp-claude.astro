@@ -5,21 +5,12 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
   <h1>接入 Claude Code</h1>
   <p style="color: var(--fg-muted);">
     MCP server 在本地跑，通过 stdio 跟 agent 通信。Cursor、Continue、Aider 等支持 MCP 的客户端
-    形状都一样 —— 只是配置文件位置不同。
-  </p>
-
-  <p style="color: var(--fg-muted);">
-    目前发布了两个 server，挑一个用：
+    形状都一样 —— 只是配置文件位置不同。目前有两个 server：
   </p>
   <ul>
     <li><strong>通用 Skill Wiki MCP</strong> —— 1 个工具（<code>prime_query</code>）。对接任意编译好的 corpus。空 corpus 起步就用它。</li>
     <li><strong>前端领域 MCP</strong> —— 5 个工具（<code>prime_query</code>、<code>prime_resolve</code>、<code>prime_intent</code>、<code>prime_validate</code>、<code>prime_compile</code>）。和 frontend-design 这个 corpus 配套。</li>
   </ul>
-
-  <p style="color: var(--fg-muted);">
-    server 有两种跑法：用 <code>bunx @skill-wiki/mcp-server-core</code> 直接跑 npm 上的包（推荐），
-    或者用 <code>bun</code> 跑本地 clone（方便改源码）。下面两种形状都给。
-  </p>
 
   <h2>1 · 通用 Skill Wiki MCP（1 个工具）</h2>
   <p>用于全新 / 空 corpus。只暴露 <code>prime_query</code>。</p>

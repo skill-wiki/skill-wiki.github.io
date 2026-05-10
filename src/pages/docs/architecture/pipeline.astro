@@ -12,11 +12,6 @@ import Mermaid from '../../../components/Mermaid.astro';
   <h2>The pipeline</h2>
   <p><img src="/architecture-system.png" alt="Skill Wiki system architecture — 8 layers from entry to model providers" /></p>
 
-  <p>
-    The architecture image above shows the full surface (8 horizontal bands). Within
-    a single agent turn, the data path is:
-  </p>
-
   <Mermaid>{`flowchart TD
     Brief["Brief (free text)"]
     Intent["IntentObject<br/><i>domain-defined shape</i>"]

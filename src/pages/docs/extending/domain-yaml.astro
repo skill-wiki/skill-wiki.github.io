@@ -15,10 +15,7 @@ name: my-domain
 version: "1.0.0"
 description: One sentence describing what knowledge lives in this corpus.`}</code></pre>
 
-  <p>
-    That's the smallest valid domain. The runtime will load it; tags and validators
-    are optional.
-  </p>
+  <p>The runtime loads this as-is; <code>axes</code>, <code>validators</code>, and all other fields are optional.</p>
 
   <h2>Full reference</h2>
 <pre><code>{`name: frontend-design
@@ -73,7 +70,7 @@ budgets:
   </table>
 
   <h2>Validator specs</h2>
-  <p>v0.1.0 supports two checker types out of the box. Domain-specific MCP wrappers can register more.</p>
+  <p>v0.1.0 ships two checker types; domain MCP wrappers can register more.</p>
 
   <table>
     <thead><tr><th>Checker</th><th>Parameters</th><th>What it does</th></tr></thead>

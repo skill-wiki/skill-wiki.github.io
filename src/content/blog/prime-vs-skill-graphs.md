@@ -75,7 +75,7 @@ The skill path is single-shot inject. The Prime path is browse-then-fetch with a
 
 ## 4. Where Prime is wrong / weaker
 
-PHILOSOPHY commits to honesty about itself, so:
+Honest gaps:
 
 **One corpus today.** Frontend design (~410 atoms) and security (~32 atoms) share `primes-v3/sources/`. Domain isolation is metadata, not a namespace boundary. The Domain Plugin Protocol is on the v1.1 list.
 

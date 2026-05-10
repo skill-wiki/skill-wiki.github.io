@@ -9,9 +9,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 今天，**Skill Wiki v0.1.0** 正式发布。它把 SKILL.md 那种 200 行的散文 blob，
 换成一组带类型、可寻址的原子，让 agent 无须每轮把整个文件灌进 prompt。
 
-如果你刚看到这个项目，先读 [规范总览](/zh/docs/spec/overview)
-或 [批量加载的问题](/zh/docs/background/problem)。如果你一路跟过来，
-下面是 v0.1.0 里的内容。
+背景资料：[规范总览](/zh/docs/spec/overview) 和 [批量加载的问题](/zh/docs/background/problem)。
 
 ## 这次发布了什么
 
@@ -44,7 +42,7 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 
 - `prime-decompose` Claude Code skill —— AI 辅助把 SKILL.md 拆成原子。
 - L2 缓存（默认 DeepSeek，可配）。
-- 你正在看的这个文档站 —— 30 页文档、双主题、Apache-2.0。
+- 文档站 —— 30 页文档、双主题、Apache-2.0。
 
 ## 它要替代什么
 
@@ -121,10 +119,3 @@ Voyager 论文的 skill 库模式直接影响了 registry 的形态。
 完整脉络在 [Prior art](/zh/docs/background/prior-art)。
 
 —
-
-**接着读：**
-
-- [规范总览](/zh/docs/spec/overview)
-- [批量加载的问题](/zh/docs/background/problem)
-- [安装 + 接 Claude Code](/zh/docs/usage/install)
-- [市场](/zh/marketplace)

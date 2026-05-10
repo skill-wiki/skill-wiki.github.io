@@ -7,12 +7,10 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <p style="font-size: var(--t-md); color: var(--fg-muted); max-width: 70ch;">
     Skill Wiki turns a skill from one bulky <code>SKILL.md</code> blob into a
     <strong>typed wiki of atoms</strong> — each atom addressable, linked into a
-    declared edge graph, and retrieved on demand. This page is a map of how the
-    docs are organised; the rest is in the sidebar.
+    declared edge graph, and retrieved on demand.
   </p>
 
   <h2>The mental model</h2>
-  <p>Three ideas carry the whole protocol. Once they click, every other page in this site is a footnote.</p>
 
   <h3>Typed atoms</h3>
   <p>
@@ -56,23 +54,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     only the index, and let the runtime fetch what the task needs.
   </p>
 
-  <h2>Where to go next</h2>
-  <ul>
-    <li><strong><a href="/docs/spec/overview">Spec</a></strong> — the protocol itself: kinds, verbs, projection, contracts, registry.</li>
-    <li><strong><a href="/docs/background/problem">Background</a></strong> — why the design is what it is, and the prior art it borrows from.</li>
-    <li><strong><a href="/docs/architecture/pipeline">Architecture</a></strong> — how the v0.1.0 reference implementation is built, layer by layer.</li>
-    <li><strong><a href="/docs/usage/install">Usage</a></strong> — install, write your first atom, compile, hook into Claude.</li>
-    <li><strong><a href="/docs/extending/custom-kinds">Extending</a></strong> — add your own kind, verb, or domain plugin.</li>
-    <li><strong><a href="/docs/reference/cli">Reference</a></strong> — CLI, DSL, MCP tool schemas, HTTP registry endpoints.</li>
-  </ul>
-
-  <p style="color: var(--fg-muted);">
-    Want to know what's actually shipped today and what's planned? See the
-    <a href="/docs/community/roadmap">roadmap</a>.
-  </p>
-
   <h2>Conventions</h2>
-  <p>Throughout these docs:</p>
   <ul>
     <li><strong>Prime</strong> — the underlying protocol. A <em>Prime</em> is a self-contained <code>@scope</code> of typed atoms — what gets published and installed.</li>
     <li><strong>Atom</strong> — one typed unit of knowledge. Has a kind, a domain, an id, projection levels, and edges.</li>

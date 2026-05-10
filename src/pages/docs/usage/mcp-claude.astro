@@ -9,19 +9,13 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
     location differs.
   </p>
 
-  <p style="color: var(--fg-muted);">
+  <p>
     Two servers ship today. Pick one:
   </p>
   <ul>
     <li><strong>Generic Skill Wiki MCP</strong> — 1 tool (<code>prime_query</code>). Works against any compiled corpus. Use when starting from an empty corpus.</li>
     <li><strong>Frontend domain MCP</strong> — 5 tools (<code>prime_query</code>, <code>prime_resolve</code>, <code>prime_intent</code>, <code>prime_validate</code>, <code>prime_compile</code>). Bundled with the frontend-design corpus.</li>
   </ul>
-
-  <p style="color: var(--fg-muted);">
-    Two ways to run the server: <code>bunx @skill-wiki/mcp-server-core</code>
-    against the published npm package (recommended), or <code>bun</code> against a
-    local clone (handy for hacking). Both shapes are shown below.
-  </p>
 
   <h2>1 · Generic Skill Wiki MCP (1 tool)</h2>
   <p>For a fresh / empty corpus. Exposes only <code>prime_query</code>.</p>
@@ -52,11 +46,8 @@ bun install
   The corpus this repo ships with is at <code>compiled-v3-final/</code>; use that as your <code>PRIME_DIR</code>.</p>
 
   <h2>3 · Editor configs</h2>
-  <p>Same JSON shape across clients — only the file location differs. Replace the
-  <code>args</code> path and <code>PRIME_DIR</code> for whichever server (1 or 2) you chose above.</p>
 
-  <h3>Claude Code — project-scoped</h3>
-  <p>Drop a <code>.mcp.json</code> at your project root. Claude Code picks it up automatically.</p>
+  <h3>Claude Code — project-scoped (<code>.mcp.json</code> at project root)</h3>
 
 <pre><code>{`{
   "mcpServers": {
@@ -74,8 +65,7 @@ bun install
   <code>["/abs/path/to/prime-corpus-frontend/app/mcp-server-frontend/index.ts"]</code>
   and point <code>PRIME_DIR</code> at <code>.../prime-corpus-frontend/compiled-v3-final</code>.</p>
 
-  <h3>Claude Code — global</h3>
-  <p>Edit <code>~/.claude.json</code> and add the same shape under the top-level <code>mcpServers</code> key:</p>
+  <h3>Claude Code — global (<code>~/.claude.json</code>, top-level <code>mcpServers</code> key)</h3>
 
 <pre><code>{`{
   "mcpServers": {
@@ -89,8 +79,7 @@ bun install
   }
 }`}</code></pre>
 
-  <h3>Claude Desktop (macOS)</h3>
-  <p>Edit <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>:</p>
+  <h3>Claude Desktop (macOS — <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>)</h3>
 
 <pre><code>{`{
   "mcpServers": {
@@ -111,8 +100,7 @@ Command:     bun
 Args:        /abs/path/to/prime-system/packages/mcp-server-core/src/index.ts
 Env:         PRIME_DIR=/abs/path/to/your/compiled/corpus`}</code></pre>
 
-  <h3>Continue</h3>
-  <p>Edit <code>~/.continue/config.json</code>:</p>
+  <h3>Continue (<code>~/.continue/config.json</code>)</h3>
 
 <pre><code>{`{
   "experimental": {
