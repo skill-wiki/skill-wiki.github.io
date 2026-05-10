@@ -16,28 +16,24 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
   </ul>
 
   <h2>安装 CLI</h2>
-  <p>当前装法是从源码装 —— npm 发布排在 v0.1.1。</p>
 
-<pre><code>{`# 克隆、装依赖、把 CLI link 到全局
-git clone https://github.com/skill-wiki/prime-system.git
-cd prime-system
-bun install
-bun link
+<pre><code>{`# Bun（推荐）
+bun add -g @skill-wiki/cli
 
-# 新开一个 shell，按名字 link 二进制（一次性）
-bun link @skill-wiki/cli
+# 或 npm
+npm install -g @skill-wiki/cli
 
 # 验证
 prime --version
 # → prime 0.1.0`}</code></pre>
 
   <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
-    <strong>即将到来：</strong>一旦 v0.1.1 把 <code>@skill-wiki/cli</code> 发到 npm，
-    就可以直接 <code>bun add -g @skill-wiki/cli</code>。
+    <strong>从源码装：</strong>想从源码装的话，clone <code>github.com/skill-wiki/prime-system</code>，
+    然后 <code>bun install &amp;&amp; bun link &amp;&amp; bun link @skill-wiki/cli</code>。
   </p>
 
   <h2>从市集装一个 Prime</h2>
-<pre><code>{`# 旗舰 Prime —— frontend-design（先用 clone，registry 在 v0.1.1）
+<pre><code>{`# 旗舰 Prime —— frontend-design
 git clone https://github.com/skill-wiki/prime-corpus-frontend.git
 
 # 最小示例就在 prime-system 仓库里

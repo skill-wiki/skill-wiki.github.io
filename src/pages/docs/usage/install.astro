@@ -17,28 +17,24 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
   </ul>
 
   <h2>Install the CLI</h2>
-  <p>The current install path is from source — npm publishing is queued for v0.1.1.</p>
 
-<pre><code>{`# Clone, install deps, link the CLI globally
-git clone https://github.com/skill-wiki/prime-system.git
-cd prime-system
-bun install
-bun link
+<pre><code>{`# Bun (recommended)
+bun add -g @skill-wiki/cli
 
-# In a fresh shell, link the binary by name (one-time)
-bun link @skill-wiki/cli
+# Or npm
+npm install -g @skill-wiki/cli
 
 # Verify
 prime --version
 # → prime 0.1.0`}</code></pre>
 
   <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
-    <strong>Coming soon:</strong> once <code>@skill-wiki/cli</code> is published to npm
-    in v0.1.1, you'll be able to <code>bun add -g @skill-wiki/cli</code> instead.
+    <strong>From source:</strong> if you prefer building from source, clone
+    <code>github.com/skill-wiki/prime-system</code>, then <code>bun install &amp;&amp; bun link &amp;&amp; bun link @skill-wiki/cli</code>.
   </p>
 
   <h2>Install a Prime from the marketplace</h2>
-<pre><code>{`# The flagship Prime — frontend-design (clone for now; registry coming in v0.1.1)
+<pre><code>{`# The flagship Prime — frontend-design
 git clone https://github.com/skill-wiki/prime-corpus-frontend.git
 
 # A minimal example ships inside the prime-system repo

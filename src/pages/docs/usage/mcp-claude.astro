@@ -17,9 +17,10 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
     <li><strong>Frontend domain MCP</strong> — 5 tools (<code>prime_query</code>, <code>prime_resolve</code>, <code>prime_intent</code>, <code>prime_validate</code>, <code>prime_compile</code>). Bundled with the frontend-design corpus.</li>
   </ul>
 
-  <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
-    <strong>TODO:</strong> npm packages (<code>@skill-wiki/mcp-server-core</code>, etc.) are
-    not yet published — coming in v0.1.1. Until then, run from a local clone as shown below.
+  <p style="color: var(--fg-muted);">
+    Two ways to run the server: <code>bunx @skill-wiki/mcp-server-core</code>
+    against the published npm package (recommended), or <code>bun</code> against a
+    local clone (handy for hacking). Both shapes are shown below.
   </p>
 
   <h2>1 · Generic Skill Wiki MCP (1 tool)</h2>
@@ -148,7 +149,7 @@ Env:         PRIME_DIR=/abs/path/to/your/compiled/corpus`}</code></pre>
     <tbody>
       <tr><td>No tools appear</td><td>Config file not loaded</td><td>Check the file path; restart the client</td></tr>
       <tr><td><code>spawn bun ENOENT</code></td><td>Bun not installed or not in PATH</td><td>Install bun globally or use absolute path to the bun binary</td></tr>
-      <tr><td><code>404 from npm / bunx</code></td><td>You're using an old config that ran <code>bunx @skill-wiki/mcp-server-core</code></td><td>Switch to the local clone path shown above. The npm package isn't published yet.</td></tr>
+      <tr><td><code>404 from npm / bunx</code></td><td>Stale npm cache or offline</td><td>Run <code>bunx --no-cache @skill-wiki/mcp-server-core</code>, or fall back to the local-clone path shown above.</td></tr>
       <tr><td><code>PRIME_DIR not found</code></td><td>Path doesn't point to compiled output</td><td>Run the compile step first; use an absolute path</td></tr>
       <tr><td>Hits return but body fails to load</td><td>Agent's <code>Read</code> tool can't reach the path</td><td>Use absolute paths in <code>PRIME_DIR</code></td></tr>
     </tbody>
