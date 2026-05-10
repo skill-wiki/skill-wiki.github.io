@@ -332,17 +332,19 @@ const fmt = new Intl.NumberFormat('en-US');
   @media (max-width: 500px) {
     .atom-meta-strip { grid-template-columns: repeat(2, 1fr); }
     .atom-meta-strip > div { border-right: 1px solid var(--border-muted); border-bottom: 1px solid var(--border-muted); }
+    /* Reset the 800px rule that zeroed out div:nth-child(3) right border — at 2-col it's an odd cell and SHOULD have a right border */
+    .atom-meta-strip > div:nth-child(3) { border-right: 1px solid var(--border-muted); }
     .atom-meta-strip > div:nth-child(2n) { border-right: 0; }
     .atom-meta-strip > div:nth-last-child(-n+2) { border-bottom: 0; }
   }
 
-  /* Install — wrap long IDs cleanly */
+  /* Install — wrap long IDs cleanly; right-pad to leave room for the copy button */
   .atom-install {
     margin: 0 0 36px;
     background: var(--bg-subtle);
     border: 1px solid var(--border-default);
     border-radius: var(--r-2);
-    padding: 12px 16px; font-size: 13px;
+    padding: 12px 56px 12px 16px; font-size: 13px;
     overflow: hidden;
     white-space: pre-wrap;
     word-break: break-all;
@@ -385,6 +387,7 @@ const fmt = new Intl.NumberFormat('en-US');
     color: var(--fg-muted);
     text-transform: uppercase; letter-spacing: 0.06em;
     margin-left: auto;
+    flex-shrink: 0;
   }
 
   /* Tabs */
@@ -450,18 +453,19 @@ const fmt = new Intl.NumberFormat('en-US');
     background: var(--bg-subtle);
     border: 1px solid var(--border-muted);
     border-radius: var(--r-2);
-    padding: 14px 18px;
+    padding: 14px 56px 14px 18px;
     margin: 0 0 16px;
     font-size: 13px; line-height: 1.6;
+    overflow: auto;
   }
   .atom-prose :global(pre code) { background: transparent; padding: 0; font-size: 13px; }
 
-  /* Source — wrap long paths instead of showing a scrollbar */
+  /* Source — wrap long paths instead of showing a scrollbar; right-pad for copy button */
   .atom-source {
     background: var(--bg-subtle);
     border: 1px solid var(--border-default);
     border-radius: var(--r-2);
-    padding: 14px 16px;
+    padding: 14px 56px 14px 16px;
     margin: 0 0 12px;
     font-size: 12px;
     overflow: hidden;

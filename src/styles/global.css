@@ -825,10 +825,11 @@ li > p { margin: 8px 0; }
 }
 @media (max-width: 720px) {
   .kpi { grid-template-columns: repeat(2, 1fr); }
+  /* border-bottom must come before the :nth-last-child override */
+  .kpi > div { border-bottom: 1px solid var(--border-default); }
+  .kpi > div:nth-last-child(-n+2) { border-bottom: 0; }
   .kpi > div:nth-child(odd) { border-right: 1px solid var(--border-default); }
   .kpi > div:nth-child(2n) { border-right: 0; }
-  .kpi > div:nth-last-child(-n+2) { border-bottom: 0; }
-  .kpi > div { border-bottom: 1px solid var(--border-default); }
 }
 
 /* ─── Pack card (Marketplace) ────────────────────────────────────────── */
@@ -868,6 +869,9 @@ li > p { margin: 8px 0; }
   color: var(--accent-fg);
   margin: 0;
   letter-spacing: -0.015em;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .pack-pill {
   font-family: var(--font-mono);
@@ -877,6 +881,8 @@ li > p { margin: 8px 0; }
   color: var(--fg-muted);
   padding: 1px 7px;
   border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .pack-desc {
   font-size: var(--t-sm);
@@ -886,6 +892,7 @@ li > p { margin: 8px 0; }
 }
 .pack-stats {
   display: flex;
+  align-items: center;
   gap: var(--s-4);
   font-size: 12px;
   color: var(--fg-muted);
@@ -897,8 +904,9 @@ li > p { margin: 8px 0; }
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  vertical-align: -1px;
+  vertical-align: middle;
   margin-right: 4px;
+  flex-shrink: 0;
 }
 
 /* ─── Marketplace flagship ───────────────────────────────────────────── */
@@ -975,6 +983,9 @@ li > p { margin: 8px 0; }
   margin: 0;
   font-family: var(--font-mono);
   color: var(--fg-default);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .flagship-install {
   background: var(--bg-inset);
@@ -1025,7 +1036,7 @@ li > p { margin: 8px 0; }
   gap: 64px;
   max-width: var(--max-w-narrow);
   margin: 0 auto;
-  padding: 0 var(--s-4);
+  padding: var(--s-5) var(--s-4) 0;
   align-items: start;
 }
 @media (min-width: 1280px) {
@@ -1431,6 +1442,7 @@ details.docs-toc-mobile #docs-toc-nav-mobile { margin-top: var(--s-2); }
   /* Header — stack brand on top, nav below; allow brand-tag to wrap */
   .gh-header { height: auto; }
   .gh-header-inner {
+    display: grid;
     grid-template-columns: 1fr auto;
     gap: 12px;
     padding: 10px var(--s-4);
@@ -1475,9 +1487,10 @@ details.docs-toc-mobile #docs-toc-nav-mobile { margin-top: var(--s-2); }
   /* KPI strip → 2 cols (it already does at 760, mirror here) */
   .kpi { grid-template-columns: repeat(2, 1fr); }
   .kpi > div { padding: 16px; border-right: 0; }
-  .kpi > div:nth-child(odd) { border-right: 1px solid var(--border-default); }
-  .kpi > div:nth-last-child(-n+2) { border-bottom: 0; }
+  /* border-bottom must come before the :nth-last-child override */
   .kpi > div { border-bottom: 1px solid var(--border-default); }
+  .kpi > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .kpi > div:nth-child(odd) { border-right: 1px solid var(--border-default); }
   .kpi .n { font-size: 28px; }
 
   /* Feat-grid → single column */
@@ -1491,8 +1504,8 @@ details.docs-toc-mobile #docs-toc-nav-mobile { margin-top: var(--s-2); }
   pre { padding: 12px; font-size: 12px; -webkit-overflow-scrolling: touch; }
   code { font-size: 12px; }
 
-  /* Atom detail — install snippet shrinks; side card sheds inner widths */
-  .atom-install { font-size: 11px !important; padding: 10px 12px !important; }
+  /* Atom detail — install snippet shrinks; keep right-padding for copy button */
+  .atom-install { font-size: 11px !important; padding: 10px 48px 10px 12px !important; }
   .atom-install code { font-size: 11px !important; }
   .atom-side,
   .atom-side-card { width: 100%; max-width: 100%; min-width: 0; position: static; }

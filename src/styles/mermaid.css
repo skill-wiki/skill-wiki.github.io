@@ -22,9 +22,11 @@
 }
 
 /* Slight contrast bump on dark theme so the default mermaid edge strokes
-   stay readable. Mermaid's own dark-theme already covers most of this. */
+   stay readable. Mermaid's own dark-theme already covers most of this.
+   SVG text elements use `fill` (not `color`) for their colour. */
 [data-theme='dark'] .mermaid-wrapper svg .messageText,
 [data-theme='dark'] .mermaid-wrapper svg .nodeLabel,
 [data-theme='dark'] .mermaid-wrapper svg .edgeLabel {
+  fill: var(--fg-default, #e6edf3);
   color: var(--fg-default, #e6edf3);
 }
