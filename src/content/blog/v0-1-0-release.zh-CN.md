@@ -23,15 +23,15 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 - **组合契约** —— 在 method、persona、scope 上声明 `must-include` / `must-avoid` / `conditionally-required`。
 - **Registry 协议** —— 纯 HTTP，4 个端点。参考实现一个文件搞定。
 
-**参考实现** —— `@prime-lang` 下 7 个 npm 包：
+**参考实现** —— `@skill-wiki` 下 7 个 npm 包：
 
-- `@prime-lang/parser` —— 手写递归下降 parser，125 个测试。
-- `@prime-lang/compiler` —— L1 schema、L2（可选 LLM）、L3 跨原子检查；chunker；emitter。
-- `@prime-lang/runtime` —— 原子 loader、投影解析、边遍历。
-- `@prime-lang/mcp-server-core` —— 通用 MCP server，5 个工具。
-- `@prime-lang/registry` —— HTTP registry，SQLite 后端，约 600 行。
-- `@prime-lang/cli` —— `prime init / compile / check / show / publish / install / …`。
-- `@prime-lang/types` —— 共享 AST + 协议类型。
+- `@skill-wiki/parser` —— 手写递归下降 parser，125 个测试。
+- `@skill-wiki/compiler` —— L1 schema、L2（可选 LLM）、L3 跨原子检查；chunker；emitter。
+- `@skill-wiki/runtime` —— 原子 loader、投影解析、边遍历。
+- `@skill-wiki/mcp-server-core` —— 通用 MCP server，5 个工具。
+- `@skill-wiki/registry` —— HTTP registry，SQLite 后端，约 600 行。
+- `@skill-wiki/cli` —— `prime init / compile / check / show / publish / install / …`。
+- `@skill-wiki/types` —— 共享 AST + 协议类型。
 
 **参考 Prime** —— `@frontend-design`：
 
@@ -90,9 +90,9 @@ excerpt: "今天发布 Skill Wiki 协议 v0.1.0 —— 一个面向 AI agent 的
 30 秒装好：
 
 ```bash
-bun add -g @prime-lang/cli
+bun add -g @skill-wiki/cli
 prime install @recipes
-PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
+PRIME_DIR=./.primes/@recipes bunx @skill-wiki/mcp-server-core
 ```
 
 然后[接进 Claude Code](/zh/docs/usage/mcp-claude)（或 Cursor、Continue、Aider —— 任何讲 MCP 的客户端）。

@@ -2,11 +2,11 @@
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 import Mermaid from '../../../components/Mermaid.astro';
 ---
-<DocsLayout title="MCP server" slug="implementation/mcp-server" description="@prime-lang/mcp-server-core — five tools that expose the runtime to MCP-capable agents.">
+<DocsLayout title="MCP server" slug="implementation/mcp-server" description="@skill-wiki/mcp-server-core — five tools that expose the runtime to MCP-capable agents.">
   <h1>MCP server</h1>
   <p style="color: var(--fg-muted);">
     The <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>
-    is the integration surface. <code>@prime-lang/mcp-server-core</code> is a generic,
+    is the integration surface. <code>@skill-wiki/mcp-server-core</code> is a generic,
     domain-blind MCP server that wraps the runtime and exposes 5 tools.
   </p>
 
@@ -26,7 +26,7 @@ import Mermaid from '../../../components/Mermaid.astro';
 
   <h2>Boot</h2>
 <pre><code>{`# Standalone (stdio transport)
-PRIME_DIR=/abs/path/to/compiled bunx @prime-lang/mcp-server-core
+PRIME_DIR=/abs/path/to/compiled bunx @skill-wiki/mcp-server-core
 
 # Via the prime CLI
 prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
@@ -36,7 +36,7 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
   "mcpServers": {
     "skill-wiki": {
       "command": "bunx",
-      "args": ["@prime-lang/mcp-server-core"],
+      "args": ["@skill-wiki/mcp-server-core"],
       "env": { "PRIME_DIR": "/abs/path/to/compiled" }
     }
   }
@@ -78,7 +78,7 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
 
   <h2>Domain-specific MCP wrappers</h2>
   <p>
-    <code>@prime-lang/mcp-server-core</code> is domain-blind. A domain might want a
+    <code>@skill-wiki/mcp-server-core</code> is domain-blind. A domain might want a
     wrapper that adds:
   </p>
   <ul>
@@ -88,7 +88,7 @@ prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
   </ul>
 
   <p>
-    The reference frontend Prime ships <code>@prime-lang/mcp-server-frontend</code> as
+    The reference frontend Prime ships <code>@skill-wiki/mcp-server-frontend</code> as
     such a wrapper. See <a href="/docs/extending/domain-mcp">Extending → Domain MCP</a>.
   </p>
 </DocsLayout>

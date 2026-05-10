@@ -1,10 +1,10 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Runtime —— loader 与 resolver" slug="implementation/runtime" lang="zh" description="@prime-lang/runtime —— 进程内的 atom loader、projection resolver 与边图构建。">
+<DocsLayout title="Runtime —— loader 与 resolver" slug="implementation/runtime" lang="zh" description="@skill-wiki/runtime —— 进程内的 atom loader、projection resolver 与边图构建。">
   <h1>Runtime —— loader 与 resolver</h1>
   <p style="color: var(--fg-muted);">
-    <code>@prime-lang/runtime</code> 读磁盘上的编译产物，把 metadata 加投影路径喂给 MCP server。
+    <code>@skill-wiki/runtime</code> 读磁盘上的编译产物，把 metadata 加投影路径喂给 MCP server。
     它从来不读 chunk 正文。
   </p>
 
@@ -79,7 +79,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 }`}</code></pre>
 
   <h2>对外 API</h2>
-<pre><code>{`import { Runtime } from "@prime-lang/runtime";
+<pre><code>{`import { Runtime } from "@skill-wiki/runtime";
 
 const rt = await Runtime.boot({ primeDir: "/path/to/compiled" });
 

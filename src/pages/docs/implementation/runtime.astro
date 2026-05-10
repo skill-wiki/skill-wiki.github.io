@@ -1,10 +1,10 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Runtime — loader & resolver" slug="implementation/runtime" description="@prime-lang/runtime — the in-process atom loader, projection resolver, and edge graph builder.">
+<DocsLayout title="Runtime — loader & resolver" slug="implementation/runtime" description="@skill-wiki/runtime — the in-process atom loader, projection resolver, and edge graph builder.">
   <h1>Runtime — loader & resolver</h1>
   <p style="color: var(--fg-muted);">
-    <code>@prime-lang/runtime</code> reads compiled artifacts on disk and serves
+    <code>@skill-wiki/runtime</code> reads compiled artifacts on disk and serves
     metadata + projection paths to the MCP server. It never reads chunk bodies.
   </p>
 
@@ -81,7 +81,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 }`}</code></pre>
 
   <h2>Public API</h2>
-<pre><code>{`import { Runtime } from "@prime-lang/runtime";
+<pre><code>{`import { Runtime } from "@skill-wiki/runtime";
 
 const rt = await Runtime.boot({ primeDir: "/path/to/compiled" });
 

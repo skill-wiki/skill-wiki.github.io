@@ -26,15 +26,15 @@ been following along, here's what's in the box.
 - **Composition contracts** — `must-include` / `must-avoid` / `conditionally-required` declarations on methods, personas, and scopes.
 - **Registry contract** — HTTP-only, four endpoints. Reference impl is one file.
 
-**Reference implementation** — 7 npm packages under `@prime-lang`:
+**Reference implementation** — 7 npm packages under `@skill-wiki`:
 
-- `@prime-lang/parser` — hand-written recursive-descent parser, 125 tests.
-- `@prime-lang/compiler` — L1 schema, L2 (opt-in LLM), L3 cross-atom checkers; chunker; emitters.
-- `@prime-lang/runtime` — atom loader, projection resolver, edge walker.
-- `@prime-lang/mcp-server-core` — generic MCP server with 5 tools.
-- `@prime-lang/registry` — HTTP registry; SQLite-backed; ~600 LOC.
-- `@prime-lang/cli` — `prime init / compile / check / show / publish / install / …`.
-- `@prime-lang/types` — shared AST + protocol types.
+- `@skill-wiki/parser` — hand-written recursive-descent parser, 125 tests.
+- `@skill-wiki/compiler` — L1 schema, L2 (opt-in LLM), L3 cross-atom checkers; chunker; emitters.
+- `@skill-wiki/runtime` — atom loader, projection resolver, edge walker.
+- `@skill-wiki/mcp-server-core` — generic MCP server with 5 tools.
+- `@skill-wiki/registry` — HTTP registry; SQLite-backed; ~600 LOC.
+- `@skill-wiki/cli` — `prime init / compile / check / show / publish / install / …`.
+- `@skill-wiki/types` — shared AST + protocol types.
 
 **Reference Prime** — `@frontend-design`:
 
@@ -98,9 +98,9 @@ on the source repo.
 Install in 30 seconds:
 
 ```bash
-bun add -g @prime-lang/cli
+bun add -g @skill-wiki/cli
 prime install @recipes
-PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
+PRIME_DIR=./.primes/@recipes bunx @skill-wiki/mcp-server-core
 ```
 
 Then [wire it into Claude Code](/docs/usage/mcp-claude) (or Cursor, Continue,

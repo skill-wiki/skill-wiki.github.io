@@ -41,7 +41,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 
   <h3><a href="/zh/docs/spec/registry">5. Registry 契约</a></h3>
   <p>
-    一个 Prime 以 tarball + manifest 的形式发布。任何实现下面这三条 HTTP 路由的服务都能当 registry：<code>POST /publish</code>、<code>GET /pack/:scope</code>、<code>GET /pack/:scope/:version/tarball</code>。<code>prime publish</code> 和 <code>prime install</code> 是这套契约的客户端，参考实现是 <code>@prime-lang/registry</code>。
+    一个 Prime 以 tarball + manifest 的形式发布。任何实现下面这三条 HTTP 路由的服务都能当 registry：<code>POST /publish</code>、<code>GET /pack/:scope</code>、<code>GET /pack/:scope/:version/tarball</code>。<code>prime publish</code> 和 <code>prime install</code> 是这套契约的客户端，参考实现是 <code>@skill-wiki/registry</code>。
   </p>
 
   <h3><a href="/zh/docs/spec/index-format"><code>_index.xml</code> 格式</a></h3>

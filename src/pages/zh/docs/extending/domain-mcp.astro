@@ -1,7 +1,7 @@
 ---
 import DocsLayout from '../../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="领域 MCP wrapper" slug="extending/domain-mcp" lang="zh" description="把 @prime-lang/mcp-server-core 包成带领域专属工具、标签和 validator 的服务。">
+<DocsLayout title="领域 MCP wrapper" slug="extending/domain-mcp" lang="zh" description="把 @skill-wiki/mcp-server-core 包成带领域专属工具、标签和 validator 的服务。">
   <h1>领域 MCP wrapper</h1>
   <p style="color: var(--fg-muted);">
     核心 MCP server 是领域无关的。多数 agentic 工作流都需要一个<em>领域定制</em>的 wrapper —— 在它之上加一批专为这个领域准备的工具。
@@ -18,7 +18,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
 
   <h2>骨架</h2>
 <pre><code>{`// packages/mcp-server-frontend/src/index.ts
-import { createCoreServer } from "@prime-lang/mcp-server-core";
+import { createCoreServer } from "@skill-wiki/mcp-server-core";
 
 const core = await createCoreServer({ primeDir: process.env.PRIME_DIR });
 
@@ -46,7 +46,7 @@ await core.serve();`}</code></pre>
   <table>
     <thead><tr><th>项</th><th>约定</th></tr></thead>
     <tbody>
-      <tr><td>包名</td><td><code>@prime-lang/mcp-server-&lt;domain&gt;</code></td></tr>
+      <tr><td>包名</td><td><code>@skill-wiki/mcp-server-&lt;domain&gt;</code></td></tr>
       <tr><td>工具前缀</td><td><code>&lt;domain&gt;_&lt;verb&gt;</code>，比如 <code>frontend_color_check</code></td></tr>
       <tr><td>是否带核心 5 工具</td><td>带 —— 是包装，不是替换。</td></tr>
       <tr><td>版本</td><td>Semver；跟 <code>mcp-server-core</code> 上游走。</td></tr>
@@ -62,7 +62,7 @@ await core.serve();`}</code></pre>
   "mcpServers": {
     "frontend-design": {
       "command": "bunx",
-      "args": ["@prime-lang/mcp-server-frontend"],
+      "args": ["@skill-wiki/mcp-server-frontend"],
       "env": {
         "PRIME_DIR": "/abs/path/to/frontend-design/compiled"
       }

@@ -37,7 +37,7 @@ const mcpConfigSnippet = `{
   "mcpServers": {
     "skill-wiki": {
       "command": "bunx",
-      "args": ["@prime-lang/mcp-server-core"],
+      "args": ["@skill-wiki/mcp-server-core"],
       "env": { "PRIME_DIR": "/abs/path/to/compiled" }
     }
   }
@@ -236,7 +236,7 @@ const mcpConfigSnippet = `{
                 <dt>命名空间</dt><dd>{flagshipNS.length}</dd>
                 <dt>许可</dt><dd>Apache-2.0</dd>
               </dl>
-              <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
+              <div class="flagship-install">bunx @skill-wiki/mcp-server-frontend</div>
               <div class="hero-cta" style="margin-top: var(--s-4);">
                 <a class="btn btn-primary" href="/zh/marketplace#frontend-design">查看 Prime →</a>
                 <a class="btn" href="/browse?corpus=frontend-design">浏览 {flagship.total} 个原子</a>
@@ -314,8 +314,8 @@ const mcpConfigSnippet = `{
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);" class="install-grid">
         <div class="feat" style="padding: var(--s-5);">
           <h3 style="margin-top: 0;">1 · 启动 server</h3>
-<pre style="margin: 0;"><code>bun add -g @prime-lang/cli
-bunx @prime-lang/mcp-server-core</code></pre>
+<pre style="margin: 0;"><code>bun add -g @skill-wiki/cli
+bunx @skill-wiki/mcp-server-core</code></pre>
         </div>
         <div class="feat" style="padding: var(--s-5);">
           <h3 style="margin-top: 0;">2 · 接入 Claude Code</h3>

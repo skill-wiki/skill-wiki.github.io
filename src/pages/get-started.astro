@@ -14,10 +14,10 @@ import Base from '../layouts/Base.astro';
 
     <h2>1. Install the CLI</h2>
     <pre><code># Bun (recommended)
-bun add -g @prime-lang/cli
+bun add -g @skill-wiki/cli
 
 # Or npm
-npm install -g @prime-lang/cli
+npm install -g @skill-wiki/cli
 
 prime --version
 # → prime 0.1.0</code></pre>
@@ -27,7 +27,7 @@ prime --version
 # → installed to ./.primes/@recipes</code></pre>
 
     <h2>3. Start the MCP server</h2>
-    <pre><code>PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core</code></pre>
+    <pre><code>PRIME_DIR=./.primes/@recipes bunx @skill-wiki/mcp-server-core</code></pre>
 
     <h2>4. Wire it into Claude Code</h2>
     <p>Edit <code>~/.config/claude-code/mcp.json</code>:</p>
@@ -35,7 +35,7 @@ prime --version
   "mcpServers": {
     "skill-wiki": {
       "command": "bunx",
-      "args": ["@prime-lang/mcp-server-core"],
+      "args": ["@skill-wiki/mcp-server-core"],
       "env": { "PRIME_DIR": "/abs/path/to/compiled" }
     }
   }

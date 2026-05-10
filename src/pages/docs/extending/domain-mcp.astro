@@ -1,7 +1,7 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 ---
-<DocsLayout title="Domain MCP wrapper" slug="extending/domain-mcp" description="Wrap @prime-lang/mcp-server-core with domain-specific tools, tags, and validators.">
+<DocsLayout title="Domain MCP wrapper" slug="extending/domain-mcp" description="Wrap @skill-wiki/mcp-server-core with domain-specific tools, tags, and validators.">
   <h1>Domain MCP wrapper</h1>
   <p style="color: var(--fg-muted);">
     The core MCP server is domain-blind. Most agentic workflows benefit from a
@@ -19,7 +19,7 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 
   <h2>Skeleton</h2>
 <pre><code>{`// packages/mcp-server-frontend/src/index.ts
-import { createCoreServer } from "@prime-lang/mcp-server-core";
+import { createCoreServer } from "@skill-wiki/mcp-server-core";
 
 const core = await createCoreServer({ primeDir: process.env.PRIME_DIR });
 
@@ -47,7 +47,7 @@ await core.serve();`}</code></pre>
   <table>
     <thead><tr><th>Aspect</th><th>Convention</th></tr></thead>
     <tbody>
-      <tr><td>Package name</td><td><code>@prime-lang/mcp-server-&lt;domain&gt;</code></td></tr>
+      <tr><td>Package name</td><td><code>@skill-wiki/mcp-server-&lt;domain&gt;</code></td></tr>
       <tr><td>Tool prefix</td><td><code>&lt;domain&gt;_&lt;verb&gt;</code> e.g. <code>frontend_color_check</code></td></tr>
       <tr><td>Tools include the core 5</td><td>Yes — wrap, don't replace.</td></tr>
       <tr><td>Versioning</td><td>Semver; track upstream <code>mcp-server-core</code>.</td></tr>
@@ -64,7 +64,7 @@ await core.serve();`}</code></pre>
   "mcpServers": {
     "frontend-design": {
       "command": "bunx",
-      "args": ["@prime-lang/mcp-server-frontend"],
+      "args": ["@skill-wiki/mcp-server-frontend"],
       "env": {
         "PRIME_DIR": "/abs/path/to/frontend-design/compiled"
       }

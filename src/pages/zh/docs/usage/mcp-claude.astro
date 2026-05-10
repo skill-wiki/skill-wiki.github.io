@@ -17,7 +17,7 @@ import DocsLayout from '../../../../layouts/DocsLayout.astro';
   </ul>
 
   <p style="color: var(--fg-muted); border-left: 3px solid var(--accent, #888); padding: 0.5rem 0.75rem; background: var(--bg-subtle, transparent);">
-    <strong>TODO：</strong> npm 包（<code>@prime-lang/mcp-server-core</code> 等）还没发布 ——
+    <strong>TODO：</strong> npm 包（<code>@skill-wiki/mcp-server-core</code> 等）还没发布 ——
     计划在 v0.1.1 发。在那之前，按下面的步骤从本地 clone 跑。
   </p>
 
@@ -147,7 +147,7 @@ Env:         PRIME_DIR=/abs/path/to/your/compiled/corpus`}</code></pre>
     <tbody>
       <tr><td>看不到工具</td><td>配置文件没被加载</td><td>检查文件路径；重启客户端</td></tr>
       <tr><td><code>spawn bun ENOENT</code></td><td>Bun 没装或不在 PATH 中</td><td>全局装 bun，或用 bun 二进制的绝对路径</td></tr>
-      <tr><td><code>npm / bunx 404</code></td><td>用了老配置 <code>bunx @prime-lang/mcp-server-core</code></td><td>改用上面这种本地 clone 路径。npm 包还没发布。</td></tr>
+      <tr><td><code>npm / bunx 404</code></td><td>用了老配置 <code>bunx @skill-wiki/mcp-server-core</code></td><td>改用上面这种本地 clone 路径。npm 包还没发布。</td></tr>
       <tr><td><code>PRIME_DIR not found</code></td><td>路径没指向编译产物</td><td>先跑编译；并用绝对路径</td></tr>
       <tr><td>命中返回了，但正文加载失败</td><td>agent 的 <code>Read</code> 工具够不到那个路径</td><td><code>PRIME_DIR</code> 用绝对路径</td></tr>
     </tbody>
