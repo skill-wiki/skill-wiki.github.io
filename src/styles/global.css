@@ -1363,3 +1363,124 @@ li > p { margin: 8px 0; }
   color: var(--fg-muted);
 }
 .lead-strip > div::before { content: '✓ '; color: var(--success-fg); font-weight: 700; }
+
+/* ─── Mobile responsive ──────────────────────────────────────────────── */
+/* Anything not yet covered by the section-specific @media blocks above. */
+
+@media (max-width: 720px) {
+  /* Type — pull big sizes down so they don't dominate small viewports */
+  .hero h1 { font-size: clamp(32px, 8vw, 44px); }
+  .section-title { font-size: clamp(24px, 6vw, 32px); }
+
+  /* Spacing — sections too generous on phones */
+  .hero { padding: 56px var(--s-4) 40px; }
+  .section { padding: 56px var(--s-4); }
+
+  /* Header — stack brand on top, nav below; allow brand-tag to wrap */
+  .gh-header { height: auto; }
+  .gh-header-inner {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 10px var(--s-4);
+  }
+  .gh-search { grid-column: 1 / -1; max-width: none; }
+  .gh-nav {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .gh-nav::-webkit-scrollbar { display: none; }
+  .gh-nav a { white-space: nowrap; padding: 4px 8px; }
+  .gh-meta { gap: 4px; }
+  .gh-meta a { padding: 4px 8px; font-size: 12px; }
+
+  /* Brand: hide the version chip on tiny screens to save space */
+  .gh-brand-tag { display: none; }
+
+  /* Footer: 2-col mobile, but smaller items */
+  .gh-footer-inner { grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 var(--s-4); }
+  .gh-footer-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* Hero installation snippet stacks below text on mobile */
+  .hero-snippet { font-size: 11px; }
+  .hero-snippet pre { padding: 12px; }
+
+  /* CTAs — stretch full-width buttons on phones for easier tapping */
+  .hero-cta { gap: 8px; }
+  .hero-cta .btn { flex: 1 1 100%; justify-content: center; padding: 10px 16px; }
+  .hero-cta .btn.btn-large { padding: 12px 16px; font-size: 14px; }
+
+  /* Pack grid: keep auto-fill but smaller min */
+  .pack-grid { grid-template-columns: 1fr; }
+
+  /* Flagship: stack body */
+  .flagship-body { padding: 20px; gap: 16px; }
+  .flagship h2 { font-size: 24px; }
+
+  /* KPI strip → 2 cols (it already does at 760, mirror here) */
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .kpi > div { padding: 16px; border-right: 0; }
+  .kpi > div:nth-child(odd) { border-right: 1px solid var(--border-default); }
+  .kpi > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .kpi > div { border-bottom: 1px solid var(--border-default); }
+  .kpi .n { font-size: 28px; }
+
+  /* Feat-grid → single column */
+  .feat-grid { grid-template-columns: 1fr; }
+  .feat { padding: 20px; }
+
+  /* Tables: shrink padding inside cells on mobile */
+  table th, table td { padding: 6px 8px; min-width: 5em; font-size: 12px; }
+
+  /* Code blocks: smaller on mobile */
+  pre { padding: 12px; font-size: 12px; }
+  code { font-size: 12px; }
+
+  /* Mobile blog list */
+  .blog-row { padding: 24px 0; }
+  .blog-row:hover { padding-left: 0; }    /* drop the left-shift on touch */
+  .blog-row-title { font-size: 20px; }
+
+  /* Article (about / blog post) */
+  .article { padding: 32px var(--s-4) 56px; font-size: 16px; }
+  .article h1 { font-size: 32px; }
+  .article h2 { font-size: 22px; margin-top: var(--s-6); }
+  .post { padding: 24px var(--s-4) 56px; }
+  .post-title { font-size: 30px; }
+  .post-deck { font-size: 16px; }
+  .post-body { font-size: 16px; }
+  .post-body :global(h2) { font-size: 24px; }
+
+  /* Marketplace flagship — kill the big horizontal grid on mobile */
+  .flagship-body { display: block; }
+  .flagship-aside { margin-top: 16px; padding: 16px; }
+
+  /* Atom detail — strip is too dense at 6 cols, let CSS in the page handle */
+  /* Sticky right column already drops at 900px; mobile is fine. */
+
+  /* Hero figure on mobile — smaller margins */
+  .hero figure { margin-top: 24px; }
+
+  /* Ensure html doesn't have horizontal scroll */
+  html, body { overflow-x: hidden; }
+}
+
+/* Very small screens (< 480) — extra compact */
+@media (max-width: 480px) {
+  .hero h1 { font-size: clamp(28px, 9vw, 38px); }
+  .section-title { font-size: 22px; }
+  .hero-eyebrow { font-size: 11px; }
+  .hero p.lede { font-size: 15px; }
+  .gh-brand { font-size: 14px; }
+  .gh-brand img { width: 20px; height: 20px; }
+  .marquee { font-size: 11px; }
+  .blog-list-title { font-size: 32px; }
+}
+
+/* Tablets in portrait — between 720 and 900 */
+@media (min-width: 720px) and (max-width: 900px) {
+  .hero-cta .btn { flex: initial; }
+}

@@ -1,0 +1,62 @@
+# Skill Wiki marketplace registry
+#
+# Each entry is one Skill that the marketplace discovers, vendors at build
+# time, and renders. To publish your own Skill: open a PR adding an entry
+# below. See CONTRIBUTING.md for the full guide.
+#
+# Required fields:
+#   slug         — short URL-safe id; appears in /atom/<slug>/...
+#   repo         — GitHub "owner/repo"; cloned into external/<slug>/
+#   compiledSubdir — relative to the repo, where _index.xml lives
+#
+# Optional fields:
+#   subpath      — if the Skill lives inside a subfolder of the repo
+#   description  — one-line copy shown on the marketplace card
+#   flagship     — true for the featured pack (one max)
+#   featured     — pin this Skill near the top of the marketplace
+#   homepage     — link the marketplace card title goes to (default: GitHub)
+#   maintainers  — list of GitHub usernames for the "Maintained by" line
+#   tags         — short list of keywords for search (planned)
+
+skills:
+  - slug: frontend-design
+    repo: skill-wiki/prime-corpus-frontend
+    compiledSubdir: compiled-v3-final
+    description: |
+      898 typed atoms across 9 design sub-domains — color, type, motion,
+      spacing, accessibility, voice, hierarchy, layout, components.
+      Reference Skill + reference application; 5-tool MCP wrapper.
+    flagship: true
+    homepage: https://github.com/skill-wiki/prime-corpus-frontend
+    maintainers: [skill-wiki]
+    tags: [frontend, design, accessibility, typography, motion]
+
+  - slug: recipes
+    repo: skill-wiki/prime-system
+    subpath: examples/recipes
+    compiledSubdir: primes/compiled
+    description: |
+      A trivial cooking example — methods, terms, rules, tradeoffs.
+      Smallest end-to-end Skill you can read in one sitting.
+    maintainers: [skill-wiki]
+    tags: [example, cooking]
+
+  - slug: coding-style
+    repo: skill-wiki/prime-system
+    subpath: examples/coding-style
+    compiledSubdir: primes/compiled
+    description: |
+      An example team coding-style Skill. Patterns, rules, anti-patterns
+      — the shape an internal style guide takes once it's typed.
+    maintainers: [skill-wiki]
+    tags: [example, coding, style]
+
+  - slug: hello-world
+    repo: skill-wiki/prime-system
+    subpath: examples/hello-world
+    compiledSubdir: primes/compiled
+    description: |
+      The canonical "first Skill" — 8 atoms about boiling water and
+      making tea. Read this first to learn the DSL.
+    maintainers: [skill-wiki]
+    tags: [example, learning]

@@ -152,23 +152,83 @@ function summarise(c: typeof packs[0]) {
   <section class="section">
     <div class="section-inner">
       <p class="section-eyebrow">Publish your own</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Self-host a registry, or use ours</h2>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Add your Skill to this marketplace</h2>
       <p class="section-lede">
-        The registry contract is HTTP-only. The reference implementation is
-        ~600 LOC. Run it on any VM, or use the public registry.
+        The marketplace is PR-driven. Push your Skill to GitHub, then open one
+        PR adding it to <code>data/skills.yaml</code> on this site's repo. We
+        review, merge, and CI re-renders the marketplace.
       </p>
-      <pre><code>{`# Stand up a registry
-bun run packages/registry/src/index.ts --port 4000
 
-# From any Skill root
-prime publish --remote http://localhost:4000
-
-# From any consumer
-prime install @your/pack --remote http://localhost:4000`}</code></pre>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="/docs/usage/publish-install">Read the publish guide →</a>
-        <a class="btn" href="/docs/spec/registry">Read the registry spec</a>
+      <div class="submit-grid">
+        <div class="submit-step">
+          <span class="submit-num">1</span>
+          <h3>Push your Skill to GitHub</h3>
+          <p>Any public repo. Compile with <code>prime compile</code>. Apache-2.0 or compatible license.</p>
+        </div>
+        <div class="submit-step">
+          <span class="submit-num">2</span>
+          <h3>PR one yaml entry</h3>
+          <p>Add a 5-line block to <code>data/skills.yaml</code>. Slug, repo, description, tags.</p>
+        </div>
+        <div class="submit-step">
+          <span class="submit-num">3</span>
+          <h3>We merge, CI rebuilds</h3>
+          <p>Your Skill appears in the marketplace on next deploy. ~5 minutes.</p>
+        </div>
       </div>
+
+      <div class="hero-cta" style="margin-top: 32px;">
+        <a class="btn btn-primary" href="https://github.com/skill-wiki/skill-wiki.github.io/blob/main/CONTRIBUTING.md" rel="noopener">Read the publishing guide →</a>
+        <a class="btn" href="https://github.com/skill-wiki/skill-wiki.github.io/edit/main/data/skills.yaml" rel="noopener">Open a PR</a>
+      </div>
+
+      <p style="margin-top: 24px; font-size: 13px; color: var(--fg-muted);">
+        Need a private / enterprise registry? <a href="/docs/usage/publish-install">Self-host the reference registry</a> — same protocol, your infra.
+      </p>
     </div>
   </section>
 </Base>
+
+<style>
+  .submit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 800px) {
+    .submit-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+  .submit-step {
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-2);
+    padding: 24px;
+    background: var(--bg-canvas);
+  }
+  .submit-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 999px;
+    background: var(--accent-subtle);
+    color: var(--accent-fg);
+    border: 1px solid var(--accent-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .submit-step h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    margin: 0 0 6px;
+    border: 0; padding: 0;
+  }
+  .submit-step p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--fg-muted);
+    margin: 0;
+  }
+</style>

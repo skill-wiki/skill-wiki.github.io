@@ -148,23 +148,83 @@ function summarise(c: typeof packs[0]) {
   <section class="section">
     <div class="section-inner">
       <p class="section-eyebrow">发布自己的</p>
-      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">自托管 registry 或用我们的</h2>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">把你的 Skill 加到这个市场</h2>
       <p class="section-lede">
-        Registry 协议是纯 HTTP。参考实现 ~600 行。
-        放到任何 VM 上，或挂到我们的公开 registry 上。
+        市场是 PR 驱动的。把你的 Skill push 到 GitHub，再开一个 PR
+        把它加到本站仓的 <code>data/skills.yaml</code>。我们 review、merge，
+        CI 自动重新渲染市场。
       </p>
-      <pre><code>{`# 自托管 registry
-bun run packages/registry/src/index.ts --port 4000
 
-# 在任意 Skill 根目录
-prime publish --remote http://localhost:4000
-
-# 在任意消费端
-prime install @your/pack --remote http://localhost:4000`}</code></pre>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="/zh/docs/usage/publish-install">阅读发布指南 →</a>
-        <a class="btn" href="/zh/docs/spec/registry">阅读 registry 规范</a>
+      <div class="submit-grid">
+        <div class="submit-step">
+          <span class="submit-num">1</span>
+          <h3>把 Skill push 到 GitHub</h3>
+          <p>任何公开仓。用 <code>prime compile</code> 编译。Apache-2.0 或兼容许可。</p>
+        </div>
+        <div class="submit-step">
+          <span class="submit-num">2</span>
+          <h3>PR 一条 yaml 条目</h3>
+          <p>在 <code>data/skills.yaml</code> 加 5 行。slug、repo、描述、tag。</p>
+        </div>
+        <div class="submit-step">
+          <span class="submit-num">3</span>
+          <h3>我们 merge，CI 重 build</h3>
+          <p>下次部署后你的 Skill 出现在市场，约 5 分钟。</p>
+        </div>
       </div>
+
+      <div class="hero-cta" style="margin-top: 32px;">
+        <a class="btn btn-primary" href="https://github.com/skill-wiki/skill-wiki.github.io/blob/main/CONTRIBUTING.md" rel="noopener">阅读发布指南 →</a>
+        <a class="btn" href="https://github.com/skill-wiki/skill-wiki.github.io/edit/main/data/skills.yaml" rel="noopener">直接 PR</a>
+      </div>
+
+      <p style="margin-top: 24px; font-size: 13px; color: var(--fg-muted);">
+        想要私有 / 企业 registry？<a href="/zh/docs/usage/publish-install">自托管参考 registry</a> —— 同样的协议，你的基础设施。
+      </p>
     </div>
   </section>
 </Base>
+
+<style>
+  .submit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 800px) {
+    .submit-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+  .submit-step {
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-2);
+    padding: 24px;
+    background: var(--bg-canvas);
+  }
+  .submit-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 999px;
+    background: var(--accent-subtle);
+    color: var(--accent-fg);
+    border: 1px solid var(--accent-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .submit-step h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    margin: 0 0 6px;
+    border: 0; padding: 0;
+  }
+  .submit-step p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--fg-muted);
+    margin: 0;
+  }
+</style>

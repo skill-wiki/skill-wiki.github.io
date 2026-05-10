@@ -21,22 +21,51 @@ jobs:
       - name: Checkout website
         uses: actions/checkout@v4
 
-      # Vendor the two sibling repos that hold the actual corpus data the
-      # marketplace / browse / atom pages render from. The website's corpus
-      # loader looks under `external/` first, then falls back to `..` for
-      # local monorepo dev.
-      - name: Checkout prime-system (protocol + example corpora)
-        uses: actions/checkout@v4
-        with:
-          repository: skill-wiki/prime-system
-          path: external/prime-system
+      # Read the Skill registry and emit a sequence of "owner/repo,dir" lines
+      # for the next step to clone. Driven by data/skills.yaml so adding a
+      # new Skill is one PR with no workflow edits.
+      - name: Resolve Skill registry
+        id: registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Map each repo basename to the directory name our corpus loader
+          # expects (the loader has a matching alias on its side).
+          declare -A ALIAS
+          ALIAS[prime-corpus-frontend]=prime-corpus-frontend-design
+          # Extract unique "owner/repo" → "dir" pairs from data/skills.yaml.
+          # We use a tiny awk parser so we don't need yq/python in the runner.
+          mapfile -t REPOS < <(awk '
+            /^[[:space:]]*-/ { in_item=1 }
+            in_item && /^[[:space:]]+repo:[[:space:]]*/ {
+              gsub(/^[[:space:]]+repo:[[:space:]]*/, ""); print
+            }
+          ' data/skills.yaml | sort -u)
+          # Emit one line per repo: "owner/repo dir".
+          {
+            for r in "${REPOS[@]}"; do
+              base="${r##*/}"
+              dir="${ALIAS[$base]:-$base}"
+              echo "$r $dir"
+            done
+          } > .vendor-list.txt
+          echo "Vendor list:"; cat .vendor-list.txt
 
-      - name: Checkout prime-corpus-frontend (flagship corpus)
-        uses: actions/checkout@v4
-        with:
-          repository: skill-wiki/prime-corpus-frontend
-          # Path matches the directory name the corpus loader expects.
-          path: external/prime-corpus-frontend-design
+      # Clone each unique source repo into external/<dir>. This is dynamic so
+      # we never need to touch the workflow when authors PR new Skills.
+      - name: Vendor Skill source repos
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p external
+          while IFS=' ' read -r repo dir; do
+            [ -z "$repo" ] && continue
+            echo "→ cloning $repo into external/$dir"
+            git clone --depth 1 "https://github.com/$repo.git" "external/$dir"
+          done < .vendor-list.txt
+          echo "Vendored:"; ls external
 
       - uses: oven-sh/setup-bun@v2
         with:

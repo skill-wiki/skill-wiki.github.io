@@ -32,30 +32,77 @@ function resolveCorpusRoot(): string {
 }
 const RELEASE_ROOT = resolveCorpusRoot();
 
-// Each entry is: corpus slug → { rootPath, compiledSubdir }.
-// compiledSubdir defaults to 'primes/compiled' but can be overridden when a
-// corpus repo lays its compiled artifact elsewhere (e.g. frontend-design's
-// `compiled-v3-final/`).
+// ─── Skill registry ───────────────────────────────────────────────────────────
+//
+// The marketplace is driven by `data/skills.yaml`. Each entry there says where
+// the Skill's compiled output lives relative to the resolved corpus root.
+// Authors PR an entry to add their Skill — see CONTRIBUTING.md.
+
 type CorpusLocation = { rootPath: string; compiledSubdir: string };
 
-const CORPUS_PATHS: Record<string, CorpusLocation> = {
-  recipes: {
-    rootPath: join(RELEASE_ROOT, 'prime-system/examples/recipes'),
-    compiledSubdir: 'primes/compiled',
-  },
-  'coding-style': {
-    rootPath: join(RELEASE_ROOT, 'prime-system/examples/coding-style'),
-    compiledSubdir: 'primes/compiled',
-  },
-  'hello-world': {
-    rootPath: join(RELEASE_ROOT, 'prime-system/examples/hello-world'),
-    compiledSubdir: 'primes/compiled',
-  },
-  'frontend-design': {
-    rootPath: join(RELEASE_ROOT, 'prime-corpus-frontend-design'),
-    compiledSubdir: 'compiled-v3-final',
-  },
+export type SkillRegistryEntry = {
+  slug: string;
+  repo: string;
+  subpath?: string;
+  compiledSubdir: string;
+  description?: string;
+  flagship?: boolean;
+  featured?: boolean;
+  homepage?: string;
+  maintainers?: string[];
+  tags?: string[];
 };
+
+const REGISTRY_PATH = join(WEBSITE_ROOT, 'data/skills.yaml');
+
+function loadRegistry(): SkillRegistryEntry[] {
+  if (!existsSync(REGISTRY_PATH)) return [];
+  const raw = readFileSync(REGISTRY_PATH, 'utf8');
+  const parsed = parseYaml(raw) as { skills?: SkillRegistryEntry[] };
+  return Array.isArray(parsed?.skills) ? parsed.skills : [];
+}
+
+// Build the slug → on-disk-location map from the registry. The repo name is
+// the second segment of `repo` (e.g. `skill-wiki/prime-system` → `prime-system`),
+// which is the directory name our deploy.yml uses when it clones each repo
+// under external/. For the dev fallback (sibling release/), we use a small
+// alias map to bridge the directory-name difference.
+const REPO_DIR_ALIAS: Record<string, string> = {
+  // GitHub repo basename → local sibling directory name (release/<dir>)
+  'prime-corpus-frontend': 'prime-corpus-frontend-design',
+};
+
+function resolveRepoDir(repo: string): string {
+  const base = repo.split('/').pop() ?? repo;
+  return REPO_DIR_ALIAS[base] ?? base;
+}
+
+function buildCorpusPaths(): Record<string, CorpusLocation> {
+  const entries = loadRegistry();
+  const out: Record<string, CorpusLocation> = {};
+  for (const e of entries) {
+    const repoDir = resolveRepoDir(e.repo);
+    const rootPath = e.subpath
+      ? join(RELEASE_ROOT, repoDir, e.subpath)
+      : join(RELEASE_ROOT, repoDir);
+    out[e.slug] = {
+      rootPath,
+      compiledSubdir: e.compiledSubdir || 'primes/compiled',
+    };
+  }
+  return out;
+}
+
+const CORPUS_PATHS: Record<string, CorpusLocation> = buildCorpusPaths();
+
+// Re-exported for /marketplace to render registry metadata (description,
+// maintainers, tags) without re-reading the file.
+let _registryCache: SkillRegistryEntry[] | null = null;
+export function loadSkillRegistry(): SkillRegistryEntry[] {
+  if (_registryCache) return _registryCache;
+  _registryCache = loadRegistry();
+  return _registryCache;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
