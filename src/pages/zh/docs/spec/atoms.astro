@@ -1,0 +1,171 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Atoms · 28 种 kind" slug="spec/atoms" lang="zh" description="跨 5 层的 28 种原子 kind，附 schema 与例子。">
+  <h1>Atoms · 28 种 kind</h1>
+  <p style="color: var(--fg-muted);">
+    知识的单元。每个原子都声明 <code>id</code>、<code>version</code>、对应 kind 的 body 字段，
+    以及一组带类型的边。28 种 kind 分布在 5 个层里；按你的领域挑，剩下的不用管。
+  </p>
+
+  <h2>原子的解剖</h2>
+  <p>
+    一个原子是一个 <code>.prime</code> 源文件。形态都长这样：
+  </p>
+
+<pre><code>{`<kind> <PascalCaseName> {
+  id: "@scope/kind-kebab-name"
+  version: "1.0.0"
+  description: "One sentence — appears in summary projection."
+  domain: <domain>
+
+  // kind-specific body fields
+  // ...
+
+  // edges out (any subset of 14 verbs)
+  related:        [@scope/...]
+  requires:       [@scope/...]
+  validates-with: [@scope/...]
+}`}</code></pre>
+
+  <p>
+    每个 kind 都必填：<code>id</code>、<code>version</code>、<code>description</code>、<code>domain</code>。
+    每种 kind 还会加上自己的必填字段（比如 <code>rule</code> 必填 <code>claim</code>；
+    <code>method</code> 必填 <code>steps</code>）。
+  </p>
+
+  <h2>5 个层</h2>
+  <table>
+    <thead>
+      <tr><th>层</th><th>Kinds</th><th>角色</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Data</strong></td>
+        <td><code>fact</code> <code>term</code> <code>value</code> <code>category</code> <code>example</code> <code>counter-example</code> <code>source</code> <code>metric</code></td>
+        <td>"是什么"。可验证的断言、定义、样本、引用。</td>
+      </tr>
+      <tr>
+        <td><strong>Behaviour</strong></td>
+        <td><code>step</code> <code>check</code> <code>transform</code> <code>tool</code> <code>method</code></td>
+        <td>"怎么做"。流程、校验、转换。</td>
+      </tr>
+      <tr>
+        <td><strong>Composition</strong></td>
+        <td><code>rule</code> <code>taxonomy</code> <code>pattern</code> <code>anti-pattern</code> <code>type</code> <code>constraint</code></td>
+        <td>"什么跟什么搭"。约束、分类、复发形态。</td>
+      </tr>
+      <tr>
+        <td><strong>Meta</strong></td>
+        <td><code>collection</code> <code>scope</code> <code>tradeoff</code> <code>principle</code> <code>feedback</code></td>
+        <td>"关于 corpus 本身"。打包、scope 声明、设计张力。</td>
+      </tr>
+      <tr>
+        <td><strong>Voice & style</strong> <em>（领域风格相关）</em></td>
+        <td><code>persona</code> <code>voice</code> <code>template</code> <code>provocation</code></td>
+        <td>"怎么表达"。设计/内容/品牌类 corpus 用得多。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Kind 完整索引</h2>
+
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>一句话</th><th>必填字段</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>fact</code></td><td>带 confidence 的可验证断言。</td><td><code>statement</code>, <code>confidence</code></td></tr>
+      <tr><td><code>term</code></td><td>对一个词汇单元的定义。</td><td><code>definition</code></td></tr>
+      <tr><td><code>value</code></td><td>一个具体的常量值。</td><td><code>value</code>, <code>unit?</code></td></tr>
+      <tr><td><code>category</code></td><td>分类体系里的一个类别槽位。</td><td><code>category</code>, <code>parent?</code></td></tr>
+      <tr><td><code>example</code></td><td>某条 rule 或 pattern 的具体实例。</td><td><code>shows</code>, <code>illustrates?</code></td></tr>
+      <tr><td><code>counter-example</code></td><td>违反某条 rule 或 pattern 的实例。</td><td><code>fails</code>, <code>why</code></td></tr>
+      <tr><td><code>source</code></td><td>对权威材料的引用。</td><td><code>title</code>, <code>url?</code> 或 <code>doi?</code></td></tr>
+      <tr><td><code>metric</code></td><td>可度量的量（如对比度 ≥ 4.5:1）。</td><td><code>name</code>, <code>threshold?</code></td></tr>
+      <tr><td><code>step</code></td><td>流程里的一步。</td><td><code>action</code></td></tr>
+      <tr><td><code>check</code></td><td>一个校验关卡（yes / no / details）。</td><td><code>check</code></td></tr>
+      <tr><td><code>transform</code></td><td>一个 input → output 的过程。</td><td><code>input</code>, <code>output</code></td></tr>
+      <tr><td><code>tool</code></td><td>method 调用的可执行工具。</td><td><code>signature</code></td></tr>
+      <tr><td><code>method</code></td><td>多步流程，带输入、输出和 contract。</td><td><code>steps</code>, <code>contract?</code></td></tr>
+      <tr><td><code>rule</code></td><td>带 severity 和 applies-to 的约束。</td><td><code>claim</code>, <code>severity</code></td></tr>
+      <tr><td><code>taxonomy</code></td><td>一套分类方案。</td><td><code>axis</code>, <code>buckets</code></td></tr>
+      <tr><td><code>pattern</code></td><td>对反复出现问题的可复用解。</td><td><code>problem</code>, <code>solution</code></td></tr>
+      <tr><td><code>anti-pattern</code></td><td>常见错误及其失败原因。</td><td><code>shape</code>, <code>fails-because</code></td></tr>
+      <tr><td><code>type</code></td><td>协议中流转的对象的 schema。</td><td><code>fields</code></td></tr>
+      <tr><td><code>constraint</code></td><td>硬限制或不变量。</td><td><code>limit</code>, <code>applies-to</code></td></tr>
+      <tr><td><code>collection</code></td><td>一组精选原子的 bundle。</td><td><code>members</code></td></tr>
+      <tr><td><code>scope</code></td><td>corpus 中聚焦的一个子集。</td><td><code>focus</code>, <code>members</code></td></tr>
+      <tr><td><code>tradeoff</code></td><td>两个价值彼此拉扯的决策。</td><td><code>tension</code></td></tr>
+      <tr><td><code>principle</code></td><td>支撑 rule 的更高层信念。</td><td><code>statement</code></td></tr>
+      <tr><td><code>feedback</code></td><td>对历史决策的回顾观察。</td><td><code>observation</code></td></tr>
+      <tr><td><code>persona</code></td><td>agent 应当采取的声音 / 姿态。</td><td><code>posture</code></td></tr>
+      <tr><td><code>voice</code></td><td>书写声音（节奏、语域）。</td><td><code>register</code></td></tr>
+      <tr><td><code>template</code></td><td>可复用的输出脚手架。</td><td><code>template</code></td></tr>
+      <tr><td><code>provocation</code></td><td>用来推 agent 的创意性 prompt。</td><td><code>prompt</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>两个完整例子</h2>
+
+  <h3>1. 一条 <code>rule</code></h3>
+<pre><code>{`rule SqlInjectionPrevention {
+  id: "@security/rule-sql-injection-prevention"
+  version: "1.0.0"
+  description: "Always use parameterised queries — never concatenate strings."
+  domain: security
+
+  claim:    "Use parameterised queries; never concatenate user input."
+  applies-to: [api-endpoint, data-pipeline]
+  severity: critical
+
+  validates-with: [
+    @security/source-owasp-input-validation,
+    @security/check-sqlmap-scan,
+  ]
+
+  contradicts: [
+    @security/anti-pattern-string-concat-query,
+  ]
+}`}</code></pre>
+
+  <h3>2. 一个 <code>method</code></h3>
+<pre><code>{`method MakeTea {
+  id: "@hello-world/method-make-tea"
+  version: "1.0.0"
+  description: "Boil water, steep tea, optional milk and sugar."
+  domain: cooking
+
+  steps: [
+    @hello-world/step-boil-water,
+    @hello-world/step-steep-tea,
+    @hello-world/step-add-milk,
+  ]
+
+  contract: {
+    must-include: [
+      @hello-world/fact-water-boils-at-100c,
+      @hello-world/term-steep,
+    ]
+    must-avoid: [
+      @hello-world/anti-pattern-microwave-tea,
+    ]
+  }
+
+  enhances: [
+    @hello-world/voice-british-tea-time,
+  ]
+}`}</code></pre>
+
+  <h2>怎么挑 kind</h2>
+  <p>
+    一个小 corpus 一般用 5–8 种 kind。frontend-design Skill 用了 22 种 —— 这是上限。
+    一个安全 Skill 可能用 12 种（偏 Data + Composition + Behaviour）。
+    一个创意写作 Skill 可能用 10 种（偏 Voice & Style）。没用上的 kind，干脆不出现。
+  </p>
+
+  <p>
+    需要一个我们没有的 kind？看 <a href="/zh/docs/extending/custom-kinds">自定义 kind</a> ——
+    给协议加一个 kind 是 4 文件 patch + 一份 Tier-2 RFC。
+  </p>
+</DocsLayout>

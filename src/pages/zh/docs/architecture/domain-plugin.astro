@@ -1,0 +1,111 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="领域插件" slug="architecture/domain-plugin" lang="zh" description="domain.yaml + DomainRegistry —— corpus 不动协议本身就能声明自己的领域。">
+  <h1>领域插件</h1>
+  <p style="color: var(--fg-muted);">
+    Skill Wiki 出厂<strong>没有任何内置领域</strong>。一个领域就是放在你 corpus 根目录的一份
+    <code>domain.yaml</code>。运行时启动时发现并注册它。
+  </p>
+
+  <h2>为什么走配置驱动</h2>
+  <p>
+    早期原型把领域硬编码在运行时 —— 加一个 "fintech" 都得改代码。
+    这让 fork、自定义、发布领域 corpus 都很痛。v0.1.0 翻了过来：
+    每个领域都是一份 YAML 配置 + 递归发现。
+  </p>
+
+  <h2>流程</h2>
+  <p><img src="/domain-extension-flow.png" alt="Domain extension flow — drop in a YAML, restart, done" /></p>
+
+<pre><code>{`primes/                                  ┐
+├── sources/                             │
+│   └── @my/                             │  scanned recursively
+│       ├── ...                          │  by discoverDomains()
+│       └── domain.yaml  ←  one per pack ┘
+
+                  ▼
+       ┌──────────────────────┐
+       │  DomainRegistry      │  in-memory map
+       │  (per-process)       │
+       └──────────────────────┘
+                  │
+                  ▼
+        runtime queries pick up
+        domain-specific:
+          • tag boosts
+          • intent fields
+          • L5 validator hooks`}</code></pre>
+
+  <h2><code>domain.yaml</code> 声明什么</h2>
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: "Design knowledge for AI agents — color, type, motion, …"
+
+# Hierarchical taxonomy of sub-domains.
+hierarchy: visual-hierarchy
+
+# Multi-axis tags the retriever can boost on.
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+
+# Composition contract scaffold (defaults).
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# L5 validators (optional).
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: "^[<]([a-z][a-z0-9]*)\\b[^>]*[>]"
+  - name: color-token
+    checker: ai-judge
+    rubric: "@frontend-design/rubric-color-token"`}</code></pre>
+
+  <h2>运行时怎么用它</h2>
+
+  <h3>Tag boost</h3>
+  <p>
+    带有 <code>axes:</code> 中标签的原子，在检索器的 <code>IntentObject</code> 命中时获得乘性加权。
+    比如打了 <code>typography</code> 标签的原子，在 intent 是
+    <code>focus: "typography-and-rhythm"</code> 时排名更靠前。
+  </p>
+
+  <h3>Intent 字段</h3>
+  <p>
+    L1（意图分类）读 <code>axes</code> 决定要在 IntentObject 里填哪些字段。
+    一个 frontend-design 的 L1 产出 <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>；
+    一个安全 Skill 的 L1 产出的形状完全不同。
+  </p>
+
+  <h3>L5 validator hook</h3>
+  <p>
+    <code>validators</code> 数组描述怎么校验生成结果。每一项是一个二元组（checker 名字、参数）。
+    参考 v0.1.0 支持两个 checker：<code>regex</code> 和 <code>ai-judge</code>。
+    领域插件可以通过 MCP server 的插件槽注册更多 checker。
+  </p>
+
+  <h2>发现规则</h2>
+  <ul>
+    <li>从 <code>$PRIME_DIR</code> 递归扫描，最多 4 层深。</li>
+    <li>文件名必须正好是 <code>domain.yaml</code>，任何层级都行。</li>
+    <li>已加载领域之间名字必须唯一。冲突在启动时硬抛错。</li>
+    <li>允许 Unicode 标签。Emoji 标签也行。</li>
+    <li>每个 server 进程加载一次；<code>kill -HUP</code> 重新加载。</li>
+  </ul>
+
+  <h2>取舍</h2>
+  <p>
+    插件模型让 v1 协议本身可以不知道你的领域。代价：协议层的校验必须领域无关。
+    领域特定的智能放在 L1 / L5 插件里。
+  </p>
+
+  <p>
+    怎么写 <code>domain.yaml</code>，见 <a href="/zh/docs/extending/domain-yaml">拓展 → domain.yaml</a>。
+  </p>
+</DocsLayout>

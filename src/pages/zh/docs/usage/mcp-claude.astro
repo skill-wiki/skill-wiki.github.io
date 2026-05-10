@@ -1,0 +1,93 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="接入 Claude Code" slug="usage/mcp-claude" lang="zh" description="把 Claude Code、Cursor 或任意 MCP 客户端接到 Skill Wiki。">
+  <h1>接入 Claude Code</h1>
+  <p style="color: var(--fg-muted);">
+    MCP server 在本地跑，通过 stdio 跟 agent 通信。Cursor、Continue、Aider 等支持 MCP 的客户端
+    形状都一样 —— 只是配置文件位置不同。
+  </p>
+
+  <h2>Claude Code</h2>
+  <p>编辑 <code>~/.config/claude-code/mcp.json</code>（macOS / Linux）或 Windows 上对应路径：</p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/your/primes/compiled"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <p>重启 Claude Code。agent 的工具列表里应当出现这 5 个工具：</p>
+  <ul>
+    <li><code>prime_query</code></li>
+    <li><code>prime_resolve</code></li>
+    <li><code>prime_intent</code></li>
+    <li><code>prime_validate</code></li>
+    <li><code>prime_compile</code></li>
+  </ul>
+
+  <h2>Cursor</h2>
+<pre><code>{`# Cursor settings → MCP servers → Add
+Server name: skill-wiki
+Command:     bunx
+Args:        @prime-lang/mcp-server-core
+Env:         PRIME_DIR=/abs/path/to/compiled`}</code></pre>
+
+  <h2>Continue</h2>
+  <p>编辑 <code>~/.continue/config.json</code>：</p>
+
+<pre><code>{`{
+  "experimental": {
+    "modelContextProtocolServers": [
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "bunx",
+          "args": ["@prime-lang/mcp-server-core"]
+        },
+        "env": {
+          "PRIME_DIR": "/abs/path/to/compiled"
+        }
+      }
+    ]
+  }
+}`}</code></pre>
+
+  <h2>HTTP 传输</h2>
+  <p>用于浏览器端客户端或共享部署：</p>
+
+<pre><code>{`# Server side
+PRIME_DIR=/abs/path/to/compiled \\
+  bunx @prime-lang/mcp-server-core --http --port 4001
+
+# Client side — connect to http://your-host:4001/mcp`}</code></pre>
+
+  <h2>测试连接</h2>
+  <p>连上以后，问 agent 一个 corpus 知道的事情：</p>
+
+<blockquote>
+  <em>"corpus 里哪些原子描述了 'pan sauce'？用 prime_query。"</em>
+</blockquote>
+
+  <p>agent 应当返回一组原子，每个带 kind 和投影路径，
+  接着可能调 <code>Read</code> 去读特定的正文。</p>
+
+  <h2>排查</h2>
+  <table>
+    <thead>
+      <tr><th>症状</th><th>常见原因</th><th>修法</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>看不到工具</td><td>配置文件没被加载</td><td>检查文件路径；重启客户端</td></tr>
+      <tr><td><code>spawn bunx ENOENT</code></td><td>Bun 没装或不在 PATH 中</td><td>全局装 bun，或用绝对路径</td></tr>
+      <tr><td><code>PRIME_DIR not found</code></td><td>路径没指向编译产物</td><td>先跑 <code>prime compile</code></td></tr>
+      <tr><td>命中返回了，但正文加载失败</td><td>agent 的 <code>Read</code> 工具够不到那个路径</td><td><code>PRIME_DIR</code> 用绝对路径</td></tr>
+    </tbody>
+  </table>
+</DocsLayout>

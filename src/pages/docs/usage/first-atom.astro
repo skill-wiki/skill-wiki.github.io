@@ -1,0 +1,109 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="First atom" slug="usage/first-atom" description="Author, compile, and load your first .prime atom in 5 minutes.">
+  <h1>First atom</h1>
+  <p style="color: var(--fg-muted);">
+    A 5-minute walk-through. We'll author one <code>fact</code>, one <code>term</code>,
+    and one <code>rule</code> linking the two. Compile, list, show.
+  </p>
+
+  <h2>1. Make a workspace</h2>
+<pre><code>{`mkdir my-Skill && cd my-Skill
+mkdir -p primes/sources/@my`}</code></pre>
+
+  <h2>2. Write the first atom (a fact)</h2>
+  <p>Save as <code>primes/sources/@my/fact-water-boils-at-100c.prime</code>:</p>
+
+<pre><code>{`fact WaterBoilsAt100C {
+  id: "@my/fact-water-boils-at-100c"
+  version: "1.0.0"
+  description: "Pure water boils at 100°C at 1 atm."
+  domain: physics
+
+  statement: "At one atmosphere of pressure, pure water boils at 100°C (212°F)."
+  confidence: 0.99
+}`}</code></pre>
+
+  <h2>3. Write a term it uses</h2>
+  <p>Save as <code>primes/sources/@my/term-celsius.prime</code>:</p>
+
+<pre><code>{`term Celsius {
+  id: "@my/term-celsius"
+  version: "1.0.0"
+  description: "A unit of temperature where 0° = water freezing at 1 atm."
+  domain: physics
+
+  definition: "A temperature scale on which 0° is the freezing point of water and 100° is its boiling point at 1 atmosphere."
+}`}</code></pre>
+
+  <h2>4. Write a rule that requires both</h2>
+  <p>Save as <code>primes/sources/@my/rule-altitude-affects-boiling.prime</code>:</p>
+
+<pre><code>{`rule AltitudeAffectsBoiling {
+  id: "@my/rule-altitude-affects-boiling"
+  version: "1.0.0"
+  description: "Boiling point drops ~0.3°C per 100 m of altitude."
+  domain: physics
+
+  claim: "Above 1 atm, water boils below 100°C; the loss is ~0.3°C per 100 m."
+  applies-to: [cooking, climbing, science]
+  severity: informational
+
+  requires: [
+    @my/term-celsius,
+    @my/fact-water-boils-at-100c,
+  ]
+
+  validates-with: [
+    @my/source-nist-water-properties,
+  ]
+}`}</code></pre>
+
+  <h2>5. Compile</h2>
+<pre><code>{`bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# → output:
+#   primes/compiled/@my/fact-water-boils-at-100c/{atom.yaml, chunks/}
+#   primes/compiled/@my/term-celsius/{atom.yaml, chunks/}
+#   primes/compiled/@my/rule-altitude-affects-boiling/{atom.yaml, chunks/}
+#   primes/compiled/_index.xml
+`}</code></pre>
+
+  <p>
+    L1 catches the missing <code>@my/source-nist-water-properties</code> reference (you
+    haven't authored it). Two ways to handle:
+  </p>
+  <ol>
+    <li>Author it, or</li>
+    <li>Drop the <code>validates-with</code> line for now and re-compile.</li>
+  </ol>
+
+  <h2>6. Inspect</h2>
+<pre><code>{`prime list --dir primes/compiled
+# → @my/fact-water-boils-at-100c            fact
+# → @my/term-celsius                        term
+# → @my/rule-altitude-affects-boiling       rule
+
+prime show @my/rule-altitude-affects-boiling --dir primes/compiled
+# Prints kind, fields, edges out, edges in.
+
+cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
+# Prints the ~30-token summary.`}</code></pre>
+
+  <h2>7. Boot the MCP server</h2>
+<pre><code>{`PRIME_DIR=./primes/compiled bunx @prime-lang/mcp-server-core
+# Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
+
+  <h2>What you just did</h2>
+  <p>
+    Three atoms with one typed dependency edge between them. The compiler validated
+    the link, generated three projection levels per atom, and put them where the
+    runtime can serve them.
+  </p>
+  <p>
+    Next: <a href="/docs/usage/mcp-claude">Wire into Claude Code</a>.
+  </p>
+</DocsLayout>

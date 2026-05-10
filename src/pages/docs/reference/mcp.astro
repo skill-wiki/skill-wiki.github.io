@@ -1,0 +1,136 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="MCP tool schemas" slug="reference/mcp" description="Full input / output JSON Schema for the 5 core MCP tools.">
+  <h1>MCP tool schemas</h1>
+  <p style="color: var(--fg-muted);">
+    The 5 tools <code>@prime-lang/mcp-server-core</code> exposes. Schemas registered
+    via the MCP SDK on boot.
+  </p>
+
+  <h2><code>prime_query</code></h2>
+  <p>Search ranked atoms by intent + budget.</p>
+<pre><code>{`Input:
+{
+  "scope":          string,           // optional, e.g. "focus:cta"
+  "tags":           string[],          // optional, multi-axis tags
+  "level":          "summary" | "core" | "full",
+  "budget_tokens":  number,            // optional cap; default 1200
+  "kinds":          string[],          // optional kind filter
+  "exclude_ids":    string[]           // optional anti-list
+}
+
+Output:
+{
+  "hits": [
+    {
+      "id":          string,           // "@scope/kind-name"
+      "kind":        string,
+      "tokens":      number,           // for the requested level
+      "path":        string,           // file path the agent should Read
+      "explanation": string            // human-readable rank reasoning
+    }
+  ],
+  "total_tokens": number
+}`}</code></pre>
+
+  <h2><code>prime_resolve</code></h2>
+  <p>Brief → ranked atoms (calls L1 + L2 + L3 internally).</p>
+<pre><code>{`Input:
+{
+  "brief":      string,                // free-text task
+  "max_tokens": number,                // optional, default 1500
+  "domain":     string                 // optional override
+}
+
+Output:
+{
+  "intent":     IntentObject,          // L1 output (domain-shape)
+  "hits":       Hit[],                  // L2 retrieval
+  "contract":   {                       // L3 contract resolution
+    "must_include": string[],
+    "must_avoid":   string[]
+  },
+  "total_tokens": number
+}`}</code></pre>
+
+  <h2><code>prime_intent</code></h2>
+  <p>Brief → IntentObject (L1 only — useful for testing classifiers).</p>
+<pre><code>{`Input:
+{
+  "brief": string,
+  "domain": string
+}
+
+Output: IntentObject  // domain-defined shape (per domain.yaml)`}</code></pre>
+
+  <h2><code>prime_validate</code></h2>
+  <p>Generated artifact + atom set → verdict (L5).</p>
+<pre><code>{`Input:
+{
+  "artifact":  string,                  // generated output
+  "atom_set":  string[],                // atom ids that contributed
+  "validators": string[]                // optional; default: all from domain.yaml
+}
+
+Output:
+{
+  "ok": boolean,
+  "fixes": [
+    {
+      "validator":  string,
+      "severity":   "warning" | "error",
+      "message":    string,
+      "suggestion": string                // optional
+    }
+  ]
+}`}</code></pre>
+
+  <h2><code>prime_compile</code></h2>
+  <p>Compile a single <code>.prime</code> source on the fly. Useful for testing.</p>
+<pre><code>{`Input:
+{
+  "source": string,                     // .prime file content
+  "deep":   boolean                     // include L2 (default false)
+}
+
+Output:
+{
+  "ok":            boolean,
+  "diagnostics":   Diagnostic[],
+  "compiled":      {
+    "atom_yaml":   object,              // parsed atom.yaml
+    "graph_yaml":  object,              // parsed graph.yaml
+    "chunks":      {
+      "summary":   string,
+      "core":      string,
+      "full":      string
+    }
+  } | null
+}`}</code></pre>
+
+  <h2>Common types</h2>
+<pre><code>{`type Hit = {
+  id: string,
+  kind: string,
+  tokens: number,
+  path: string,
+  explanation: string
+};
+
+type Diagnostic = {
+  level: "error" | "warning" | "info",
+  layer: "L1" | "L2" | "L3",
+  atom: string,
+  message: string,
+  hint?: string,
+  source?: { file: string, line: number }
+};`}</code></pre>
+
+  <h2>Versioning</h2>
+  <p>
+    Tool schemas are part of the protocol surface. Breaking changes ship as a major
+    version of <code>@prime-lang/mcp-server-core</code>; non-breaking additions ship
+    as minor.
+  </p>
+</DocsLayout>

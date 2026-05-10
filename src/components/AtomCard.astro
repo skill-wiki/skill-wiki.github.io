@@ -1,0 +1,28 @@
+---
+import type { Atom } from '../lib/corpus';
+
+interface Props {
+  atom: Atom;
+}
+const { atom } = Astro.props;
+
+const href = `/atom/${atom.corpus}/${atom.shortId}`;
+const edgesCount = atom.edges.length;
+// Strip "kind-" prefix for display: "term-deglazing" → "Deglazing"
+const displayName = atom.shortId
+  .replace(/^(anti-pattern|fact|rule|pattern|method|term|principle|tradeoff|collection|enhances)-/, '')
+  .replace(/-/g, ' ')
+  .replace(/\b\w/g, (c) => c.toUpperCase());
+---
+<a class="card" href={href} aria-label={`View atom ${atom.id}`}>
+  <div class="card-head">
+    <span class={`badge kind-${atom.kind}`}>{atom.kind}</span>
+    <span class="card-id">{atom.prefix}</span>
+  </div>
+  <h3 class="card-title">{displayName}</h3>
+  <p class="card-prev">{atom.preview}</p>
+  <div class="card-foot">
+    <span>{atom.domain}</span>
+    <span aria-label={`${edgesCount} outgoing edges`}>↗ {edgesCount} · q{atom.quality.toFixed(1)}</span>
+  </div>
+</a>

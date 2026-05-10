@@ -1,0 +1,71 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Skill Wiki 文档" slug="" lang="zh" description="Skill Wiki 的文档中心 —— 协议、架构、用法与拓展指南。">
+  <h1>Skill Wiki 文档</h1>
+  <p style="font-size: var(--t-md); color: var(--fg-muted); max-width: 70ch;">
+    Skill Wiki 是一套面向 AI 知识的协议：<strong>带类型的原子，配上声明式的边图，按需取用</strong>。
+    本站记录协议本身，解释它为何长这样，并带你走完 v0.1.0 参考实现。
+  </p>
+
+  <p>
+    如果你是从首页过来的，那真正的内容都在这里。文档分四类页面：
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>章节</th><th>读者</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong><a href="/zh/docs/spec/overview">规范</a></strong></td><td>协议本身 —— kinds、verbs、projection、contracts、registry。<em>权威</em>参考。</td></tr>
+      <tr><td><strong><a href="/zh/docs/background/problem">背景</a></strong></td><td>协议为什么长这样：批量加载的代价、存在/内容拆分、prior art。</td></tr>
+      <tr><td><strong><a href="/zh/docs/architecture/pipeline">架构</a></strong></td><td>v0.1.0 实现是怎么搭的：流水线、编译期、运行时、领域插件。</td></tr>
+      <tr><td><strong><a href="/zh/docs/implementation/parser">实现</a></strong></td><td>每个组件的内部细节：parser、checkers、chunker、runtime、MCP server。</td></tr>
+      <tr><td><strong><a href="/zh/docs/usage/install">用法</a></strong></td><td>分步指南：安装、写第一个原子、编译、接 Claude、发布。</td></tr>
+      <tr><td><strong><a href="/zh/docs/extending/custom-kinds">拓展</a></strong></td><td>加新的 kind、新的 verb、领域插件、领域 MCP server。</td></tr>
+      <tr><td><strong><a href="/zh/docs/reference/cli">参考</a></strong></td><td>各种 API 表面：CLI 选项、DSL 文法、MCP 工具 schema、HTTP registry 端点。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>v0.1.0 状态</h2>
+  <p>
+    规范已冻结。实现覆盖了规范约 75% —— 详见 <a href="/zh/docs/spec/overview#status">规范状态</a>
+    与 <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/roadmap.md" rel="noopener">roadmap</a>。
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>组件</th><th>包名</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Parser</td><td><code>@prime-lang/parser</code></td><td><strong>稳定</strong> · 125 个测试</td></tr>
+      <tr><td>Compiler L1 + L3</td><td><code>@prime-lang/compiler</code></td><td><strong>稳定</strong></td></tr>
+      <tr><td>Compiler L2 (LLM)</td><td><code>@prime-lang/compiler</code></td><td>可选 · 需要 <code>DEEPSEEK_API_KEY</code></td></tr>
+      <tr><td>Runtime</td><td><code>@prime-lang/runtime</code></td><td><strong>稳定</strong></td></tr>
+      <tr><td>通用 MCP server</td><td><code>@prime-lang/mcp-server-core</code></td><td><strong>稳定</strong> · 5 个工具</td></tr>
+      <tr><td>HTTP registry</td><td><code>@prime-lang/registry</code></td><td><strong>稳定</strong> · publish/install 闭环</td></tr>
+      <tr><td>CLI</td><td><code>@prime-lang/cli</code></td><td><strong>稳定</strong></td></tr>
+      <tr><td>Lifecycle / <code>deprecated</code> 警告</td><td>—</td><td>v0.2 · 部分实现</td></tr>
+      <tr><td>类型表达式 AST</td><td>—</td><td>v0.2 · 部分实现</td></tr>
+    </tbody>
+  </table>
+
+  <h2>快速链接</h2>
+  <ul>
+    <li><a href="/zh/docs/usage/install">30 秒装好</a></li>
+    <li><a href="/zh/docs/spec/atoms">28 种原子 kind</a></li>
+    <li><a href="/zh/docs/spec/edges">14 个边 verb</a></li>
+    <li><a href="/zh/docs/architecture/pipeline">5 层流水线</a></li>
+    <li><a href="/zh/docs/extending/custom-kinds">加一个自定义 kind</a></li>
+  </ul>
+
+  <h2>术语约定</h2>
+  <p>本套文档里：</p>
+  <ul>
+    <li><strong>Skill</strong> —— 对外名称，指一个 corpus（一个自包含的 <code>@scope</code>，里面是带类型的原子）。</li>
+    <li><strong>原子（Atom）</strong> —— 一个带类型的知识单元。包含 kind、domain、id、projection 层级和边。</li>
+    <li><strong>边（Edge）</strong> —— 两个原子之间带类型的关系。v1 共 14 个 verb。</li>
+    <li><strong>Projection</strong> —— 三种 Markdown 渲染视图之一：<code>summary</code>（约 30 token）、<code>core</code>（约 150 token）、<code>full</code>（约 380 token）。</li>
+    <li><strong>Index</strong> —— 启动时 agent 加载的 <code>_index.xml</code>。列出每个原子；约 3 KB；<em>不</em>包含原子正文。</li>
+  </ul>
+</DocsLayout>

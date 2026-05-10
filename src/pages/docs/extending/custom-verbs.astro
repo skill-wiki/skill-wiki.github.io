@@ -1,0 +1,88 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Custom verbs" slug="extending/custom-verbs" description="Adding a new edge verb — same shape as adding a kind, plus L3 reasoning hooks.">
+  <h1>Custom verbs</h1>
+  <p style="color: var(--fg-muted);">
+    The 14 verbs are fixed in v1. Adding a verb follows the same path as
+    <a href="/docs/extending/custom-kinds">custom kinds</a>, with one extra step: the
+    L3 checker needs to know what to do with it.
+  </p>
+
+  <h2>When to add a verb</h2>
+  <p>
+    Most domain-specific relationships fit one of the 14 (especially
+    <code>related</code> and <code>see-also</code> as escape hatches). Add a verb only
+    if:
+  </p>
+  <ul>
+    <li>The relationship has <strong>operational semantics</strong> the runtime should react to (e.g. a verb that triggers contract resolution).</li>
+    <li>The relationship has <strong>validation semantics</strong> L3 should check (e.g. "kind X must point to kind Y for this verb").</li>
+  </ul>
+
+  <h2>The 5 files to patch</h2>
+
+  <h3>1. Verb literal — <code>packages/types/src/ast.ts</code></h3>
+<pre><code>{`export type EdgeVerb =
+  | 'related' | 'requires' | 'enhances' | 'validates-with'
+  | 'contradicts' | 'specializes' | 'conflicts' | 'extends'
+  | 'derived-from' | 'compatible' | 'supplies-to'
+  | 'see-also' | 'includes' | 'relationships'
+  | 'measures';   // ← your new verb`}</code></pre>
+
+  <h3>2. Field name in lexer — <code>packages/parser/src/lexer.ts</code></h3>
+<pre><code>{`// Verb names are recognised as field names in atom bodies.
+const EDGE_VERBS = new Set<EdgeVerb>([
+  // ...
+  'measures',
+]);`}</code></pre>
+
+  <h3>3. L1 verb-shape check — <code>packages/compiler/src/checker-l1.ts</code></h3>
+  <p>Allowed source/target kinds for the verb:</p>
+<pre><code>{`const VERB_KIND_RULES: Record<EdgeVerb, KindRule> = {
+  // ...
+  'measures': {
+    sourceKinds: ['metric'],
+    targetKinds: ['fact', 'rule', 'pattern'],
+    description: 'A metric measures the property described by an atom.',
+  },
+};`}</code></pre>
+
+  <h3>4. L3 graph reasoning — <code>packages/compiler/src/checker-l3-cross.ts</code></h3>
+<pre><code>{`// Add a check for your verb's specific invariants.
+function checkMeasuresInvariants(graph: EdgeGraph): Diagnostic[] {
+  const ds: Diagnostic[] = [];
+  for (const e of graph.edgesByVerb('measures')) {
+    const target = graph.atomById(e.target);
+    if (!target) continue;
+    if (!target.fields.has('measurable-property')) {
+      ds.push({
+        level: 'warning',
+        message: \`measures \${e.target} but target has no measurable-property field\`,
+      });
+    }
+  }
+  return ds;
+}`}</code></pre>
+
+  <h3>5. Fixture + test</h3>
+<pre><code>{`// packages/compiler/test/fixtures/measures.prime
+metric Latency {
+  id: "@perf/metric-latency"
+  ...
+  measures: [@perf/rule-fast-response]
+}`}</code></pre>
+
+  <h2>What the L3 checker does</h2>
+  <p>
+    For your new verb, you decide what L3 catches. Examples:
+  </p>
+  <ul>
+    <li><strong>Cardinality:</strong> "every <code>metric</code> must have at least one <code>measures</code> edge."</li>
+    <li><strong>Reachability:</strong> "every atom referenced via <code>measures</code> must have an inverse edge from the target."</li>
+    <li><strong>Domain match:</strong> "<code>measures</code> source and target must share a domain."</li>
+  </ul>
+
+  <h2>RFC process</h2>
+  <p>Same Tier-2 RFC as for custom kinds. See <a href="/docs/extending/custom-kinds">Custom kinds</a> for the workflow.</p>
+</DocsLayout>

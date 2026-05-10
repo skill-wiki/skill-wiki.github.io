@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="domain.yaml" slug="extending/domain-yaml" lang="zh" description="写一个领域插件 —— 声明式、零代码、丢进 corpus 根目录。">
+  <h1>domain.yaml</h1>
+  <p style="color: var(--fg-muted);">
+    一个领域插件就是一份 YAML 文件。它声明你领域的标签、轴、contract 脚手架，以及 L5 校验器。
+    运行时从 <code>$PRIME_DIR</code> 递归发现它，不用改代码。
+  </p>
+
+  <h2>最小例子</h2>
+<pre><code>{`# domain.yaml — at the corpus root
+name: my-domain
+version: "1.0.0"
+description: One sentence describing what knowledge lives in this corpus.`}</code></pre>
+
+  <p>
+    这就是合法的最小 domain。运行时会加载它；标签和校验器都是可选的。
+  </p>
+
+  <h2>完整参考</h2>
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: Design knowledge for AI agents — color, typography, motion, spacing,
+             accessibility, and component patterns.
+
+# Optional. Hints to the retriever about the dominant taxonomy.
+hierarchy: visual-hierarchy
+
+# Optional. Multi-axis tags the retriever boosts on when intent matches.
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+  - accessibility
+
+# Optional. Default contract scaffolds applied when a method doesn't override.
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# Optional. L5 validator hooks (zero or more).
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: '^<([a-z][a-z0-9]*)\\b[^>]*>'
+  - name: color-token
+    checker: ai-judge
+    rubric: '@frontend-design/rubric-color-token'
+
+# Optional. Default budget hints — used by the retriever when none specified.
+budgets:
+  default-tokens: 1200
+  max-tokens: 2400`}</code></pre>
+
+  <h2>字段索引</h2>
+  <table>
+    <thead><tr><th>字段</th><th>类型</th><th>是否必填</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>name</code></td><td>kebab-case 字符串</td><td>是</td><td>已加载领域间唯一。</td></tr>
+      <tr><td><code>version</code></td><td>semver</td><td>是</td><td>跟你的 Skill 用同一套版本策略。</td></tr>
+      <tr><td><code>description</code></td><td>字符串</td><td>是</td><td>市集列表里展示。</td></tr>
+      <tr><td><code>hierarchy</code></td><td>字符串</td><td>否</td><td>给检索器关于主分类法的提示。</td></tr>
+      <tr><td><code>axes</code></td><td>字符串列表</td><td>否</td><td>检索器按之加权的标签。可用 Unicode。</td></tr>
+      <tr><td><code>contract</code></td><td>map</td><td>否</td><td>默认 contract 脚手架。</td></tr>
+      <tr><td><code>validators</code></td><td>validator 列表</td><td>否</td><td>L5 钩子。</td></tr>
+      <tr><td><code>budgets</code></td><td>map</td><td>否</td><td>默认 token 预算。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Validator 配置</h2>
+  <p>v0.1.0 内置支持两种 checker。领域定制的 MCP wrapper 可以注册更多。</p>
+
+  <table>
+    <thead><tr><th>Checker</th><th>参数</th><th>做什么</th></tr></thead>
+    <tbody>
+      <tr><td><code>regex</code></td><td><code>pattern</code></td><td>对生成产物做匹配；至少匹配一次就通过。</td></tr>
+      <tr><td><code>ai-judge</code></td><td><code>rubric</code>（atom id）</td><td>把产物 + rubric 原子发给 LLM，解析 pass/fix 裁决。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>发现规则</h2>
+  <ul>
+    <li>文件名必须是 <code>domain.yaml</code>，<code>$PRIME_DIR</code> 下任何层级都行，最多 4 层深。</li>
+    <li>已加载领域间名字必须唯一。冲突在启动时硬抛错。</li>
+    <li>每个 server 进程加载一次。发 <code>SIGHUP</code> 触发重载。</li>
+  </ul>
+
+  <h2>从 v0.0.x 的代码定义领域迁移</h2>
+  <p>
+    如果你有一个老 monorepo，里面有 <code>packages/domain-foo/</code> 目录：
+    把它的 tag 列表搬到 <code>axes</code>、validator 搬到 <code>validators</code>，
+    然后作为 <code>domain.yaml</code> 丢到 corpus 根目录。运行时会自动捡起来。
+  </p>
+</DocsLayout>

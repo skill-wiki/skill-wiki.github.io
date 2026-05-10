@@ -1,0 +1,86 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="编译" slug="usage/compile" lang="zh" description="prime compile 与 build-atom-dirs 脚本 —— 把 .prime 源变成运行时产物。">
+  <h1>编译</h1>
+  <p style="color: var(--fg-muted);">
+    编译会扫 <code>primes/sources/</code>，发射到 <code>primes/compiled/</code> ——
+    每个原子一个目录，加上全局 <code>_index.xml</code>。
+  </p>
+
+  <h2>两个入口</h2>
+  <p>你可以编译单个文件（冒烟测试），或一整棵树（生产）。</p>
+
+<pre><code>{`# Single file — useful for iterating on one atom
+prime compile primes/sources/@my/rule-x.prime
+
+# Whole tree — what you ship
+bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# With L2 (LLM semantic check)
+DEEPSEEK_API_KEY=sk-... \\
+  bun scripts/build-atom-dirs.ts \\
+    --src primes/sources \\
+    --out primes/compiled \\
+    --deep`}</code></pre>
+
+  <h2>会写出什么</h2>
+
+<pre><code>{`primes/compiled/
+├── _index.xml                              ← always-loaded surface
+└── @my/
+    ├── rule-x/
+    │   ├── atom.yaml                       ← metadata only
+    │   ├── graph.yaml                      ← resolved edges
+    │   └── chunks/
+    │       ├── summary.md                  ← ~30 tok
+    │       ├── core.md                     ← ~150 tok
+    │       └── full.md                     ← ~380 tok
+    └── term-y/
+        ├── atom.yaml
+        ├── graph.yaml
+        └── chunks/...`}</code></pre>
+
+  <h2>输出的承诺</h2>
+  <ul>
+    <li><strong>幂等：</strong>同一份源编译两次产出字节级一致的输出。</li>
+    <li><strong>L2 缓存：</strong>LLM 检查结果存在 <code>.l2-cache.json</code>；没改的原子不会再付费。</li>
+    <li><strong>每原子原子化：</strong>原子 A 编译失败不会污染原子 B 的输出。每个原子目录先写后改名。</li>
+  </ul>
+
+  <h2>编译后查看</h2>
+
+<pre><code>{`# List everything
+prime list --dir primes/compiled
+
+# Show one atom's full body
+prime show @my/rule-x --dir primes/compiled
+
+# Walk the dep tree from one seed
+prime deps @my/method-foo --dir primes/compiled
+
+# Print the index size
+wc -c primes/compiled/_index.xml`}</code></pre>
+
+  <h2>持续编译</h2>
+  <p>开发时，watch + 重新编译：</p>
+<pre><code>{`bun --watch scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled`}</code></pre>
+
+  <h2>常见报错</h2>
+  <table>
+    <thead>
+      <tr><th>报错</th><th>原因</th><th>修法</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>L1: 必填字段缺失</td><td>原子缺一个 kind 必填字段</td><td>加上；见 <a href="/zh/docs/spec/atoms">Atoms</a></td></tr>
+      <tr><td>L1: 未知 atom id <code>@x/y</code></td><td>边指向了不存在的原子</td><td>把目标写出来或删掉这条边</td></tr>
+      <tr><td>L3: <code>requires</code> 链中检到环</td><td>A→B→C→A</td><td>把其中一条边换成 <code>see-also</code> 来打破环</td></tr>
+      <tr><td>L3: <code>validates-with</code> kind 不匹配</td><td>边指向了错误的 kind</td><td>用 <code>source</code> / <code>metric</code> / <code>check</code> 当目标</td></tr>
+      <tr><td>L2: AI client 不可达</td><td>API key 缺失或被限流</td><td>不加 <code>--deep</code>，或者配置 key</td></tr>
+    </tbody>
+  </table>
+</DocsLayout>

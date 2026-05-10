@@ -1,0 +1,73 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Prior art" slug="background/prior-art" description="How Skill Wiki relates to RAG, knowledge graphs, agent skills, and Voyager-style retrieval.">
+  <h1>Prior art</h1>
+  <p style="color: var(--fg-muted);">
+    Skill Wiki is not the first attempt to put structured knowledge in an LLM agent's reach.
+    Here is where it sits relative to four other approaches.
+  </p>
+
+  <h2>Eager-injection skills (SKILL.md, Custom Instructions)</h2>
+  <p>
+    The current dominant pattern: markdown files loaded in full as system prompt on
+    every turn. Cheap to write, fast to ship, breaks at scale. See
+    <a href="/docs/background/problem">the bulk-loading problem</a>.
+  </p>
+
+  <h2>Retrieval-augmented generation (RAG)</h2>
+  <p>
+    RAG addresses the bulk problem by retrieving content per-turn from a vector store.
+    The cost is structural: vector retrieval ranks by embedded similarity, which is
+    type-blind. A query "how do I make a pan sauce" can return a fact about pan-sauce
+    history, an unrelated rule about deglazing temperatures, or a marketing paragraph —
+    the embedding doesn't know which is the <em>method</em> the agent needs.
+  </p>
+  <p>
+    Skill Wiki keeps RAG's pull model but adds <em>typed</em> retrieval: the agent
+    asks for kinds, the retriever ranks within kinds, contracts enforce composition.
+  </p>
+
+  <h2>Knowledge graphs (Neo4j, Wikidata)</h2>
+  <p>
+    Classic knowledge graphs already separate index from content and use typed edges.
+    The gap is <em>tooling for LLM agents</em>: KG schemas are designed for SPARQL
+    queries and human curation, not for an agent that needs a 30-token summary on demand
+    or a 200-token core. Skill Wiki borrows the typed-edge idea and adds the
+    projection layer.
+  </p>
+
+  <h2>Voyager-style skill retrieval</h2>
+  <p>
+    <a href="https://voyager.minedojo.org/" rel="noopener">Voyager</a> (NeurIPS 2023) used
+    a skill library plus retrieval to grow agent capabilities incrementally. The skill
+    units were code snippets; retrieval was vector similarity. Skill Wiki generalises
+    the principle to any kind of knowledge — not just executable skills — and adds
+    static type checking the LLM can be guarded by.
+  </p>
+
+  <h2>Comparison table</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Index always-in-ctx</th>
+        <th>Bodies on-demand</th>
+        <th>Typed edges</th>
+        <th>Compile-time check</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>SKILL.md</td><td>—</td><td>No (loaded eagerly)</td><td>—</td><td>—</td></tr>
+      <tr><td>RAG (vector)</td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
+      <tr><td>Knowledge graph</td><td>Partially</td><td>Via SPARQL</td><td>Yes</td><td>Schema-only</td></tr>
+      <tr><td>Voyager skills</td><td>—</td><td>Vector retrieval</td><td>—</td><td>Compile (code)</td></tr>
+      <tr><td><strong>Skill Wiki</strong></td><td>Yes (~3 KB)</td><td>Yes, by id</td><td>Yes (14 verbs)</td><td>L1 + L3 + opt L2</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    See <a href="/blog/prime-vs-skill-graphs">the long-form comparison</a> for the
+    quantitative numbers.
+  </p>
+</DocsLayout>

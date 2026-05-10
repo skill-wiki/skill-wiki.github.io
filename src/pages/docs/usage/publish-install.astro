@@ -1,0 +1,100 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Publish & install" slug="usage/publish-install" description="The prime publish / prime install round-trip — Skill tarballs, semver, registries.">
+  <h1>Publish & install</h1>
+  <p style="color: var(--fg-muted);">
+    Distribution is HTTP-only — anything that implements the
+    <a href="/docs/spec/registry">registry contract</a> is a registry. The reference
+    server is one file.
+  </p>
+
+  <h2>Stand up a registry</h2>
+<pre><code>{`# Run the reference registry on port 4000 (SQLite-backed Skill store).
+bun run packages/registry/src/index.ts --port 4000
+
+# Or use Docker if you prefer:
+docker run -p 4000:4000 \\
+  -v $(pwd)/registry-data:/data \\
+  ghcr.io/skill-wiki/registry:0.1.0`}</code></pre>
+
+  <h2>Author a Skill manifest</h2>
+  <p>Add <code>pack.yaml</code> to the root of your Skill:</p>
+
+<pre><code>{`name: "@my/cooking"
+version: "1.0.0"
+description: "Cooking knowledge — methods, terms, and rules."
+license: Apache-2.0
+
+prime-version: "1.0"
+sources: "primes/sources"
+compiled: "primes/compiled"`}</code></pre>
+
+  <h2>Publish</h2>
+<pre><code>{`# Compile first (publish bundles compiled/)
+bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# Publish
+prime publish --remote http://localhost:4000
+
+# What it does:
+# 1. Tarball the Skill (excluding node_modules, .git, .l2-cache.json)
+# 2. Compute sha256
+# 3. POST /publish with manifest + tarball
+# 4. Print the assigned URL`}</code></pre>
+
+  <h2>Install</h2>
+<pre><code>{`# Install into ./.primes/
+prime install @my/cooking --remote http://localhost:4000
+
+# With a version range
+prime install '@my/cooking@^1.0' --remote http://localhost:4000
+
+# Install everything declared in SKILL.md frontmatter
+prime install --remote http://localhost:4000`}</code></pre>
+
+  <h2>Versioning</h2>
+  <ul>
+    <li><strong>Skill semver:</strong> patch = atom edits, minor = added atoms, major = removed atoms or removed verbs.</li>
+    <li><strong>Atom semver:</strong> internal versioning per-atom via <code>version: "x.y.z"</code> field.</li>
+    <li><strong>Resolution:</strong> latest matching range; lockfile is <code>.primes/lock.yaml</code>.</li>
+  </ul>
+
+  <h2>Verify the install</h2>
+<pre><code>{`prime ls --dir .primes
+# → @my/cooking @ 1.0.0
+
+prime list --dir .primes/@my/cooking/primes/compiled
+# → ... atoms ...`}</code></pre>
+
+  <h2>Round-trip test</h2>
+  <p>The full round-trip is in <code>scripts/test-registry-roundtrip.sh</code>:</p>
+
+<pre><code>{`bash scripts/test-registry-roundtrip.sh
+# 1. Boot a clean registry
+# 2. Publish examples/recipes
+# 3. Install in a fresh dir
+# 4. Diff compiled artifacts
+# 5. Tear down`}</code></pre>
+
+  <h2>Authentication</h2>
+  <p>
+    The reference registry uses bearer tokens for <code>POST /publish</code>; reads are
+    public. Issue tokens via the registry CLI:
+  </p>
+
+<pre><code>{`bun run packages/registry/src/cli.ts token create --org skill-wiki
+# → token: pri_token_...
+
+# Use it
+prime publish --remote http://localhost:4000 --token pri_token_...`}</code></pre>
+
+  <h2>Hosting options</h2>
+  <ul>
+    <li><strong>Self-host:</strong> run the reference registry on any Node-capable VM. ~50 MB RAM.</li>
+    <li><strong>Cloudflare Workers:</strong> the reference impl ports cleanly with R2 for Skill storage.</li>
+    <li><strong>Static + CDN:</strong> for read-only distribution, a public S3 bucket + manifest index works.</li>
+  </ul>
+</DocsLayout>

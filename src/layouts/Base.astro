@@ -1,0 +1,173 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: 'home' | 'marketplace' | 'docs' | 'browse' | 'blog' | 'about';
+  lang?: 'en' | 'zh';
+}
+
+const { title, description, current, lang = 'en' } = Astro.props;
+const isZh = lang === 'zh';
+
+const fullTitle = title === 'Skill Wiki' ? title : `${title} · Skill Wiki`;
+const desc =
+  description ??
+  (isZh
+    ? 'Skill Wiki — 类型化原子、边图、懒加载投影。AI 知识的协议层。'
+    : 'Skill Wiki — typed atoms, edge graph, lazy projection. A protocol layer for AI knowledge.');
+
+const T = isZh
+  ? {
+      market: '市场',
+      docs: '文档',
+      blog: '日志',
+      about: '关于',
+      switch: 'EN',
+      switchHref: '/',
+    }
+  : {
+      market: 'Marketplace',
+      docs: 'Docs',
+      blog: 'Blog',
+      about: 'About',
+      switch: '中',
+      switchHref: '/zh',
+    };
+
+const homeHref = isZh ? '/zh' : '/';
+const prefix = (p: string) => (isZh ? `/zh${p}` : p);
+---
+<!doctype html>
+<html lang={isZh ? 'zh-CN' : 'en'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:image" content="/logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {/* Pre-paint theme application — avoids flash on first load + on every nav. */}
+    <script is:inline>
+      (function () {
+        try {
+          var saved = localStorage.getItem('sw-theme');
+          var prefersDark = window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = saved === 'dark' ? 'dark'
+                    : saved === 'light' ? 'light'
+                    : (prefersDark ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch (e) { /* private mode etc. — fall back to OS default */ }
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="gh-header">
+      <div class="gh-header-inner">
+        <a class="gh-brand" href={homeHref} aria-label="Skill Wiki">
+          <img src="/logo-mark.png" alt="" width="24" height="24" aria-hidden="true" />
+          Skill Wiki
+          <span class="gh-brand-tag">v0.1.0</span>
+        </a>
+        <div class="gh-search" role="search">
+          <input
+            type="search"
+            placeholder={isZh ? '搜索原子、规范、文档…' : 'Search atoms, spec, docs…'}
+            aria-label={isZh ? '搜索' : 'Search'}
+          />
+          <kbd>⌘ K</kbd>
+        </div>
+        <nav class="gh-nav" aria-label="Primary">
+          <a href={prefix('/marketplace')} aria-current={current === 'marketplace' || current === 'browse' ? 'page' : undefined}>{T.market}</a>
+          <a href={prefix('/docs')} aria-current={current === 'docs' ? 'page' : undefined}>{T.docs}</a>
+          <a href={prefix('/blog')} aria-current={current === 'blog' ? 'page' : undefined}>{T.blog}</a>
+          <a href={prefix('/about')} aria-current={current === 'about' ? 'page' : undefined}>{T.about}</a>
+        </nav>
+        <div class="gh-meta">
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" type="button">
+            <svg class="i-sun"  width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 11.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0-1.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0-9a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V1.75A.75.75 0 0 1 8 1Zm0 11a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 12ZM2.343 2.343a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061L2.343 3.404a.75.75 0 0 1 0-1.06Zm9.193 9.193a.75.75 0 0 1 1.061 0l1.06 1.061a.75.75 0 1 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.061ZM1 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 1 8Zm11 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 12 8ZM2.343 13.657a.75.75 0 0 1 0-1.06l1.06-1.061a.75.75 0 1 1 1.061 1.06l-1.06 1.061a.75.75 0 0 1-1.061 0Zm9.193-9.193a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.061 1.06L12.597 4.464a.75.75 0 0 1-1.061 0Z"/></svg>
+            <svg class="i-moon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.598 1.591a.75.75 0 0 1 .785-.175 7 7 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"/></svg>
+          </button>
+          <a href={T.switchHref} aria-label="Switch language">{T.switch}</a>
+          <a href="https://github.com/skill-wiki/prime-system" rel="noopener" aria-label="GitHub">GitHub ↗</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="gh-footer">
+      <div class="gh-footer-inner">
+        <div class="gh-footer-meta">
+          <strong>Skill Wiki</strong> v0.1.0<br />
+          {isZh
+            ? '类型化原子 · 边图 · 懒加载投影。AI 知识的协议层。'
+            : 'Typed atoms · edge graph · lazy projection. A protocol for AI knowledge.'}
+          <br /><br />
+          Apache-2.0 licensed.
+        </div>
+        <div>
+          <h4>{isZh ? '产品' : 'Product'}</h4>
+          <ul>
+            <li><a href={prefix('/marketplace')}>{T.market}</a></li>
+            <li><a href={prefix('/docs/usage/install')}>{isZh ? '安装' : 'Install'}</a></li>
+            <li><a href={prefix('/docs/spec/overview')}>{isZh ? '协议规范' : 'Specification'}</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>{isZh ? '开发者' : 'Developers'}</h4>
+          <ul>
+            <li><a href={prefix('/docs/architecture/pipeline')}>{isZh ? '架构' : 'Architecture'}</a></li>
+            <li><a href={prefix('/docs/extending/custom-kinds')}>{isZh ? '拓展' : 'Extending'}</a></li>
+            <li><a href={prefix('/docs/reference/cli')}>CLI</a></li>
+            <li><a href={prefix('/docs/reference/mcp')}>MCP API</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>{isZh ? '资源' : 'Resources'}</h4>
+          <ul>
+            <li><a href={prefix('/blog')}>{T.blog}</a></li>
+            <li><a href={prefix('/about')}>{T.about}</a></li>
+            <li><a href="https://github.com/skill-wiki/prime-system" rel="noopener">GitHub</a></li>
+            <li><a href="https://github.com/skill-wiki/prime-system/blob/main/LICENSE" rel="noopener">License</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="gh-footer-bottom">
+        <span>© 2026 Skill Wiki contributors. Apache-2.0.</span>
+        <span>{isZh ? '语料 v0.1.0 · 980 atoms 编译' : 'v0.1.0 · 980 atoms compiled'}</span>
+      </div>
+    </footer>
+
+    <script>
+      // Theme toggle button — light → dark → light (auto becomes implicit when
+      // user has never set, since we read OS pref).
+      (function () {
+        const btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          const cur = document.documentElement.dataset.theme;
+          const next = cur === 'dark' ? 'light' : 'dark';
+          document.documentElement.dataset.theme = next;
+          try { localStorage.setItem('sw-theme', next); } catch {}
+        });
+      })();
+    </script>
+  </body>
+</html>

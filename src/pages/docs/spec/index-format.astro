@@ -1,0 +1,93 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="_index.xml format" slug="spec/index-format" description="The canonical schema for the always-loaded corpus index.">
+  <h1><code>_index.xml</code> format</h1>
+  <p style="color: var(--fg-muted);">
+    The <code>_index.xml</code> file is the single most important runtime artifact:
+    it is what the agent sees at boot. Every Skill publishes one. The format is fixed
+    at v1.
+  </p>
+
+  <h2>Why XML?</h2>
+  <p>
+    Tag boundaries matter when the consumer is an LLM. JSON's <code>{`{`}</code> /
+    <code>{`}`}</code> noise is harder to parse for the model than <code>&lt;atom&gt;...&lt;/atom&gt;</code>.
+    Anthropic's documentation explicitly recommends XML-tagged content for prompt
+    construction; the index leans into that.
+  </p>
+
+  <h2>Schema</h2>
+<pre><code>{`<?xml version="1.0" encoding="UTF-8"?>
+<prime_index version="1.0" total="898" total_tokens="422867">
+
+  <!-- One <cluster> per domain (optional grouping). -->
+  <cluster name="accessibility" density="0.42">
+
+    <!-- One <atom> per atom in the Skill. -->
+    <atom id="@community/rule-keyboard-accessible"
+          kind="rule"
+          tokens="312"
+          q="4.0">
+
+      <!-- The summary projection (~30 tokens). Inline. -->
+      Every interactive control must be operable from the keyboard…
+
+      <!-- All edges out. Self-closing. -->
+      <edge type="related"        target="@community/anti-pattern-..."/>
+      <edge type="validates-with" target="@w3c/source-wcag-2.1.1"/>
+      <edge type="contradicts"    target="@community/anti-pattern-..."/>
+    </atom>
+
+    <atom id="..." kind="..." tokens="..." q="...">
+      ...
+    </atom>
+
+  </cluster>
+
+  <!-- More clusters... -->
+
+</prime_index>`}</code></pre>
+
+  <h2>Required attributes</h2>
+  <table>
+    <thead>
+      <tr><th>Element</th><th>Attribute</th><th>Required?</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>prime_index</code></td><td><code>version</code></td><td>yes</td><td>Protocol version. Currently <code>1.0</code>.</td></tr>
+      <tr><td><code>prime_index</code></td><td><code>total</code></td><td>yes</td><td>Atom count.</td></tr>
+      <tr><td><code>prime_index</code></td><td><code>total_tokens</code></td><td>recommended</td><td>Sum of full-projection tokens.</td></tr>
+      <tr><td><code>cluster</code></td><td><code>name</code></td><td>yes</td><td>Domain tag or a free-form group.</td></tr>
+      <tr><td><code>cluster</code></td><td><code>density</code></td><td>recommended</td><td>Edges-per-atom for this cluster.</td></tr>
+      <tr><td><code>atom</code></td><td><code>id</code></td><td>yes</td><td>Fully-qualified <code>@scope/kind-name</code>.</td></tr>
+      <tr><td><code>atom</code></td><td><code>kind</code></td><td>yes</td><td>One of the 28 kinds.</td></tr>
+      <tr><td><code>atom</code></td><td><code>tokens</code></td><td>yes</td><td>Token count of the <code>full</code> projection.</td></tr>
+      <tr><td><code>atom</code></td><td><code>q</code></td><td>recommended</td><td>Quality score (0.0 – 5.0).</td></tr>
+      <tr><td><code>edge</code></td><td><code>type</code></td><td>yes</td><td>One of the 14 verbs.</td></tr>
+      <tr><td><code>edge</code></td><td><code>target</code></td><td>yes</td><td>Atom id (may cross Skills).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Size budget</h2>
+  <p>
+    Each <code>&lt;atom&gt;</code> entry should be ≤ 50 tokens including its inline
+    summary and edges. A 100-atom corpus produces a ~5 KB index; a 1,000-atom corpus
+    fits in ~50 KB. The reference frontend-design Skill (898 atoms) compiles to a
+    ~52 KB <code>_index.xml</code>.
+  </p>
+
+  <h2>How agents use it</h2>
+  <p>
+    The MCP server emits the index lazily — the first <code>prime_query</code> call
+    boots the runtime, which reads the index file once and serves <code>hits</code>
+    from in-memory structures. The XML on disk is the source of truth; the in-memory
+    representation is a transient cache.
+  </p>
+
+  <p>
+    Agents typically receive a <em>filtered</em> view of the index in their MCP tool
+    response — not the full ~50 KB. The full XML is the protocol surface; what each
+    turn sees is determined by the query.
+  </p>
+</DocsLayout>

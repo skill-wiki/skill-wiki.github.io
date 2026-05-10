@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Wire into Claude Code" slug="usage/mcp-claude" description="Configure Claude Code, Cursor, or any MCP client to talk to Skill Wiki.">
+  <h1>Wire into Claude Code</h1>
+  <p style="color: var(--fg-muted);">
+    The MCP server runs locally and talks to your agent over stdio. Same shape works
+    for Cursor, Continue, Aider, or any MCP-capable client — only the config file
+    location differs.
+  </p>
+
+  <h2>Claude Code</h2>
+  <p>Edit <code>~/.config/claude-code/mcp.json</code> (macOS / Linux) or the equivalent on Windows:</p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/your/primes/compiled"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <p>Restart Claude Code. The 5 tools should appear in the agent's tool list:</p>
+  <ul>
+    <li><code>prime_query</code></li>
+    <li><code>prime_resolve</code></li>
+    <li><code>prime_intent</code></li>
+    <li><code>prime_validate</code></li>
+    <li><code>prime_compile</code></li>
+  </ul>
+
+  <h2>Cursor</h2>
+<pre><code>{`# Cursor settings → MCP servers → Add
+Server name: skill-wiki
+Command:     bunx
+Args:        @prime-lang/mcp-server-core
+Env:         PRIME_DIR=/abs/path/to/compiled`}</code></pre>
+
+  <h2>Continue</h2>
+  <p>Edit <code>~/.continue/config.json</code>:</p>
+
+<pre><code>{`{
+  "experimental": {
+    "modelContextProtocolServers": [
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "bunx",
+          "args": ["@prime-lang/mcp-server-core"]
+        },
+        "env": {
+          "PRIME_DIR": "/abs/path/to/compiled"
+        }
+      }
+    ]
+  }
+}`}</code></pre>
+
+  <h2>HTTP transport</h2>
+  <p>For browser-based clients or shared deployments:</p>
+
+<pre><code>{`# Server side
+PRIME_DIR=/abs/path/to/compiled \\
+  bunx @prime-lang/mcp-server-core --http --port 4001
+
+# Client side — connect to http://your-host:4001/mcp`}</code></pre>
+
+  <h2>Test the connection</h2>
+  <p>Once connected, ask the agent something the corpus knows:</p>
+
+<blockquote>
+  <em>"What atoms in the corpus describe a 'pan sauce'? Use prime_query."</em>
+</blockquote>
+
+  <p>The agent should return a list of atoms, each with a kind and projection path,
+  and may follow up by calling <code>Read</code> to load specific bodies.</p>
+
+  <h2>Troubleshooting</h2>
+  <table>
+    <thead>
+      <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>No tools appear</td><td>Config file not loaded</td><td>Check the file path; restart the client</td></tr>
+      <tr><td><code>spawn bunx ENOENT</code></td><td>Bun not installed or not in PATH</td><td>Install bun globally or use absolute path</td></tr>
+      <tr><td><code>PRIME_DIR not found</code></td><td>Path doesn't point to compiled output</td><td>Run <code>prime compile</code> first</td></tr>
+      <tr><td>Hits return but body fails to load</td><td>Agent's <code>Read</code> tool can't reach the path</td><td>Use absolute paths in <code>PRIME_DIR</code></td></tr>
+    </tbody>
+  </table>
+</DocsLayout>

@@ -1,0 +1,93 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Projection · 3 个层级" slug="spec/projection" lang="zh" description="三个投影层级 —— summary、core、full —— 以及 chunker 按 kind 切分的规则。">
+  <h1>Projection · 3 个层级</h1>
+  <p style="color: var(--fg-muted);">
+    让 agent 自己决定加载多少。三个层级，按 kind 切分，确定性的 chunker。
+  </p>
+
+  <h2>三个层级</h2>
+  <table>
+    <thead>
+      <tr><th>层级</th><th>Token 预算</th><th>何时加载</th><th>包含</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>summary</code></td><td>约 30 tok</td><td>始终 —— 已经在 <code>_index.xml</code> 里</td><td><code>description</code> + tags + 一行 claim</td></tr>
+      <tr><td><code>core</code></td><td>约 150 tok</td><td>作为相邻 / 支撑原子被检中</td><td>+ 关键 body 字段（claim、applies-to、severity）</td></tr>
+      <tr><td><code>full</code></td><td>约 380 tok</td><td>作为直接命中 / 聚焦原子被检中</td><td>+ sources、examples、remediation、exceptions</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    agent 通过 MCP 工具按 query 选择 <code>level</code>：
+  </p>
+
+<pre><code>{`prime_query({
+  scope: "focus:cta",
+  level: "core",        // ← summary | core | full
+  tags: ["fintech"],
+  budget_tokens: 800,
+})`}</code></pre>
+
+  <h2>图 · 投影模型</h2>
+  <p>
+    一图直观：存在性（index）急加载；内容（投影）在 agent 决定时按 id 流入。
+  </p>
+  <p><img src="/projection-model.png" alt="Projection model — existence is not content; agent picks summary, core, or full" /></p>
+
+  <h2>Chunker 知道 kind</h2>
+  <p>
+    <code>summary</code> 里写什么，要看 kind。一条 <code>rule</code> 的 summary 是它的 claim；
+    一个 <code>method</code> 的 summary 是它的 goal；一条 <code>fact</code> 的 summary 是它的 statement。
+    Chunker（<code>packages/compiler/src/chunker.ts</code>）按原子走 AST：
+  </p>
+
+<pre><code>{`// packages/compiler/src/chunker.ts (signature)
+export interface ChunkLevels {
+  /** ~30 tok: description + tags + 1-line claim */
+  summary: string;
+  /** ~150 tok: + core body fields */
+  core: string;
+  /** ~380 tok: + sources + examples + relations + notes */
+  full: string;
+}
+
+export function chunk(atom: AtomDeclaration): ChunkLevels { ... }`}</code></pre>
+
+  <h2>每种 kind 的切分规则</h2>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>summary</th><th>core</th><th>full</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>rule</code></td><td>The claim</td><td>+ applies-to、severity</td><td>+ remediation、exceptions、validates-with</td></tr>
+      <tr><td><code>pattern</code></td><td>问题陈述</td><td>+ solution + structure</td><td>+ examples、behaviours</td></tr>
+      <tr><td><code>fact</code></td><td>Statement</td><td>+ confidence + applies-to</td><td>+ sources、counter-conditions</td></tr>
+      <tr><td><code>method</code></td><td>Goal</td><td>+ 关键 steps</td><td>+ contract、tools、examples</td></tr>
+      <tr><td><code>persona</code></td><td>Posture</td><td>+ voice + style hooks</td><td>+ examples、anti-patterns</td></tr>
+    </tbody>
+  </table>
+
+  <h2>编译产物布局</h2>
+<pre><code>{`compiled/
+└── @scope/
+    └── kind-name/
+        ├── atom.yaml             # metadata only
+        ├── graph.yaml            # resolved edges
+        └── chunks/
+            ├── summary.md        # ~30 tok
+            ├── core.md           # ~150 tok
+            └── full.md           # ~380 tok`}</code></pre>
+
+  <p>
+    运行时<em>不</em>读 <code>chunks/</code>。MCP server 返回路径；agent 用自己的 <code>Read</code> 工具去读。
+  </p>
+
+  <h2>为什么恰好三层？</h2>
+  <p>
+    两层不够 —— agent 需要"index 里的 summary" + "命中相邻时的 core" + "聚焦原子的 full"。
+    四层多余 —— 第三层已经能装下所有 core 装不下的东西。
+    经验上（参考实现 + 示例 Skill 共编译过约 12 个 corpus），三层切分还没有需要扩展过。
+  </p>
+</DocsLayout>

@@ -1,0 +1,136 @@
+---
+import type { Atom } from '../lib/corpus';
+
+interface Props {
+  atom: Atom;
+}
+const { atom } = Astro.props;
+
+// Build a small radial layout: center = current atom, satellites = neighbors.
+type Node = {
+  id: string;
+  label: string;
+  href: string;
+  verb: string;
+  dir: 'out' | 'in';
+};
+
+const out: Node[] = atom.edges.slice(0, 6).map((e) => ({
+  id: e.target,
+  label: e.target.split('/').pop() ?? e.target,
+  href: `/atom/${atom.corpus}/${e.target.split('/').pop() ?? ''}`,
+  verb: e.type,
+  dir: 'out',
+}));
+
+const inEdges: Node[] = atom.edgesIn.slice(0, 4).map((e) => ({
+  id: e.target,
+  label: e.target.split('/').pop() ?? e.target,
+  href: `/atom/${atom.corpus}/${e.target.split('/').pop() ?? ''}`,
+  verb: e.type,
+  dir: 'in',
+}));
+
+const all = [...out, ...inEdges];
+const W = 480;
+const H = 280;
+const cx = W / 2;
+const cy = H / 2;
+const R = 105;
+
+const total = all.length;
+const positions = all.map((n, i) => {
+  const angle = total > 0 ? (i / total) * Math.PI * 2 - Math.PI / 2 : 0;
+  return {
+    ...n,
+    x: cx + Math.cos(angle) * R,
+    y: cy + Math.sin(angle) * R,
+  };
+});
+---
+{all.length > 0 ? (
+  <figure class="mini-graph" aria-label="Related atoms graph">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="graph-title">
+      <title id="graph-title">Edges from {atom.id}</title>
+
+      {/* Edges */}
+      {positions.map((p) => (
+        <line
+          class={`mg-edge mg-edge-${p.dir}`}
+          x1={cx} y1={cy}
+          x2={p.x} y2={p.y}
+        />
+      ))}
+
+      {/* Satellite nodes */}
+      {positions.map((p) => (
+        <g>
+          <circle class="mg-node" cx={p.x} cy={p.y} r="5" />
+          <text
+            class="mg-label"
+            x={p.x}
+            y={p.y + (p.y > cy ? 18 : -10)}
+          >
+            {p.label.length > 20 ? p.label.slice(0, 18) + '…' : p.label}
+          </text>
+        </g>
+      ))}
+
+      {/* Center node */}
+      <circle class="mg-center" cx={cx} cy={cy} r="11" />
+      <text class="mg-center-label" x={cx} y={cy + 28}>
+        {atom.shortId.length > 24 ? atom.shortId.slice(0, 22) + '…' : atom.shortId}
+      </text>
+    </svg>
+    <figcaption>
+      {atom.edges.length} outgoing · {atom.edgesIn.length} incoming
+    </figcaption>
+  </figure>
+) : null}
+
+<style>
+  .mini-graph svg {
+    background: var(--bg-canvas);
+  }
+  .mg-edge {
+    stroke: var(--border-default);
+    stroke-width: 1;
+  }
+  .mg-edge-in { stroke-dasharray: 3 3; }
+  .mg-node {
+    fill: var(--bg-canvas);
+    stroke: var(--fg-muted);
+    stroke-width: 1.5;
+  }
+  .mg-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--fg-muted);
+    text-anchor: middle;
+  }
+  .mg-center {
+    fill: var(--accent-emphasis);
+    stroke: var(--accent-emphasis);
+    stroke-width: 2;
+  }
+  :root[data-theme="dark"] .mg-center {
+    fill: var(--accent-fg);
+    stroke: var(--accent-fg);
+  }
+  .mg-center-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    fill: var(--fg-default);
+    text-anchor: middle;
+    font-weight: 600;
+  }
+  .mini-graph figcaption {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-muted);
+    text-align: center;
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+</style>

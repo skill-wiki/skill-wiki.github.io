@@ -1,0 +1,174 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Atoms · 28 kinds" slug="spec/atoms" description="The 28 atom kinds across 5 layers, with schemas and examples.">
+  <h1>Atoms · 28 kinds</h1>
+  <p style="color: var(--fg-muted);">
+    The unit of knowledge. Every atom declares <code>id</code>, <code>version</code>,
+    body fields specific to its kind, and a list of typed edges. The 28 kinds are
+    organised into 5 layers; pick what fits your domain and ignore the rest.
+  </p>
+
+  <h2>Anatomy of an atom</h2>
+  <p>
+    An atom is a <code>.prime</code> source file. Every atom has the same shape:
+  </p>
+
+<pre><code>{`<kind> <PascalCaseName> {
+  id: "@scope/kind-kebab-name"
+  version: "1.0.0"
+  description: "One sentence — appears in summary projection."
+  domain: <domain>
+
+  // kind-specific body fields
+  // ...
+
+  // edges out (any subset of 14 verbs)
+  related:        [@scope/...]
+  requires:       [@scope/...]
+  validates-with: [@scope/...]
+}`}</code></pre>
+
+  <p>
+    Required for every kind: <code>id</code>, <code>version</code>,
+    <code>description</code>, <code>domain</code>. Each kind adds its own required
+    fields (e.g. <code>rule</code> requires <code>claim</code>; <code>method</code>
+    requires <code>steps</code>).
+  </p>
+
+  <h2>The 5 layers</h2>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Kinds</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Data</strong></td>
+        <td><code>fact</code> <code>term</code> <code>value</code> <code>category</code> <code>example</code> <code>counter-example</code> <code>source</code> <code>metric</code></td>
+        <td>What is. Verifiable claims, definitions, samples, citations.</td>
+      </tr>
+      <tr>
+        <td><strong>Behaviour</strong></td>
+        <td><code>step</code> <code>check</code> <code>transform</code> <code>tool</code> <code>method</code></td>
+        <td>What to do. Procedures, validations, transformations.</td>
+      </tr>
+      <tr>
+        <td><strong>Composition</strong></td>
+        <td><code>rule</code> <code>taxonomy</code> <code>pattern</code> <code>anti-pattern</code> <code>type</code> <code>constraint</code></td>
+        <td>What goes with what. Constraints, classifications, recurring shapes.</td>
+      </tr>
+      <tr>
+        <td><strong>Meta</strong></td>
+        <td><code>collection</code> <code>scope</code> <code>tradeoff</code> <code>principle</code> <code>feedback</code></td>
+        <td>About the corpus. Bundles, scope declarations, design tensions.</td>
+      </tr>
+      <tr>
+        <td><strong>Voice & style</strong> <em>(domain-flavoured)</em></td>
+        <td><code>persona</code> <code>voice</code> <code>template</code> <code>provocation</code></td>
+        <td>How to express. Mostly used by design / content / brand corpora.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Full kind reference</h2>
+
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>One-line</th><th>Required fields</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>fact</code></td><td>A verifiable claim with confidence.</td><td><code>statement</code>, <code>confidence</code></td></tr>
+      <tr><td><code>term</code></td><td>A definition of a vocabulary unit.</td><td><code>definition</code></td></tr>
+      <tr><td><code>value</code></td><td>A specific concrete value (constant).</td><td><code>value</code>, <code>unit?</code></td></tr>
+      <tr><td><code>category</code></td><td>A classification slot in a taxonomy.</td><td><code>category</code>, <code>parent?</code></td></tr>
+      <tr><td><code>example</code></td><td>A worked instance of a rule or pattern.</td><td><code>shows</code>, <code>illustrates?</code></td></tr>
+      <tr><td><code>counter-example</code></td><td>An instance that fails a rule or pattern.</td><td><code>fails</code>, <code>why</code></td></tr>
+      <tr><td><code>source</code></td><td>Citation or reference to authoritative material.</td><td><code>title</code>, <code>url?</code> or <code>doi?</code></td></tr>
+      <tr><td><code>metric</code></td><td>A measurable quantity (e.g., contrast ratio ≥ 4.5:1).</td><td><code>name</code>, <code>threshold?</code></td></tr>
+      <tr><td><code>step</code></td><td>One step in a procedure.</td><td><code>action</code></td></tr>
+      <tr><td><code>check</code></td><td>A verification gate (yes / no / details).</td><td><code>check</code></td></tr>
+      <tr><td><code>transform</code></td><td>An input → output procedure.</td><td><code>input</code>, <code>output</code></td></tr>
+      <tr><td><code>tool</code></td><td>An executable utility used by methods.</td><td><code>signature</code></td></tr>
+      <tr><td><code>method</code></td><td>A multi-step procedure with inputs, outputs, and contract.</td><td><code>steps</code>, <code>contract?</code></td></tr>
+      <tr><td><code>rule</code></td><td>A constraint with severity and applies-to.</td><td><code>claim</code>, <code>severity</code></td></tr>
+      <tr><td><code>taxonomy</code></td><td>A classification scheme.</td><td><code>axis</code>, <code>buckets</code></td></tr>
+      <tr><td><code>pattern</code></td><td>A reusable solution to a recurring problem.</td><td><code>problem</code>, <code>solution</code></td></tr>
+      <tr><td><code>anti-pattern</code></td><td>A common mistake and why it fails.</td><td><code>shape</code>, <code>fails-because</code></td></tr>
+      <tr><td><code>type</code></td><td>A schema for an object the protocol traffics in.</td><td><code>fields</code></td></tr>
+      <tr><td><code>constraint</code></td><td>A hard limit or invariant.</td><td><code>limit</code>, <code>applies-to</code></td></tr>
+      <tr><td><code>collection</code></td><td>A curated bundle of atoms.</td><td><code>members</code></td></tr>
+      <tr><td><code>scope</code></td><td>A focused subset of the corpus.</td><td><code>focus</code>, <code>members</code></td></tr>
+      <tr><td><code>tradeoff</code></td><td>A decision where two values are in tension.</td><td><code>tension</code></td></tr>
+      <tr><td><code>principle</code></td><td>A higher-level belief that justifies rules.</td><td><code>statement</code></td></tr>
+      <tr><td><code>feedback</code></td><td>Retrospective observation about prior decisions.</td><td><code>observation</code></td></tr>
+      <tr><td><code>persona</code></td><td>A voice / posture an agent should adopt.</td><td><code>posture</code></td></tr>
+      <tr><td><code>voice</code></td><td>A writing voice (cadence, register).</td><td><code>register</code></td></tr>
+      <tr><td><code>template</code></td><td>A reusable scaffold for output.</td><td><code>template</code></td></tr>
+      <tr><td><code>provocation</code></td><td>A creative prompt to push the agent.</td><td><code>prompt</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Two complete examples</h2>
+
+  <h3>1. A <code>rule</code></h3>
+<pre><code>{`rule SqlInjectionPrevention {
+  id: "@security/rule-sql-injection-prevention"
+  version: "1.0.0"
+  description: "Always use parameterised queries — never concatenate strings."
+  domain: security
+
+  claim:    "Use parameterised queries; never concatenate user input."
+  applies-to: [api-endpoint, data-pipeline]
+  severity: critical
+
+  validates-with: [
+    @security/source-owasp-input-validation,
+    @security/check-sqlmap-scan,
+  ]
+
+  contradicts: [
+    @security/anti-pattern-string-concat-query,
+  ]
+}`}</code></pre>
+
+  <h3>2. A <code>method</code></h3>
+<pre><code>{`method MakeTea {
+  id: "@hello-world/method-make-tea"
+  version: "1.0.0"
+  description: "Boil water, steep tea, optional milk and sugar."
+  domain: cooking
+
+  steps: [
+    @hello-world/step-boil-water,
+    @hello-world/step-steep-tea,
+    @hello-world/step-add-milk,
+  ]
+
+  contract: {
+    must-include: [
+      @hello-world/fact-water-boils-at-100c,
+      @hello-world/term-steep,
+    ]
+    must-avoid: [
+      @hello-world/anti-pattern-microwave-tea,
+    ]
+  }
+
+  enhances: [
+    @hello-world/voice-british-tea-time,
+  ]
+}`}</code></pre>
+
+  <h2>Picking kinds</h2>
+  <p>
+    A small corpus uses 5–8 kinds. The frontend-design Skill uses 22 — that's an upper
+    bound. A security Skill might use 12 (heavy on Data + Composition + Behaviour).
+    A creative-writing Skill might use 10 (heavy on Voice & Style). The kinds you
+    don't use simply don't appear in your corpus.
+  </p>
+
+  <p>
+    Need a kind we don't have? See <a href="/docs/extending/custom-kinds">Custom kinds</a> —
+    adding a kind to the protocol is a 4-file patch and a Tier-2 RFC.
+  </p>
+</DocsLayout>

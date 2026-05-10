@@ -1,0 +1,82 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Domain MCP wrapper" slug="extending/domain-mcp" description="Wrap @prime-lang/mcp-server-core with domain-specific tools, tags, and validators.">
+  <h1>Domain MCP wrapper</h1>
+  <p style="color: var(--fg-muted);">
+    The core MCP server is domain-blind. Most agentic workflows benefit from a
+    <em>domain-specific</em> wrapper that adds tools tailored to the domain. The
+    reference frontend Skill ships exactly such a wrapper.
+  </p>
+
+  <h2>What a wrapper adds</h2>
+  <ul>
+    <li><strong>Domain-named tools</strong> — e.g. <code>frontend_color_check</code>, <code>frontend_layout_resolve</code>, instead of generic <code>prime_query</code>.</li>
+    <li><strong>Pre-baked tag bundles</strong> — the wrapper knows which axes to set on a query without the agent having to.</li>
+    <li><strong>Domain L5 validators</strong> — checkers registered in process that <code>domain.yaml</code> can reference.</li>
+    <li><strong>Branding</strong> — the wrapper has its own npm package name and version.</li>
+  </ul>
+
+  <h2>Skeleton</h2>
+<pre><code>{`// packages/mcp-server-frontend/src/index.ts
+import { createCoreServer } from "@prime-lang/mcp-server-core";
+
+const core = await createCoreServer({ primeDir: process.env.PRIME_DIR });
+
+// Add domain tools.
+core.registerTool("frontend_color_check", {
+  description: "Check generated CSS for color-token compliance.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      css: { type: "string" },
+    },
+  },
+  handler: async (args) => {
+    const verdict = await checkColorTokens(args.css);
+    return { ok: verdict.ok, fixes: verdict.fixes };
+  },
+});
+
+// Register domain L5 validators referenced from domain.yaml.
+core.registerValidator("color-token", colorTokenValidator);
+
+await core.serve();`}</code></pre>
+
+  <h2>Conventions</h2>
+  <table>
+    <thead><tr><th>Aspect</th><th>Convention</th></tr></thead>
+    <tbody>
+      <tr><td>Package name</td><td><code>@prime-lang/mcp-server-&lt;domain&gt;</code></td></tr>
+      <tr><td>Tool prefix</td><td><code>&lt;domain&gt;_&lt;verb&gt;</code> e.g. <code>frontend_color_check</code></td></tr>
+      <tr><td>Tools include the core 5</td><td>Yes — wrap, don't replace.</td></tr>
+      <tr><td>Versioning</td><td>Semver; track upstream <code>mcp-server-core</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Distribution</h2>
+  <p>
+    Publish your wrapper to npm under your scope. Consumers wire it in the same way as
+    the core server:
+  </p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "frontend-design": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-frontend"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/frontend-design/compiled"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <h2>Reference implementation</h2>
+  <p>
+    See <code>packages/mcp-server-frontend/</code> in
+    <a href="https://github.com/skill-wiki/prime-corpus-frontend" rel="noopener">skill-wiki/prime-corpus-frontend</a>.
+    It registers 4 frontend-specific tools on top of the core 5 and ships its own
+    color-token + a11y-audit validators.
+  </p>
+</DocsLayout>

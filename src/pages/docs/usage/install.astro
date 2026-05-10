@@ -1,0 +1,76 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Install" slug="usage/install" description="Install Skill Wiki — bun, Node 22+, the prime CLI, and the MCP server.">
+  <h1>Install</h1>
+  <p style="color: var(--fg-muted);">
+    Skill Wiki ships as a set of npm packages. The CLI handles compile / publish /
+    install; the MCP server exposes the compiled corpus to your agent.
+  </p>
+
+  <h2>Requirements</h2>
+  <ul>
+    <li><strong>Node 22+</strong> (<a href="https://nodejs.org" rel="noopener">nodejs.org</a>)</li>
+    <li><strong>Bun 1.3+</strong> recommended (<a href="https://bun.sh" rel="noopener">bun.sh</a>) — much faster than Node for the compile step</li>
+    <li>An MCP-capable client (Claude Code, Cursor, Continue, Aider, …)</li>
+  </ul>
+
+  <h2>Install the CLI</h2>
+<pre><code>{`# Bun (recommended)
+bun add -g @prime-lang/cli
+
+# Or npm
+npm install -g @prime-lang/cli
+
+# Verify
+prime --version
+# → prime 0.1.0`}</code></pre>
+
+  <h2>Install a Skill from the marketplace</h2>
+<pre><code>{`# The flagship Skill — frontend-design
+prime install @frontend-design
+
+# A minimal example
+prime install @recipes`}</code></pre>
+
+  <p>
+    By default Skills go into <code>./.primes/</code>. Use <code>--dir</code> to
+    customise.
+  </p>
+
+  <h2>Boot the MCP server</h2>
+<pre><code>{`# Stdio transport (for Claude Code / Cursor)
+PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core
+
+# HTTP transport (for browser-based clients)
+PRIME_DIR=./.primes/@recipes \\
+  bunx @prime-lang/mcp-server-core --http --port 4001`}</code></pre>
+
+  <h2>From source</h2>
+  <p>If you want to develop against Skill Wiki itself or run an unreleased version:</p>
+
+<pre><code>{`git clone https://github.com/skill-wiki/prime-system.git
+cd prime-system
+bun install
+bun run build
+bun run packages/cli/src/index.ts --version`}</code></pre>
+
+  <h2>Verify the install</h2>
+<pre><code>{`# Compile and inspect the bundled hello-world example
+cd examples/hello-world
+prime compile
+
+# List atoms
+prime list
+# → @hello-world/method-make-tea         method
+# → @hello-world/term-celsius            term
+# → @hello-world/fact-water-boils-at-100c fact
+# → @hello-world/rule-altitude-affects-boiling rule`}</code></pre>
+
+  <h2>Next</h2>
+  <ul>
+    <li><a href="/docs/usage/first-atom">Author your first atom</a></li>
+    <li><a href="/docs/usage/mcp-claude">Wire into Claude Code</a></li>
+    <li><a href="/docs/usage/publish-install">Publish & install your own Skill</a></li>
+  </ul>
+</DocsLayout>

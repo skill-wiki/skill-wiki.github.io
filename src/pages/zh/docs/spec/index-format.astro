@@ -1,0 +1,88 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="_index.xml 格式" slug="spec/index-format" lang="zh" description="始终加载的 corpus 索引的标准 schema。">
+  <h1><code>_index.xml</code> 格式</h1>
+  <p style="color: var(--fg-muted);">
+    <code>_index.xml</code> 是运行时最重要的产物：agent 启动时第一个看到的就是它。
+    每个 Skill 都发布一份。格式在 v1 已经固定。
+  </p>
+
+  <h2>为什么是 XML？</h2>
+  <p>
+    当消费者是 LLM 时，标签边界很重要。JSON 的 <code>{`{`}</code> /
+    <code>{`}`}</code> 噪声对模型来说比 <code>&lt;atom&gt;...&lt;/atom&gt;</code> 更难解析。
+    Anthropic 的官方文档明确推荐用 XML 标签构造 prompt；index 顺势用 XML。
+  </p>
+
+  <h2>Schema</h2>
+<pre><code>{`<?xml version="1.0" encoding="UTF-8"?>
+<prime_index version="1.0" total="898" total_tokens="422867">
+
+  <!-- One <cluster> per domain (optional grouping). -->
+  <cluster name="accessibility" density="0.42">
+
+    <!-- One <atom> per atom in the pack. -->
+    <atom id="@community/rule-keyboard-accessible"
+          kind="rule"
+          tokens="312"
+          q="4.0">
+
+      <!-- The summary projection (~30 tokens). Inline. -->
+      Every interactive control must be operable from the keyboard…
+
+      <!-- All edges out. Self-closing. -->
+      <edge type="related"        target="@community/anti-pattern-..."/>
+      <edge type="validates-with" target="@w3c/source-wcag-2.1.1"/>
+      <edge type="contradicts"    target="@community/anti-pattern-..."/>
+    </atom>
+
+    <atom id="..." kind="..." tokens="..." q="...">
+      ...
+    </atom>
+
+  </cluster>
+
+  <!-- More clusters... -->
+
+</prime_index>`}</code></pre>
+
+  <h2>必填属性</h2>
+  <table>
+    <thead>
+      <tr><th>元素</th><th>属性</th><th>是否必填</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>prime_index</code></td><td><code>version</code></td><td>是</td><td>协议版本。当前 <code>1.0</code>。</td></tr>
+      <tr><td><code>prime_index</code></td><td><code>total</code></td><td>是</td><td>原子数。</td></tr>
+      <tr><td><code>prime_index</code></td><td><code>total_tokens</code></td><td>建议</td><td>所有 full 投影的 token 之和。</td></tr>
+      <tr><td><code>cluster</code></td><td><code>name</code></td><td>是</td><td>domain 标签或自由分组名。</td></tr>
+      <tr><td><code>cluster</code></td><td><code>density</code></td><td>建议</td><td>该 cluster 的"边/原子"密度。</td></tr>
+      <tr><td><code>atom</code></td><td><code>id</code></td><td>是</td><td>全限定的 <code>@scope/kind-name</code>。</td></tr>
+      <tr><td><code>atom</code></td><td><code>kind</code></td><td>是</td><td>28 种 kind 中的一种。</td></tr>
+      <tr><td><code>atom</code></td><td><code>tokens</code></td><td>是</td><td><code>full</code> 投影的 token 数。</td></tr>
+      <tr><td><code>atom</code></td><td><code>q</code></td><td>建议</td><td>质量分（0.0 – 5.0）。</td></tr>
+      <tr><td><code>edge</code></td><td><code>type</code></td><td>是</td><td>14 个 verb 中的一个。</td></tr>
+      <tr><td><code>edge</code></td><td><code>target</code></td><td>是</td><td>原子 id（可跨 Skill）。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>体积预算</h2>
+  <p>
+    每个 <code>&lt;atom&gt;</code> 项（连内联 summary 和边）应当 ≤ 50 token。
+    100 个原子的 corpus 产出约 5 KB 的 index；1,000 个原子的 corpus 在约 50 KB 之内。
+    参考 frontend-design Skill（898 个原子）编出来的 <code>_index.xml</code> 约 52 KB。
+  </p>
+
+  <h2>Agent 怎么用它</h2>
+  <p>
+    MCP server 惰性发出 index —— 第一次 <code>prime_query</code> 调用启动运行时，运行时
+    把 index 文件读一次，之后从内存结构里返 <code>hits</code>。磁盘上的 XML 是 source of truth，
+    内存表示是临时缓存。
+  </p>
+
+  <p>
+    agent 在 MCP 工具响应里通常看到的是<em>过滤后</em>的视图，不是完整的约 50 KB。
+    完整的 XML 是协议表面；每一轮 agent 实际看到什么，由 query 决定。
+  </p>
+</DocsLayout>

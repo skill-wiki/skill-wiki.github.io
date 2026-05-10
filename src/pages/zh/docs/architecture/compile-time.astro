@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="编译期" slug="architecture/compile-time" lang="zh" description="编译流水线 —— parser、三个 checker、chunker、双发射器。">
+  <h1>编译期</h1>
+  <p style="color: var(--fg-muted);">
+    编译器把 <code>.prime</code> 源文件变成磁盘上的运行时产物。
+    它只在构建时跑；运行时永远不会重新解析源。
+  </p>
+
+  <h2>编译流水线</h2>
+  <p><img src="/compile-pipeline.png" alt="Compile pipeline — .prime to runtime artifacts" /></p>
+
+<pre><code>{`primes/sources/*.prime
+    │
+    ▼
+[ Lexer ]         packages/parser/src/lexer.ts          → tokens
+[ Parser ]        packages/parser/src/parser.ts         → PrimeAST
+[ L1 Checker ]    packages/compiler/src/checker-l1.ts   → schema OK
+[ L3 Cross-Atom ] packages/compiler/src/checker-l3.ts   → cycles, contradicts
+[ L2 Checker ]*   packages/compiler/src/checker-l2.ts   → semantic check
+[ Chunker ]       packages/compiler/src/chunker.ts      → 3 projections
+[ Edge Resolver ] packages/compiler/src/edge-resolver.ts→ graph.yaml
+[ Emitters ]
+    ├─ Atom dir emitter:   compiled/@scope/name/{atom.yaml,chunks/}
+    └─ Global index:       compiled/_index.xml
+
+* L2 is opt-in (gated by ANTHROPIC_API_KEY or DEEPSEEK_API_KEY).`}</code></pre>
+
+  <h2>L1 —— schema（强制）</h2>
+  <p>
+    校验必填字段、引用是否存在、装饰器约束、各种 kind 特定 schema。纯结构校验 ——
+    不调 LLM。每个原子毫秒级。
+  </p>
+
+  <h2>L3 —— 跨原子（强制）</h2>
+  <p>
+    在解析后的边图上走一遍：标出 <code>requires</code> 中的环、暴露 <code>contradicts</code> 对、
+    校验 <code>validates-with</code> 与 <code>extends</code> 上的 kind 兼容性。
+    也是纯逻辑 —— 在 L1 之后的内存图上跑。
+  </p>
+
+  <h2>L2 —— 语义（可选）</h2>
+  <p>
+    调一个小 LLM（默认 DeepSeek，每个原子约 $0.0001）抓语义漂移 ——
+    比如一条 rule 的 <code>severity</code> 写 <code>low</code>，但 remediation 描述的却是关键阻断。
+    需要 API key 才启用；没 key 时编译器会打一行 notice，然后跳过 L2。
+  </p>
+
+  <h2>Chunker —— 按 kind 投影</h2>
+  <p>
+    按原子走 AST，输出 <code>summary.md</code> / <code>core.md</code> / <code>full.md</code>。
+    切分规则按 kind 不同（见 <a href="/zh/docs/spec/projection">Projection</a>）。
+  </p>
+
+  <h2>发射器</h2>
+  <p>每次构建产出两类产物：</p>
+  <ul>
+    <li>
+      <strong>每个原子一个目录</strong>，路径 <code>compiled/&lt;prefix&gt;/&lt;short-id&gt;/</code>，
+      里面有 <code>atom.yaml</code>（metadata）、<code>graph.yaml</code>（解析后的边）、
+      以及 <code>chunks/{`{summary,core,full}`}.md</code>。
+    </li>
+    <li>
+      <strong>一个全局 index</strong>，路径 <code>compiled/_index.xml</code> ——
+      就是常驻加载的那一面；每个 domain 一个 <code>&lt;cluster&gt;</code>；
+      <code>&lt;atom&gt;</code> 项内联 summary，子节点是边。
+    </li>
+  </ul>
+
+  <h2>幂等 + 缓存</h2>
+  <p>
+    同一份源编译两次产出字节级一致的输出。L2 的结果按内容 hash 缓存到
+    <code>.l2-cache.json</code>，没改动的原子在重新编译时不会再付一次 LLM 成本。
+  </p>
+
+  <h2>CLI 表面</h2>
+<pre><code>{`# Compile one file (smoke test).
+prime compile path/to/atom.prime
+
+# Compile a whole sources tree to compiled/.
+bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# Compile + run L2 + show all errors.
+prime compile primes/sources/*.prime --deep --strict
+
+# Validate without emitting.
+prime check --registry`}</code></pre>
+
+  <p>
+    各阶段怎么实现，见 <a href="/zh/docs/implementation/parser">Parser & AST</a>、
+    <a href="/zh/docs/implementation/checkers">Checkers</a>、
+    <a href="/zh/docs/implementation/chunker">Chunker</a>。
+  </p>
+</DocsLayout>

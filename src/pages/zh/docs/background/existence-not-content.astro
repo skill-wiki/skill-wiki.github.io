@@ -1,0 +1,113 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="存在 ≠ 内容" slug="background/existence-not-content" lang="zh" description="Skill Wiki 设计的承重线。">
+  <h1>存在 ≠ 内容</h1>
+  <p style="color: var(--fg-muted);">
+    协议其余部分都是这条承重线推出来的。
+  </p>
+
+  <blockquote>
+    <strong>"知道存在一个原子讲 OWASP 输入校验规则"，
+    跟"把它那 1,841 字节的散文都塞进工作记忆"，是两件事。</strong>
+  </blockquote>
+
+  <p>
+    维基百科把两者分开了。每个读者都知道有一篇关于素数的条目 ——
+    但他们不会真的把那 4,000 词装进脑子里，直到他们点开为止。
+    维基百科的<em>索引</em>很小；<em>条目</em>很大；读者按需取用条目。
+  </p>
+
+  <p>
+    Skill Wiki 之前的 agent 栈通常把这两件事混为一谈。
+    每个<em>可能</em>相关的 skill，每一轮都把整篇 prose 推进 prompt，"以防万一"。
+    Skill Wiki 拒绝的就是这个设计支点。
+  </p>
+
+  <h2>Skill Wiki 怎么把它们分开</h2>
+  <p>协议把 agent 接触到的两个面区分开：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>面</th>
+        <th>成本</th>
+        <th>是否常驻上下文</th>
+        <th>包含</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Index</strong>（<code>_index.xml</code>）</td>
+        <td>约 3 KB，与 corpus 大小无关</td>
+        <td>是</td>
+        <td>id、kind、一行摘要、出边</td>
+      </tr>
+      <tr>
+        <td><strong>原子正文</strong>（chunks/*.md）</td>
+        <td>每个原子约 30 / 150 / 380 token</td>
+        <td>否 —— 按 id、按需加载</td>
+        <td>完整描述、参数、例子</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Index 是 agent 的<em>地图</em>；原子正文是<em>领土</em>。</p>
+
+  <h2>由此带来的三件事</h2>
+
+  <h3>有界成本</h3>
+  <p>
+    Token 成本随 agent <em>实际决定加载</em>的内容增长，跟 corpus 大小无关。
+    1,000 个原子的 corpus，"挂在那"的成本和 50 个原子的一样。
+    边际原子在被用之前是免费的。
+  </p>
+
+  <h3>有界污染</h3>
+  <p>
+    corpus 里几个不好的原子，不会污染每一轮。它们待在 index 里，每一轮被检索过滤掉，
+    没被检中就不会进入上下文。SKILL.md 不一样 —— 只要它被加载，每一轮都被它污染。
+  </p>
+
+  <h3>Push → Pull 翻转</h3>
+  <p>
+    传统模式是 <em>push</em>：系统把"任务可能用得上的东西"全推进上下文，
+    指望模型挑出对的部分。Skill Wiki 是 <em>pull</em>：
+    index 里写着"有一个讲 GDPR 删除权规则的原子"；agent 自己决定要不要去读它的
+    summary、core 还是 full projection。
+  </p>
+
+  <pre><code>{`Push (skill bulk-loading):
+  ┌────────────────────────────────┐
+  │  All 60 SKILL.md               │ → agent
+  │  ~30 KB context every turn     │
+  └────────────────────────────────┘
+
+Pull (Skill Wiki):
+  ┌─────────────┐  retrieval    ┌─────────────────┐
+  │ _index.xml  │ ───picks 3 ──▶│ chunks/core.md  │ → agent
+  │ ~3 KB       │   atoms        │ ~450 tok        │
+  └─────────────┘                └─────────────────┘`}</code></pre>
+
+  <h2>"完全对应"是字面意义上的对应</h2>
+  <p>
+    维基百科这个类比不是大概差不多 —— 它是结构上的等价。维基百科的
+    <a href="https://en.wikipedia.org/wiki/Special:AllPages" rel="noopener">Special:AllPages</a>
+    是一个 7 MB 的索引。加载它不等于加载整本百科。
+    MediaWiki 运行时给读者稳定的 URL，条目在 URL 被请求时实例化。
+    把 "URL" 换成"原子 id"、"浏览器"换成 "agent"、"MediaWiki" 换成 "MCP server" ——
+    就是 Skill Wiki。
+  </p>
+
+  <h2>它推出了什么</h2>
+  <p>
+    五个后续决定都从这条线推出来：带类型的原子（不是 blob 式的 skill）、
+    带类型的边（不是平铺的 <code>related</code>）、组合契约（不是自由组合）、
+    以及小 LLM 编译期检查。它们都是"认真对待 <em>存在 ≠ 内容</em>"的结果。
+  </p>
+  <p>
+    继续读：
+    <a href="/zh/docs/spec/atoms">Atoms</a> · <a href="/zh/docs/spec/edges">Edges</a> ·
+    <a href="/zh/docs/spec/projection">Projection</a> · <a href="/zh/docs/architecture/pipeline">Pipeline</a>。
+  </p>
+</DocsLayout>

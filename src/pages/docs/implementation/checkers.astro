@@ -1,0 +1,116 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Checkers · L1 / L2 / L3" slug="implementation/checkers" description="Three checking layers — schema, semantic LLM check, cross-atom graph reasoning.">
+  <h1>Checkers · L1 / L2 / L3</h1>
+  <p style="color: var(--fg-muted);">
+    Three checking layers, each catching a different class of bug. L1 + L3 are pure
+    and mandatory. L2 is opt-in and uses a small LLM.
+  </p>
+
+  <h2>L1 · Schema (mandatory)</h2>
+  <p>
+    Validates every atom's structure against its kind's schema. Required fields
+    present? Decorator constraints satisfied? Atom IDs match the
+    <code>@scope/kind-kebab-name</code> shape? Cross-atom refs resolvable inside the
+    package?
+  </p>
+
+<pre><code>{`// packages/compiler/src/checker-l1.ts
+export function checkL1(ast: PrimeAST): Diagnostic[] {
+  const errors: Diagnostic[] = [];
+  for (const atom of ast.atoms) {
+    errors.push(...validateRequiredFields(atom));
+    errors.push(...validateIdShape(atom));
+    errors.push(...validateKindSchema(atom));
+    errors.push(...validateEdgeShape(atom));
+  }
+  return errors;
+}`}</code></pre>
+
+  <p>Cost: ~5 ms per atom. Runs even without API keys.</p>
+
+  <h2>L2 · Semantic LLM check (opt-in)</h2>
+  <p>
+    Calls a small LLM (DeepSeek by default) to catch semantic drift. Asks: <em>does the
+    body contradict the metadata?</em> A rule whose <code>severity: low</code> but whose
+    remediation describes a critical accessibility blocker would be flagged here.
+  </p>
+
+<pre><code>{`// packages/compiler/src/checker-l2.ts (excerpt)
+const prompt = \`Atom \${atom.id} of kind \${atom.kind}.
+
+Metadata says: severity=\${atom.severity}, applies-to=\${atom.appliesTo}.
+Body says: "\${atom.body}"
+
+Does the body's tone, scope, or severity match the metadata?
+Reply: { "ok": bool, "reason"?: string }
+\`;
+
+const verdict = await aiClient.json(prompt);
+if (!verdict.ok) {
+  diagnostics.push({ atom: atom.id, message: verdict.reason });
+}`}</code></pre>
+
+  <p>
+    Cost: ~$0.0001/atom on DeepSeek; results are cached by content-hash in
+    <code>.l2-cache.json</code>. A no-API-key build skips L2 with a notice.
+  </p>
+
+  <h2>L3 · Cross-atom (mandatory)</h2>
+  <p>
+    Walks the resolved edge graph. Three classes of error:
+  </p>
+  <ol>
+    <li><strong>Cycles in <code>requires</code></strong> — unresolvable load order.</li>
+    <li><strong>Contradictions</strong> — atoms with <code>contradicts</code> edges that also appear in the same composition contract.</li>
+    <li><strong>Kind mismatches</strong> — <code>validates-with</code> from a rule to another rule (must be source/metric/check).</li>
+  </ol>
+
+<pre><code>{`// packages/compiler/src/checker-l3-cross.ts (excerpt)
+function detectCycles(graph: EdgeGraph): Cycle[] {
+  // Tarjan's SCC over the requires-only subgraph
+  const sccs = stronglyConnectedComponents(graph.subgraph('requires'));
+  return sccs.filter((scc) => scc.size > 1).map(toCycle);
+}
+
+function checkContradicts(atoms: Atom[]): Diagnostic[] {
+  const ds: Diagnostic[] = [];
+  for (const atom of atoms) {
+    for (const c of atom.contradicts) {
+      const target = byId.get(c);
+      if (!target) continue;
+      const sharedScope = scopesContaining(atom).filter(
+        (s) => scopesContaining(target).includes(s),
+      );
+      if (sharedScope.length > 0) {
+        ds.push(scopeContradictsError(atom, target, sharedScope));
+      }
+    }
+  }
+  return ds;
+}`}</code></pre>
+
+  <h2>Diagnostic format</h2>
+  <p>All three checkers emit a uniform <code>Diagnostic</code> shape:</p>
+
+<pre><code>{`interface Diagnostic {
+  level:    'error' | 'warning' | 'info';
+  layer:    'L1' | 'L2' | 'L3';
+  atom:     string;            // atom id
+  message:  string;
+  hint?:    string;            // suggested fix
+  source?:  { file: string; line: number };
+}`}</code></pre>
+
+  <h2>Running checks</h2>
+
+<pre><code>{`# All three on a whole sources tree
+prime check --registry
+
+# Only L1 + L3 (no API key needed)
+prime check --registry --no-l2
+
+# Single file
+prime check primes/sources/@my/rule-x.prime`}</code></pre>
+</DocsLayout>

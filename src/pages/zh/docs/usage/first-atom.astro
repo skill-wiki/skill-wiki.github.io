@@ -1,0 +1,107 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="第一个原子" slug="usage/first-atom" lang="zh" description="5 分钟写好、编译并加载你的第一个 .prime 原子。">
+  <h1>第一个原子</h1>
+  <p style="color: var(--fg-muted);">
+    5 分钟走一遍。我们写一个 <code>fact</code>、一个 <code>term</code>、加一条把它们连起来的 <code>rule</code>。
+    编译、列出、查看。
+  </p>
+
+  <h2>1. 建工作目录</h2>
+<pre><code>{`mkdir my-pack && cd my-pack
+mkdir -p primes/sources/@my`}</code></pre>
+
+  <h2>2. 写第一个原子（一条 fact）</h2>
+  <p>保存为 <code>primes/sources/@my/fact-water-boils-at-100c.prime</code>：</p>
+
+<pre><code>{`fact WaterBoilsAt100C {
+  id: "@my/fact-water-boils-at-100c"
+  version: "1.0.0"
+  description: "Pure water boils at 100°C at 1 atm."
+  domain: physics
+
+  statement: "At one atmosphere of pressure, pure water boils at 100°C (212°F)."
+  confidence: 0.99
+}`}</code></pre>
+
+  <h2>3. 写它会用到的 term</h2>
+  <p>保存为 <code>primes/sources/@my/term-celsius.prime</code>：</p>
+
+<pre><code>{`term Celsius {
+  id: "@my/term-celsius"
+  version: "1.0.0"
+  description: "A unit of temperature where 0° = water freezing at 1 atm."
+  domain: physics
+
+  definition: "A temperature scale on which 0° is the freezing point of water and 100° is its boiling point at 1 atmosphere."
+}`}</code></pre>
+
+  <h2>4. 写一条 requires 这两者的 rule</h2>
+  <p>保存为 <code>primes/sources/@my/rule-altitude-affects-boiling.prime</code>：</p>
+
+<pre><code>{`rule AltitudeAffectsBoiling {
+  id: "@my/rule-altitude-affects-boiling"
+  version: "1.0.0"
+  description: "Boiling point drops ~0.3°C per 100 m of altitude."
+  domain: physics
+
+  claim: "Above 1 atm, water boils below 100°C; the loss is ~0.3°C per 100 m."
+  applies-to: [cooking, climbing, science]
+  severity: informational
+
+  requires: [
+    @my/term-celsius,
+    @my/fact-water-boils-at-100c,
+  ]
+
+  validates-with: [
+    @my/source-nist-water-properties,
+  ]
+}`}</code></pre>
+
+  <h2>5. 编译</h2>
+<pre><code>{`bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# → output:
+#   primes/compiled/@my/fact-water-boils-at-100c/{atom.yaml, chunks/}
+#   primes/compiled/@my/term-celsius/{atom.yaml, chunks/}
+#   primes/compiled/@my/rule-altitude-affects-boiling/{atom.yaml, chunks/}
+#   primes/compiled/_index.xml
+`}</code></pre>
+
+  <p>
+    L1 会抓到 <code>@my/source-nist-water-properties</code> 这条引用不存在（你还没写它）。两种处理方式：
+  </p>
+  <ol>
+    <li>把它写出来，或</li>
+    <li>暂时去掉那行 <code>validates-with</code>，再编一次。</li>
+  </ol>
+
+  <h2>6. 检视</h2>
+<pre><code>{`prime list --dir primes/compiled
+# → @my/fact-water-boils-at-100c            fact
+# → @my/term-celsius                        term
+# → @my/rule-altitude-affects-boiling       rule
+
+prime show @my/rule-altitude-affects-boiling --dir primes/compiled
+# Prints kind, fields, edges out, edges in.
+
+cat primes/compiled/@my/rule-altitude-affects-boiling/chunks/summary.md
+# Prints the ~30-token summary.`}</code></pre>
+
+  <h2>7. 启动 MCP server</h2>
+<pre><code>{`PRIME_DIR=./primes/compiled bunx @prime-lang/mcp-server-core
+# Server up on stdio. Wire it into Claude Code (next page).`}</code></pre>
+
+  <h2>你刚刚做了什么</h2>
+  <p>
+    三个原子，中间一条带类型的依赖边。编译器校验了这条链接，
+    给每个原子生成了三种投影层级，并放在运行时能服务到的位置。
+  </p>
+  <p>
+    下一步：<a href="/zh/docs/usage/mcp-claude">接入 Claude Code</a>。
+  </p>
+</DocsLayout>

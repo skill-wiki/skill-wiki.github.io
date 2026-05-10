@@ -1,0 +1,338 @@
+---
+import { loadAll } from '../lib/corpus';
+
+const { corpora } = loadAll();
+const all = corpora.flatMap((c) => c.atoms);
+
+// Ship a lean denormalised search index — id, kind, summary, tags as rough keywords.
+const SHIP = all.slice(0, 800).map((a) => ({
+  id: a.id,
+  k: a.kind,
+  d: a.domain,
+  p: (a.preview || '').slice(0, 200),
+  t: a.tokens.core || 150,
+  q: a.quality || 4.0,
+}));
+const data = JSON.stringify(SHIP);
+---
+<div class="pg-wrap">
+  <div class="pg-input">
+    <div class="pg-prompt">
+      <span class="pg-glyph">⌘</span>
+      <input
+        id="pg-q"
+        class="pg-q"
+        placeholder='try: "primary CTA fintech dashboard"  ·  "owasp input validation"  ·  "modal a11y"'
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <span class="pg-shimmer"></span>
+    </div>
+    <div class="pg-suggest" id="pg-suggest">
+      <span class="pg-h">Try</span>
+      <button data-q="primary cta fintech">primary cta fintech</button>
+      <button data-q="modal accessibility">modal a11y</button>
+      <button data-q="rule color contrast">color contrast</button>
+      <button data-q="anti-pattern button">anti-pattern button</button>
+    </div>
+  </div>
+
+  <div class="pg-output">
+    <div class="pg-out-head">
+      <span class="pg-h">prime_query response</span>
+      <span class="pg-count" id="pg-count">— atoms · — tok</span>
+    </div>
+    <ol class="pg-hits" id="pg-hits"></ol>
+  </div>
+</div>
+
+<script type="application/json" id="pg-data" set:html={data}></script>
+
+<script>
+  type Hit = { id: string; k: string; d: string; p: string; t: number; q: number };
+
+  function init() {
+    const dataEl = document.getElementById('pg-data');
+    const input = document.getElementById('pg-q') as HTMLInputElement | null;
+    const list = document.getElementById('pg-hits');
+    const count = document.getElementById('pg-count');
+    const suggest = document.getElementById('pg-suggest');
+    if (!dataEl || !input || !list || !count) return;
+
+    const data: Hit[] = JSON.parse(dataEl.textContent || '[]');
+
+    function score(item: Hit, q: string[]) {
+      const hay = `${item.id} ${item.k} ${item.d} ${item.p}`.toLowerCase();
+      let s = 0;
+      for (const t of q) {
+        if (!t) continue;
+        if (hay.includes(t)) s += 5;
+        if (item.id.toLowerCase().includes(t)) s += 3;
+        if (item.k.toLowerCase().includes(t)) s += 4;
+      }
+      return s + item.q * 0.4;
+    }
+
+    function render(query: string) {
+      const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const hits = data
+        .map((it) => ({ it, s: score(it, tokens) }))
+        .filter((x) => tokens.length === 0 || x.s > 5)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 5)
+        .map((x) => x.it);
+
+      const tot = hits.reduce((s, h) => s + h.t, 0);
+      count!.textContent = `${hits.length} atoms · ${tot} tok`;
+
+      list!.innerHTML = hits
+        .map((h, i) => `
+          <li class="pg-hit" style="animation-delay:${i * 60}ms">
+            <span class="pg-num">${String(i + 1).padStart(2, '0')}</span>
+            <span class="pg-kind kind-${h.k}">${h.k}</span>
+            <span class="pg-id">${h.id}</span>
+            <span class="pg-preview">${h.p.replace(/[<>]/g, '')}</span>
+            <span class="pg-t">${h.t} tok</span>
+          </li>`)
+        .join('');
+    }
+
+    input.addEventListener('input', (e) => {
+      render((e.target as HTMLInputElement).value);
+    });
+
+    suggest?.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.tagName === 'BUTTON' && t.dataset.q) {
+        input.value = t.dataset.q;
+        render(t.dataset.q);
+        input.focus();
+      }
+    });
+
+    // Initial state with a default query.
+    input.value = '';
+    render('rule pattern');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  .pg-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: var(--s-5);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-3);
+    background:
+      radial-gradient(600px 300px at 0% 0%, rgba(34, 211, 238, 0.06), transparent 60%),
+      var(--bg-elev);
+    padding: var(--s-5);
+    isolation: isolate;
+    position: relative;
+  }
+  .pg-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @media (prefers-color-scheme: light) {
+    .pg-wrap::before {
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    }
+  }
+  @media (max-width: 800px) {
+    .pg-wrap { grid-template-columns: 1fr; }
+  }
+
+  .pg-input { position: relative; z-index: 1; }
+  .pg-prompt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-code);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2);
+    padding: 14px 16px;
+    transition: border-color var(--m-base) var(--ease), box-shadow var(--m-base) var(--ease);
+    overflow: hidden;
+  }
+  .pg-prompt:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
+  }
+  .pg-glyph {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .pg-q {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .pg-q::placeholder { color: var(--fg-faint); }
+  .pg-shimmer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg, transparent, rgba(34, 211, 238, 0.12) 50%, transparent
+    );
+    transform: translateX(-100%);
+    animation: shimmer 6s var(--ease) infinite;
+  }
+  @keyframes shimmer {
+    0%, 60% { transform: translateX(-100%); }
+    100%    { transform: translateX(200%); }
+  }
+
+  .pg-suggest {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .pg-h {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-right: 6px;
+  }
+  .pg-suggest button {
+    background: var(--bg-2);
+    color: var(--fg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all var(--m-fast) var(--ease);
+  }
+  .pg-suggest button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .pg-output { position: relative; z-index: 1; }
+  .pg-out-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .pg-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pg-hits {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    counter-reset: hit;
+  }
+  .pg-hit {
+    display: grid;
+    grid-template-columns: 24px max-content 1fr max-content;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-1);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-1);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    animation: hitIn 320ms var(--ease) both;
+    transition: border-color var(--m-fast) var(--ease);
+  }
+  .pg-hit:hover {
+    border-color: var(--accent);
+    background: var(--bg-2);
+  }
+  @keyframes hitIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .pg-num {
+    color: var(--fg-faint);
+    font-size: 10px;
+  }
+  .pg-kind {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .pg-id { color: var(--accent); font-size: 12px; }
+  .pg-preview {
+    grid-column: 2 / 5;
+    color: var(--fg-soft);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+  .pg-t {
+    font-size: 11px;
+    color: var(--fg-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* kind tints reused (small subset, dark) */
+  .pg-kind.kind-rule       { color: #fcd34d; background: rgba(252, 211, 77, 0.12); }
+  .pg-kind.kind-pattern    { color: #93c5fd; background: rgba(147, 197, 253, 0.12); }
+  .pg-kind.kind-fact       { color: #6ee7b7; background: rgba(110, 231, 183, 0.12); }
+  .pg-kind.kind-anti-pattern { color: #fca5a5; background: rgba(252, 165, 165, 0.12); }
+  .pg-kind.kind-method     { color: #c4b5fd; background: rgba(196, 181, 253, 0.12); }
+  .pg-kind.kind-term       { color: #e9d5ff; background: rgba(233, 213, 255, 0.12); }
+  .pg-kind.kind-principle  { color: #5eead4; background: rgba(94, 234, 212, 0.12); }
+  .pg-kind.kind-tradeoff   { color: #fdba74; background: rgba(253, 186, 116, 0.12); }
+  .pg-kind.kind-collection { color: #cbd5e1; background: rgba(203, 213, 225, 0.12); }
+  .pg-kind.kind-persona    { color: #fda4af; background: rgba(253, 164, 175, 0.12); }
+  .pg-kind.kind-voice      { color: #f9a8d4; background: rgba(249, 168, 212, 0.12); }
+  .pg-kind.kind-template   { color: #a5b4fc; background: rgba(165, 180, 252, 0.12); }
+  .pg-kind.kind-check      { color: #86efac; background: rgba(134, 239, 172, 0.12); }
+  .pg-kind.kind-source     { color: #d6d3d1; background: rgba(214, 211, 209, 0.10); }
+  .pg-kind.kind-counter-example { color: #fca5a5; background: rgba(252, 165, 165, 0.12); }
+  .pg-kind.kind-example    { color: #6ee7b7; background: rgba(110, 231, 183, 0.10); }
+  .pg-kind.kind-taxonomy   { color: #7dd3fc; background: rgba(125, 211, 252, 0.12); }
+  .pg-kind.kind-feedback   { color: #ddd6fe; background: rgba(221, 214, 254, 0.10); }
+  .pg-kind.kind-provocation { color: #f0abfc; background: rgba(240, 171, 252, 0.12); }
+  .pg-kind.kind-scope      { color: #bbf7d0; background: rgba(187, 247, 208, 0.10); }
+  .pg-kind.kind-constraint { color: #fdba74; background: rgba(253, 186, 116, 0.10); }
+  .pg-kind.kind-type       { color: #d8b4fe; background: rgba(216, 180, 254, 0.10); }
+  .pg-kind.kind-step       { color: #cbd5e1; background: rgba(203, 213, 225, 0.10); }
+</style>

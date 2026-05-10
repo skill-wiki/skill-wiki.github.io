@@ -1,0 +1,98 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Projection · 3 levels" slug="spec/projection" description="The three projection levels — summary, core, full — and the chunker's kind-aware splitting rules.">
+  <h1>Projection · 3 levels</h1>
+  <p style="color: var(--fg-muted);">
+    The mechanism that lets an agent decide how much of an atom to load. Three
+    levels, kind-aware splitting, deterministic chunker.
+  </p>
+
+  <h2>The three levels</h2>
+  <table>
+    <thead>
+      <tr><th>Level</th><th>Token budget</th><th>Loaded when</th><th>Contains</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>summary</code></td><td>~30 tok</td><td>Always — already in <code>_index.xml</code></td><td><code>description</code> + tags + 1-line claim</td></tr>
+      <tr><td><code>core</code></td><td>~150 tok</td><td>Retrieved as adjacent / supporting</td><td>+ key body fields (claim, applies-to, severity)</td></tr>
+      <tr><td><code>full</code></td><td>~380 tok</td><td>Retrieved as direct hit / focal atom</td><td>+ sources, examples, remediation, exceptions</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    The agent picks <code>level</code> per query via the MCP tool:
+  </p>
+
+<pre><code>{`prime_query({
+  scope: "focus:cta",
+  level: "core",        // ← summary | core | full
+  tags: ["fintech"],
+  budget_tokens: 800,
+})`}</code></pre>
+
+  <h2>Image · the projection model</h2>
+  <p>
+    The visual: existence (the index) is loaded eagerly; content (the projections)
+    streams in by id when the agent decides.
+  </p>
+  <p><img src="/projection-model.png" alt="Projection model — existence is not content; agent picks summary, core, or full" /></p>
+
+  <h2>The chunker is kind-aware</h2>
+  <p>
+    What goes in <code>summary</code> depends on the kind. A <code>rule</code>'s
+    summary is its claim; a <code>method</code>'s summary is its goal; a
+    <code>fact</code>'s summary is its statement. The chunker
+    (<code>packages/compiler/src/chunker.ts</code>) walks the AST per-atom:
+  </p>
+
+<pre><code>{`// packages/compiler/src/chunker.ts (signature)
+export interface ChunkLevels {
+  /** ~30 tok: description + tags + 1-line claim */
+  summary: string;
+  /** ~150 tok: + core body fields */
+  core: string;
+  /** ~380 tok: + sources + examples + relations + notes */
+  full: string;
+}
+
+export function chunk(atom: AtomDeclaration): ChunkLevels { ... }`}</code></pre>
+
+  <h2>Per-kind splitting rules</h2>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>summary</th><th>core</th><th>full</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>rule</code></td><td>The claim</td><td>+ applies-to, severity</td><td>+ remediation, exceptions, validates-with</td></tr>
+      <tr><td><code>pattern</code></td><td>Problem statement</td><td>+ solution + structure</td><td>+ examples, behaviours</td></tr>
+      <tr><td><code>fact</code></td><td>Statement</td><td>+ confidence + applies-to</td><td>+ sources, counter-conditions</td></tr>
+      <tr><td><code>method</code></td><td>Goal</td><td>+ key steps</td><td>+ contract, tools, examples</td></tr>
+      <tr><td><code>persona</code></td><td>Posture</td><td>+ voice + style hooks</td><td>+ examples, anti-patterns</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Compiled artifact layout</h2>
+<pre><code>{`compiled/
+└── @scope/
+    └── kind-name/
+        ├── atom.yaml             # metadata only
+        ├── graph.yaml            # resolved edges
+        └── chunks/
+            ├── summary.md        # ~30 tok
+            ├── core.md           # ~150 tok
+            └── full.md           # ~380 tok`}</code></pre>
+
+  <p>
+    The runtime never reads <code>chunks/</code>. The MCP server returns paths; the
+    agent reads them via its own <code>Read</code> tool.
+  </p>
+
+  <h2>Why exactly three levels?</h2>
+  <p>
+    Two is too few — agents need a "summary in the index" + "core for retrieval-hits"
+    + "full for focal atoms." Four is unnecessary — the third tier already handles
+    everything that doesn't fit in core. Empirically (~12 corpora compiled across the
+    reference and example Skills) the three-level split has not needed extension.
+  </p>
+</DocsLayout>

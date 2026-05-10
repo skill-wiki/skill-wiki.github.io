@@ -1,0 +1,362 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadAll, totals, allKinds } from '../lib/corpus';
+
+const { corpora } = loadAll();
+const t = totals();
+const kinds = allKinds();
+
+const flagship = corpora.find((c) => c.slug === 'frontend-design');
+const otherPacks = corpora.filter((c) => c.slug !== 'frontend-design');
+const flagshipKindCount = flagship ? new Set(flagship.atoms.map((a) => a.kind)).size : 0;
+const flagshipNS = flagship ? [...new Set(flagship.atoms.map((a) => a.prefix))].sort() : [];
+
+const fmt = new Intl.NumberFormat('en-US');
+
+const heroSnippet = `<span class="k">rule</span> <span class="id">DeglazeAfterSearing</span> {
+  <span class="k">id</span>: <span class="s">"@recipes/rule-deglaze-after-searing"</span>
+  <span class="k">version</span>: <span class="s">"1.0.0"</span>
+
+  <span class="k">claim</span>: <span class="s">"After searing, deglaze the pan with</span>
+<span class="s">          stock or wine to incorporate fond."</span>
+
+  <span class="k">applies-to</span>: [<span class="v">braise</span>, <span class="v">roast</span>]
+  <span class="k">severity</span>: <span class="v">recommended</span>
+
+  <span class="k">requires</span>: [
+    <span class="id">@recipes/term-deglazing</span>,
+    <span class="id">@recipes/method-pan-sauce</span>,
+  ]
+
+  <span class="k">validates-with</span>: [
+    <span class="id">@recipes/source-mcgee-on-food</span>,
+  ]
+}`;
+
+const mcpConfigSnippet = `{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": { "PRIME_DIR": "/abs/path/to/compiled" }
+    }
+  }
+}`;
+---
+<Base title="Skill Wiki" current="home">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="pill">v0.1.0</span> Apache-2.0 · MCP-native · open protocol
+        </p>
+        <h1>The protocol for Skills.</h1>
+        <p class="lede">
+          Skill Wiki turns each <code>SKILL.md</code> blob into a
+          <strong>wiki of typed atoms</strong> — addressable by ID, with a
+          declared edge graph, retrieved on demand. Agents see a ~3 KB index
+          of what exists; atom bodies stream in only when the brief calls
+          for them.
+        </p>
+        <p class="lede" style="margin-bottom: 0;">
+          Wikipedia for Skills. Typed all the way down.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-large" href="/docs/usage/install">Get started →</a>
+          <a class="btn btn-large" href="/marketplace">Browse Skills</a>
+          <a class="btn btn-large" href="https://github.com/skill-wiki/prime-system" rel="noopener">View on GitHub ↗</a>
+        </div>
+      </div>
+
+      <div class="hero-snippet" aria-hidden="true">
+        <div class="hero-snippet-head">
+          <span>rule-deglazing.prime</span>
+          <span>1.0.0</span>
+        </div>
+        <pre><code set:html={heroSnippet}></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY (3 features) -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Why Skill Wiki</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        Stop bulk-loading SKILL.md files into your agent.
+      </h2>
+      <p class="section-lede">
+        Three architectural inversions, each with a measurable cost saved. Read the
+        <a href="/docs/background/problem">background</a> for the long version.
+      </p>
+
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-icon">≠</div>
+          <h3>Existence ≠ content</h3>
+          <p>
+            Agents always see a ~3 KB <code>_index.xml</code> of what exists. Atom
+            bodies load only when retrieval picks them — addressed by ID, not guessed
+            by relevance.
+          </p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">→</div>
+          <h3>Typed edges, not flat <code>related</code></h3>
+          <p>
+            14 verbs (<code>requires</code>, <code>validates-with</code>,
+            <code>contradicts</code>, <code>specializes</code>, …) carry semantics the
+            parser and L3 checker reason over. The graph isn't decoration.
+          </p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">⊗</div>
+          <h3>Three projection levels</h3>
+          <p>
+            Each atom compiles to <code>summary</code> (~30 tok),
+            <code>core</code> (~150 tok), <code>full</code> (~380 tok). Pick the
+            smallest projection that fits the budget.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS — two strips: protocol surface vs marketplace deployment -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Protocol surface · v1.0 frozen</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        What the spec defines
+      </h2>
+      <p class="section-lede">
+        Four numbers about the protocol itself — fixed at v1.0. They don't change
+        when you add Skills.
+      </p>
+      <div class="kpi">
+        <div>
+          <div class="lbl">Atom kinds</div>
+          <div class="n">28</div>
+          <div class="sub">5 layers · frozen v1.0</div>
+        </div>
+        <div>
+          <div class="lbl">Edge verbs</div>
+          <div class="n">14</div>
+          <div class="sub">L3-checked semantics</div>
+        </div>
+        <div>
+          <div class="lbl">Projection levels</div>
+          <div class="n">3</div>
+          <div class="sub">~30 / ~150 / ~380 tok</div>
+        </div>
+        <div>
+          <div class="lbl">Index footprint</div>
+          <div class="n">~3 KB</div>
+          <div class="sub">always in agent context</div>
+        </div>
+      </div>
+
+      <p class="metrics-divider">— and what's currently shipping —</p>
+
+      <p class="section-eyebrow" style="margin-top: 0;">Marketplace · live</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0; margin-bottom: 16px;">
+        Reference deployment
+      </h2>
+      <p class="section-lede">
+        Numbers from the {t.corpora} reference Skills in this site's marketplace —
+        compiled with the v0.1.0 reference implementation.
+      </p>
+      <div class="kpi">
+        <div>
+          <div class="lbl">Atoms compiled</div>
+          <div class="n">{fmt.format(t.atoms)}</div>
+          <div class="sub">across {t.corpora} Skills</div>
+        </div>
+        <div>
+          <div class="lbl">Typed edges</div>
+          <div class="n">{fmt.format(t.edges)}</div>
+          <div class="sub">L3-validated</div>
+        </div>
+        <div>
+          <div class="lbl">Skills</div>
+          <div class="n">{t.corpora}</div>
+          <div class="sub">1 flagship · 3 examples</div>
+        </div>
+        <div>
+          <div class="lbl">npm packages</div>
+          <div class="n">7</div>
+          <div class="sub">parser · compiler · runtime · …</div>
+        </div>
+      </div>
+      <p style="margin-top: 20px; font-size: 14px; color: var(--fg-muted);">
+        See the full listing in <a href="/marketplace">Marketplace →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- FLAGSHIP -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Flagship Skill</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        From the Marketplace
+      </h2>
+      <p class="section-lede">
+        The protocol is domain-blind — Skills are where actual knowledge lives.
+        Each Skill is a self-contained <code>@scope</code> of typed atoms — what
+        Anthropic's <code>SKILL.md</code> format would look like if every line
+        had a type.
+      </p>
+      <p class="section-lede" style="margin-bottom: 40px;">
+        <code>@frontend-design</code> is the flagship reference Skill: 898 typed
+        atoms about visual design, built on the same protocol you'd use to ship
+        a security Skill or a cooking Skill.
+      </p>
+
+      {flagship && (
+        <div class="flagship">
+          <div class="flagship-head">
+            <span class="label">FEATURED</span>
+            <span style="font-family: var(--font-mono); color: var(--fg-muted);">
+              skill-wiki/prime-corpus-frontend
+            </span>
+          </div>
+          <div class="flagship-body">
+            <div>
+              <h2><code>@frontend-design</code></h2>
+              <p class="flagship-desc">
+                {fmt.format(flagship.total)} typed atoms across 9 design sub-domains —
+                color, typography, motion, spacing, accessibility, copy voice, hierarchy,
+                layout, and component patterns. Reference corpus + reference application:
+                5-tool MCP wrapper, 31 personas, 30 task taxonomies, 20-task benchmark fixtures.
+              </p>
+              <dl>
+                <dt>Atoms</dt><dd>{fmt.format(flagship.total)}</dd>
+                <dt>Kinds</dt><dd>{flagshipKindCount} of {kinds.length}</dd>
+                <dt>Tokens</dt><dd>{fmt.format(flagship.totalTokens || 0)} compiled</dd>
+                <dt>Namespaces</dt><dd>{flagshipNS.length}</dd>
+                <dt>License</dt><dd>Apache-2.0</dd>
+              </dl>
+              <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
+              <div class="hero-cta" style="margin-top: var(--s-4);">
+                <a class="btn btn-primary" href="/marketplace#frontend-design">Visit Skill →</a>
+                <a class="btn" href="/browse?corpus=frontend-design">Browse {flagship.total} atoms</a>
+              </div>
+            </div>
+            <aside class="flagship-aside">
+              <div>
+                <h4>Namespaces</h4>
+                <div class="chips">
+                  {flagshipNS.map((ns) => <code>{ns}</code>)}
+                </div>
+              </div>
+              <div>
+                <h4>MCP tools (5)</h4>
+                <div class="chips">
+                  <code>prime_query</code>
+                  <code>prime_resolve</code>
+                  <code>prime_intent</code>
+                  <code>prime_validate</code>
+                  <code>prime_compile</code>
+                </div>
+              </div>
+              <div>
+                <h4>Sub-domains</h4>
+                <div class="chips">
+                  <code>color</code>
+                  <code>typography</code>
+                  <code>motion</code>
+                  <code>spacing</code>
+                  <code>a11y</code>
+                  <code>voice</code>
+                  <code>hierarchy</code>
+                  <code>layout</code>
+                  <code>components</code>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      <div class="pack-grid">
+        {otherPacks.map((c) => (
+          <a class="pack-card" href={`/marketplace#${c.slug}`}>
+            <div class="pack-head">
+              <h3 class="pack-name">@{c.slug}</h3>
+              <span class="pack-pill">{c.prefix}</span>
+              <span class="pack-pill">v0.1.0</span>
+            </div>
+            <p class="pack-desc">
+              {c.domain?.description || `${c.total} typed atoms across ${[...new Set(c.atoms.map((a) => a.kind))].length} kinds. Example Skill.`}
+            </p>
+            <div class="pack-stats">
+              <span><span class="dot" style="background: #1a7f37;"></span>{c.total} atoms</span>
+              <span>{[...new Set(c.atoms.map((a) => a.kind))].length} kinds</span>
+              <span>v0.1.0</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL CTA -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Get started</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        Install in 30 seconds.
+      </h2>
+      <p class="section-lede">
+        Skill Wiki ships as an MCP server. Point Claude Code, Cursor, Continue, or any
+        MCP-capable client at it.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);" class="install-grid">
+        <div class="feat" style="padding: var(--s-5);">
+          <h3 style="margin-top: 0;">1 · Boot the server</h3>
+<pre style="margin: 0;"><code>bun add -g @prime-lang/cli
+bunx @prime-lang/mcp-server-core</code></pre>
+        </div>
+        <div class="feat" style="padding: var(--s-5);">
+          <h3 style="margin-top: 0;">2 · Wire into Claude Code</h3>
+<pre style="margin: 0;"><code>{mcpConfigSnippet}</code></pre>
+        </div>
+      </div>
+
+      <div class="hero-cta" style="margin-top: var(--s-5);">
+        <a class="btn btn-primary" href="/docs/usage/install">Read full install guide →</a>
+        <a class="btn" href="/docs/spec/overview">Read the spec</a>
+        <a class="btn" href="/docs/architecture/pipeline">View architecture</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST STRIP -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="lead-strip">
+        <div>980 atoms · 1.94 s build</div>
+        <div>448 tests passing</div>
+        <div>0 typecheck errors</div>
+        <div>7 npm packages · Apache-2.0</div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  @media (max-width: 760px) {
+    .install-grid { grid-template-columns: 1fr !important; }
+  }
+  .metrics-divider {
+    text-align: center;
+    margin: 48px 0 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+  }
+</style>

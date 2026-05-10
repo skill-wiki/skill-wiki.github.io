@@ -1,0 +1,116 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Domain plugin" slug="architecture/domain-plugin" description="domain.yaml + DomainRegistry — how a corpus declares its domain without patching the protocol.">
+  <h1>Domain plugin</h1>
+  <p style="color: var(--fg-muted);">
+    Skill Wiki ships with <strong>zero built-in domains</strong>. A domain is a
+    <code>domain.yaml</code> file dropped in your corpus root. The runtime discovers
+    and registers it at boot.
+  </p>
+
+  <h2>Why config-driven?</h2>
+  <p>
+    Earlier prototypes had domains baked into the runtime — adding "fintech" required
+    a code change. That made forking, customising, and shipping domain-specific
+    corpora painful. v0.1.0 inverts: every domain is a YAML config + recursive
+    discovery.
+  </p>
+
+  <h2>The flow</h2>
+  <p><img src="/domain-extension-flow.png" alt="Domain extension flow — drop in a YAML, restart, done" /></p>
+
+<pre><code>{`primes/                                  ┐
+├── sources/                             │
+│   └── @my/                             │  scanned recursively
+│       ├── ...                          │  by discoverDomains()
+│       └── domain.yaml  ←  one per Skill ┘
+
+                  ▼
+       ┌──────────────────────┐
+       │  DomainRegistry      │  in-memory map
+       │  (per-process)       │
+       └──────────────────────┘
+                  │
+                  ▼
+        runtime queries pick up
+        domain-specific:
+          • tag boosts
+          • intent fields
+          • L5 validator hooks`}</code></pre>
+
+  <h2>What <code>domain.yaml</code> declares</h2>
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: "Design knowledge for AI agents — color, type, motion, …"
+
+# Hierarchical taxonomy of sub-domains.
+hierarchy: visual-hierarchy
+
+# Multi-axis tags the retriever can boost on.
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+
+# Composition contract scaffold (defaults).
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# L5 validators (optional).
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: "^[<]([a-z][a-z0-9]*)\\b[^>]*[>]"
+  - name: color-token
+    checker: ai-judge
+    rubric: "@frontend-design/rubric-color-token"`}</code></pre>
+
+  <h2>How the runtime uses it</h2>
+
+  <h3>Tag boosts</h3>
+  <p>
+    Atoms carrying tags from <code>axes:</code> get a multiplicative boost when the
+    retriever's <code>IntentObject</code> matches. e.g. an atom tagged
+    <code>typography</code> ranks higher when intent says
+    <code>focus: "typography-and-rhythm"</code>.
+  </p>
+
+  <h3>Intent fields</h3>
+  <p>
+    L1 (intent classification) reads <code>axes</code> to know what fields to populate
+    in the IntentObject. A frontend-design L1 produces <code>{`{ axes: ["layout", "color"], persona: "@stripe-fintech", ... }`}</code>;
+    a security-Skill L1 produces a different shape entirely.
+  </p>
+
+  <h3>L5 validator hooks</h3>
+  <p>
+    The <code>validators</code> array describes how to check generated output. Each entry
+    is a tuple of (checker name, parameters). The reference v0.1.0 supports two checkers:
+    <code>regex</code> and <code>ai-judge</code>. Domain plugins can register additional
+    checkers via the MCP server's plugin slot.
+  </p>
+
+  <h2>Discovery rules</h2>
+  <ul>
+    <li>Recursive walk from <code>$PRIME_DIR</code>, max depth 4.</li>
+    <li>Files named exactly <code>domain.yaml</code> at any level.</li>
+    <li>Names must be unique across loaded domains. Conflicts hard-fail at boot.</li>
+    <li>Unicode tags allowed. Emoji tags work.</li>
+    <li>Loaded once per server process; <code>kill -HUP</code> reloads.</li>
+  </ul>
+
+  <h2>Tradeoffs</h2>
+  <p>
+    Plugin model means a v1 protocol that doesn't need to know about your domain. The
+    cost: validation must be domain-blind in the protocol layer. The L1 / L5
+    plugins are where domain-specific intelligence lives.
+  </p>
+
+  <p>
+    Authoring a <code>domain.yaml</code>: see <a href="/docs/extending/domain-yaml">Extending → domain.yaml</a>.
+  </p>
+</DocsLayout>

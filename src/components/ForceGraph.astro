@@ -1,0 +1,519 @@
+---
+import { buildGraph } from '../lib/graph-data';
+const { nodes, edges } = buildGraph(80);
+const data = JSON.stringify({ nodes, edges });
+---
+<div class="fg-wrap">
+  <div class="fg-overlay">
+    <div class="fg-stat">
+      <span class="lbl">Nodes</span>
+      <span class="n">{nodes.length}</span>
+    </div>
+    <div class="fg-stat">
+      <span class="lbl">Edges</span>
+      <span class="n">{edges.length}</span>
+    </div>
+    <div class="fg-stat">
+      <span class="lbl">Density</span>
+      <span class="n">{(edges.length / (nodes.length * (nodes.length - 1) / 2) * 100).toFixed(2)}%</span>
+    </div>
+  </div>
+
+  <div class="fg-detail" id="fg-detail" aria-live="polite">
+    <p class="fg-detail-hint">Drag · click a node · scroll to zoom</p>
+  </div>
+
+  <canvas class="fg-canvas" id="fg-canvas" aria-label="Atom graph"></canvas>
+</div>
+
+<script type="application/json" id="fg-data" set:html={data}></script>
+
+<script>
+  type Node = {
+    id: string;
+    short: string;
+    kind: string;
+    pack: string;
+    deg: number;
+    preview: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    fx?: number;
+    fy?: number;
+    r: number;
+  };
+  type Edge = { source: string; target: string; verb: string; s?: Node; t?: Node };
+
+  const KIND_COLOR: Record<string, string> = {
+    'fact':            '#6ee7b7',
+    'rule':            '#fcd34d',
+    'pattern':         '#93c5fd',
+    'anti-pattern':    '#fca5a5',
+    'method':          '#c4b5fd',
+    'term':            '#e9d5ff',
+    'principle':       '#5eead4',
+    'tradeoff':        '#fdba74',
+    'collection':      '#cbd5e1',
+    'persona':         '#fda4af',
+    'voice':           '#f9a8d4',
+    'template':        '#a5b4fc',
+    'check':           '#86efac',
+    'source':          '#d6d3d1',
+    'counter-example': '#fca5a5',
+    'example':         '#6ee7b7',
+    'taxonomy':        '#7dd3fc',
+    'feedback':        '#ddd6fe',
+    'provocation':     '#f0abfc',
+    'scope':           '#bbf7d0',
+    'constraint':      '#fdba74',
+    'type':            '#d8b4fe',
+    'tool':            '#cbd5e1',
+    'transform':       '#d6d3d1',
+    'value':           '#bef264',
+    'category':        '#99f6e4',
+    'metric':          '#d6d3d1',
+    'step':            '#cbd5e1',
+  };
+
+  function init() {
+    const dataEl = document.getElementById('fg-data');
+    const canvas = document.getElementById('fg-canvas') as HTMLCanvasElement | null;
+    const detail = document.getElementById('fg-detail');
+    if (!dataEl || !canvas || !detail) return;
+
+    const raw = JSON.parse(dataEl.textContent || '{"nodes":[],"edges":[]}');
+    const nodes: Node[] = raw.nodes.map((n: any) => ({
+      ...n,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      r: 4 + Math.min(12, Math.sqrt(n.deg) * 1.6),
+    }));
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const edges: Edge[] = raw.edges
+      .map((e: any) => ({ ...e, s: byId.get(e.source), t: byId.get(e.target) }))
+      .filter((e: Edge) => e.s && e.t);
+
+    // Layout: spread nodes on a wide circle to start, then settle via simulation.
+    nodes.forEach((n, i) => {
+      const a = (i / nodes.length) * Math.PI * 2;
+      n.x = Math.cos(a) * 200;
+      n.y = Math.sin(a) * 200;
+    });
+
+    let w = 0, h = 0, dpr = window.devicePixelRatio || 1;
+    let cx = 0, cy = 0;
+    let zoom = 1;
+    let panX = 0, panY = 0;
+    let hovered: Node | null = null;
+    let selected: Node | null = null;
+    let dragging: Node | null = null;
+    let isPanning = false;
+    let lastPan: { x: number; y: number } | null = null;
+
+    const ctx = canvas.getContext('2d')!;
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      cx = w / 2;
+      cy = h / 2;
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Simulation params.
+    const REPEL = 9000;
+    const SPRING_K = 0.012;
+    const SPRING_LEN = 60;
+    const CENTER_K = 0.0008;
+    const DAMP = 0.86;
+
+    function tick() {
+      // Apply forces.
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        if (a === dragging) continue;
+        let fx = -a.x * CENTER_K;
+        let fy = -a.y * CENTER_K;
+        for (let j = 0; j < nodes.length; j++) {
+          if (i === j) continue;
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          let d2 = dx * dx + dy * dy;
+          if (d2 < 1) d2 = 1;
+          const f = REPEL / d2;
+          const d = Math.sqrt(d2);
+          fx += (dx / d) * f;
+          fy += (dy / d) * f;
+        }
+        a.vx = (a.vx + fx * 0.001) * DAMP;
+        a.vy = (a.vy + fy * 0.001) * DAMP;
+      }
+      for (const e of edges) {
+        const s = e.s!;
+        const t = e.t!;
+        if (s === dragging && t === dragging) continue;
+        const dx = t.x - s.x;
+        const dy = t.y - s.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        const force = (d - SPRING_LEN) * SPRING_K;
+        const fx = (dx / d) * force;
+        const fy = (dy / d) * force;
+        if (s !== dragging) { s.vx += fx; s.vy += fy; }
+        if (t !== dragging) { t.vx -= fx; t.vy -= fy; }
+      }
+      for (const n of nodes) {
+        if (n === dragging) continue;
+        n.x += n.vx;
+        n.y += n.vy;
+      }
+    }
+
+    // Highlighted neighborhood when a node is selected/hovered.
+    function neighborhood(target: Node | null): Set<string> {
+      if (!target) return new Set();
+      const ids = new Set<string>([target.id]);
+      for (const e of edges) {
+        if (e.s!.id === target.id) ids.add(e.t!.id);
+        if (e.t!.id === target.id) ids.add(e.s!.id);
+      }
+      return ids;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(cx + panX, cy + panY);
+      ctx.scale(zoom, zoom);
+
+      const focus = selected || hovered;
+      const nb = neighborhood(focus);
+
+      // Edges
+      for (const e of edges) {
+        const s = e.s!;
+        const t = e.t!;
+        const inFocus = !!focus && (focus.id === s.id || focus.id === t.id);
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(t.x, t.y);
+        ctx.lineWidth = inFocus ? 1.4 : 0.6;
+        ctx.strokeStyle = inFocus
+          ? 'rgba(34, 211, 238, 0.85)'
+          : focus
+            ? 'rgba(120, 120, 130, 0.16)'
+            : 'rgba(180, 180, 195, 0.22)';
+        ctx.stroke();
+      }
+
+      // Nodes
+      for (const n of nodes) {
+        const inFocus = !focus || nb.has(n.id);
+        const isFocus = focus?.id === n.id;
+        const color = KIND_COLOR[n.kind] || '#cbd5e1';
+
+        // glow
+        if (isFocus) {
+          const grad = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, n.r * 4.5);
+          grad.addColorStop(0, 'rgba(34, 211, 238, 0.45)');
+          grad.addColorStop(1, 'rgba(34, 211, 238, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r * 4.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = inFocus
+          ? color
+          : 'rgba(120, 120, 130, 0.25)';
+        ctx.fill();
+        ctx.lineWidth = isFocus ? 2 : 1;
+        ctx.strokeStyle = isFocus
+          ? 'rgba(34, 211, 238, 1)'
+          : inFocus
+            ? 'rgba(244, 244, 248, 0.85)'
+            : 'rgba(120, 120, 130, 0.4)';
+        ctx.stroke();
+      }
+
+      // Labels for the focused atom + immediate neighbors
+      if (focus) {
+        for (const n of nodes) {
+          if (!nb.has(n.id)) continue;
+          ctx.font = '11px JetBrains Mono, ui-monospace, monospace';
+          ctx.fillStyle = 'rgba(244, 244, 248, 0.85)';
+          ctx.textAlign = 'center';
+          ctx.fillText(n.short.slice(0, 22), n.x, n.y - n.r - 6);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function frame() {
+      tick();
+      draw();
+      requestAnimationFrame(frame);
+    }
+    frame();
+
+    // Pointer interactions.
+    function eventCoord(ev: PointerEvent | MouseEvent | WheelEvent) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (('clientX' in ev ? ev.clientX : 0) - rect.left - cx - panX) / zoom,
+        y: (('clientY' in ev ? ev.clientY : 0) - rect.top - cy - panY) / zoom,
+      };
+    }
+
+    function pickNode(p: { x: number; y: number }): Node | null {
+      let best: Node | null = null;
+      let bestD = Infinity;
+      for (const n of nodes) {
+        const dx = n.x - p.x;
+        const dy = n.y - p.y;
+        const d2 = dx * dx + dy * dy;
+        const r2 = (n.r + 6) * (n.r + 6);
+        if (d2 < r2 && d2 < bestD) {
+          bestD = d2;
+          best = n;
+        }
+      }
+      return best;
+    }
+
+    canvas.addEventListener('pointerdown', (ev) => {
+      const p = eventCoord(ev);
+      const n = pickNode(p);
+      if (n) {
+        dragging = n;
+        canvas.setPointerCapture(ev.pointerId);
+      } else {
+        isPanning = true;
+        lastPan = { x: ev.clientX, y: ev.clientY };
+      }
+    });
+    canvas.addEventListener('pointermove', (ev) => {
+      if (dragging) {
+        const p = eventCoord(ev);
+        dragging.x = p.x;
+        dragging.y = p.y;
+        dragging.vx = 0;
+        dragging.vy = 0;
+      } else if (isPanning && lastPan) {
+        panX += ev.clientX - lastPan.x;
+        panY += ev.clientY - lastPan.y;
+        lastPan = { x: ev.clientX, y: ev.clientY };
+      } else {
+        const p = eventCoord(ev);
+        hovered = pickNode(p);
+        canvas.style.cursor = hovered ? 'pointer' : 'grab';
+      }
+    });
+    canvas.addEventListener('pointerup', (ev) => {
+      if (dragging) {
+        // Was it a click? (no significant motion)
+        selected = dragging;
+        showDetail(selected);
+        dragging = null;
+      } else if (isPanning) {
+        isPanning = false;
+        lastPan = null;
+      }
+    });
+    canvas.addEventListener('pointerleave', () => {
+      hovered = null;
+      isPanning = false;
+      lastPan = null;
+      dragging = null;
+    });
+
+    canvas.addEventListener(
+      'wheel',
+      (ev) => {
+        ev.preventDefault();
+        const factor = Math.exp(-ev.deltaY * 0.001);
+        const next = Math.min(2.4, Math.max(0.4, zoom * factor));
+        zoom = next;
+      },
+      { passive: false },
+    );
+
+    function showDetail(n: Node) {
+      const out = edges
+        .filter((e) => e.s!.id === n.id)
+        .slice(0, 6)
+        .map((e) => `<span class="v">${e.verb}</span> ${e.t!.short}`)
+        .join('<br>');
+      const inn = edges
+        .filter((e) => e.t!.id === n.id)
+        .slice(0, 4)
+        .map((e) => `<span class="v">${e.verb}</span> ← ${e.s!.short}`)
+        .join('<br>');
+      detail!.innerHTML = `
+        <p class="fg-detail-kind" style="color:${KIND_COLOR[n.kind] || '#cbd5e1'}">${n.kind}</p>
+        <p class="fg-detail-id">${n.id}</p>
+        <p class="fg-detail-preview">${n.preview || '—'}</p>
+        ${out ? `<div class="fg-detail-edges"><h4>OUT</h4>${out}</div>` : ''}
+        ${inn ? `<div class="fg-detail-edges"><h4>IN</h4>${inn}</div>` : ''}
+      `;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  .fg-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 11;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-3);
+    background:
+      radial-gradient(800px 400px at 50% 50%, rgba(34, 211, 238, 0.06), transparent 60%),
+      var(--bg-elev);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .fg-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @media (prefers-color-scheme: light) {
+    .fg-wrap::before {
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    }
+  }
+  .fg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    z-index: 1;
+  }
+  .fg-canvas:active { cursor: grabbing; }
+
+  .fg-overlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 2;
+    display: flex;
+    gap: 12px;
+    pointer-events: none;
+  }
+  .fg-stat {
+    background: rgba(13, 14, 18, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-1);
+    padding: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1;
+  }
+  @media (prefers-color-scheme: light) {
+    .fg-stat { background: rgba(255, 255, 255, 0.85); }
+  }
+  .fg-stat .lbl {
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10px;
+  }
+  .fg-stat .n { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .fg-detail {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2;
+    width: 280px;
+    background: rgba(13, 14, 18, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2);
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-soft);
+    overflow-y: auto;
+  }
+  @media (prefers-color-scheme: light) {
+    .fg-detail { background: rgba(255, 255, 255, 0.92); }
+  }
+  @media (max-width: 720px) {
+    .fg-detail { display: none; }
+  }
+  .fg-detail-hint {
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    margin: 0;
+  }
+  .fg-detail-kind {
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  .fg-detail-id {
+    color: var(--fg);
+    font-size: 13px;
+    margin: 0 0 10px;
+    word-break: break-all;
+    font-weight: 600;
+  }
+  .fg-detail-preview {
+    color: var(--fg-soft);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  .fg-detail-edges { margin-top: 12px; }
+  .fg-detail-edges h4 {
+    text-transform: uppercase;
+    font-size: 10px;
+    color: var(--fg-faint);
+    letter-spacing: 0.14em;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  .fg-detail-edges .v {
+    color: var(--accent);
+    font-size: 11px;
+  }
+</style>

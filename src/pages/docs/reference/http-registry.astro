@@ -1,0 +1,123 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="HTTP registry endpoints" slug="reference/http-registry" description="Full REST contract for a Skill Wiki registry.">
+  <h1>HTTP registry endpoints</h1>
+  <p style="color: var(--fg-muted);">
+    The minimum HTTP contract a Skill Wiki registry must implement.
+    Reference impl: <code>packages/registry/src/index.ts</code>.
+  </p>
+
+  <h2>Authentication</h2>
+  <p>
+    <code>POST</code> endpoints require <code>Authorization: Bearer &lt;token&gt;</code>.
+    Reads are public unless the registry chooses otherwise. Tokens are issued
+    out-of-band; format and lifecycle are registry-specific.
+  </p>
+
+  <h2>Endpoints</h2>
+
+  <h3><code>POST /publish</code></h3>
+  <p>Upload a Skill tarball + manifest.</p>
+<pre><code>{`Headers:
+  Authorization: Bearer <token>
+  Content-Type:  multipart/form-data
+
+Form parts:
+  manifest:  pack.yaml content (string)
+  tarball:   .tar.gz binary
+
+Response (201):
+{
+  "name":     "@my/Skill",
+  "version":  "1.0.0",
+  "sha256":   "...",
+  "url":      "/pack/@my/pack/1.0.0/tarball"
+}
+
+Errors:
+  400  bad manifest schema
+  401  bad token
+  409  version already published`}</code></pre>
+
+  <h3><code>GET /pack/:scope</code></h3>
+  <p>List versions of a Skill.</p>
+<pre><code>{`Path: /pack/%40my%2Fcooking          // url-encoded "@my/cooking"
+
+Response (200):
+{
+  "name": "@my/cooking",
+  "versions": [
+    { "version": "1.0.0", "published_at": "2026-05-01T12:00:00Z" },
+    { "version": "1.1.0", "published_at": "2026-05-08T09:30:00Z" }
+  ],
+  "latest": "1.1.0"
+}`}</code></pre>
+
+  <h3><code>GET /pack/:scope/:version</code></h3>
+  <p>Get the manifest of a specific version.</p>
+<pre><code>{`Response (200):
+{
+  "name":          "@my/cooking",
+  "version":       "1.1.0",
+  "description":   "Cooking knowledge ...",
+  "license":       "Apache-2.0",
+  "atoms":         123,
+  "namespaces":    ["@my"],
+  "prime-version": "1.0",
+  "sha256":        "...",
+  "tarball_url":   "/pack/@my/cooking/1.1.0/tarball"
+}`}</code></pre>
+
+  <h3><code>GET /pack/:scope/:version/tarball</code></h3>
+  <p>Download the Skill tarball.</p>
+<pre><code>{`Response (200):
+  Content-Type: application/gzip
+  Body: tarball bytes`}</code></pre>
+
+  <h2>Optional endpoints</h2>
+
+  <h3><code>GET /search?q=...</code></h3>
+<pre><code>{`Response (200):
+{
+  "results": [
+    {
+      "name":        "@my/cooking",
+      "version":     "1.1.0",
+      "description": "...",
+      "score":       0.84
+    }
+  ]
+}`}</code></pre>
+
+  <h3><code>DELETE /pack/:scope/:version</code></h3>
+  <p>Yank a version. Authenticated. Most registries SHOULD reject this for non-prereleases.</p>
+
+  <h2>Status codes</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>200</td><td>OK.</td></tr>
+      <tr><td>201</td><td>Created (publish).</td></tr>
+      <tr><td>304</td><td>Not Modified (use ETag for tarballs).</td></tr>
+      <tr><td>400</td><td>Schema error in manifest or query.</td></tr>
+      <tr><td>401</td><td>Bad / missing auth.</td></tr>
+      <tr><td>404</td><td>Skill or version not found.</td></tr>
+      <tr><td>409</td><td>Version conflict on publish.</td></tr>
+      <tr><td>500</td><td>Server error.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Mirror / fallback</h2>
+  <p>
+    The CLI accepts multiple <code>--remote</code> values; on 404 the resolver falls
+    through to the next. This makes vendor mirroring (e.g. corporate proxy in front of
+    a public registry) trivial.
+  </p>
+
+  <h2>Reference implementation</h2>
+  <p>
+    <code>packages/registry/src/index.ts</code> — single-file Bun server using SQLite
+    for the manifest store and the local filesystem for tarballs. ~600 LOC.
+  </p>
+</DocsLayout>

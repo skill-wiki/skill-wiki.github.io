@@ -1,0 +1,89 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Runtime" slug="architecture/runtime" description="The runtime — atom loader, projection resolver, MCP server. Never reads chunk content.">
+  <h1>Runtime</h1>
+  <p style="color: var(--fg-muted);">
+    The runtime serves a compiled corpus to agents over MCP. It has one rule:
+    <strong>never read chunk content</strong>. The runtime serves metadata and
+    projection paths. The agent reads atom bodies via its own <code>Read</code> tool.
+  </p>
+
+  <h2>Query flow</h2>
+  <p><img src="/runtime-query-flow.png" alt="Runtime query flow — agent, MCP server, atom index, disk" /></p>
+
+<pre><code>{`agent                   mcp-server-core        atom index    disk
+ │                            │                     │           │
+ │── prime_query(brief) ─────▶│                     │           │
+ │                            │── search index ────▶│           │
+ │                            │                     │           │
+ │                            │  score atoms        │           │
+ │                            │  + apply domain tag │           │
+ │                            │  boost              │           │
+ │                            │                     │           │
+ │◀── results: [{ id, kind, ──│                     │           │
+ │       description, level,  │                     │           │
+ │       path }]              │                     │           │
+ │                                                              │
+ │── Read(path/chunks/core.md) ────────────────────────────────▶│
+ │◀── selected atom content ───────────────────────────────────│`}</code></pre>
+
+  <p>
+    Notice the runtime <em>returns paths</em> — never atom body content. Two reasons:
+  </p>
+  <ol>
+    <li>The agent's existing <code>Read</code> tool already streams content efficiently and the runtime should not duplicate that work.</li>
+    <li>Bodies on the runtime side would tempt server-side caching that competes with the agent's context budget.</li>
+  </ol>
+
+  <h2>Two phases</h2>
+
+  <h3>Boot</h3>
+  <p>
+    First MCP request triggers boot. The runtime reads <code>_index.xml</code>,
+    discovers <code>domain.yaml</code> files recursively, and registers them with the
+    in-process <code>DomainRegistry</code>. It does <em>not</em> read any
+    <code>chunks/*.md</code>.
+  </p>
+
+  <h3>Steady-state queries</h3>
+  <p>Each MCP query is a synchronous in-memory operation:</p>
+  <ol>
+    <li>Score candidates by 6-axis ranking (kind / tag / edge / fit / persona / quality).</li>
+    <li>Apply domain tag boost from <code>domain.yaml</code>.</li>
+    <li>Resolve contracts (must-include / must-avoid / conditional).</li>
+    <li>Compute projection level for each atom under the requested budget.</li>
+    <li>Return <code>{`{ hits: [{ id, kind, path, tokens, ... }] }`}</code>.</li>
+  </ol>
+
+  <h2>5 MCP tools</h2>
+  <p>The reference server exposes five tools to any MCP client:</p>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>prime_query</code></td><td>Search atoms by tag / kind / scope / budget.</td></tr>
+      <tr><td><code>prime_resolve</code></td><td>Brief → ranked atoms (calls L1 + L2 + L3 internally).</td></tr>
+      <tr><td><code>prime_intent</code></td><td>Brief → IntentObject (L1 only).</td></tr>
+      <tr><td><code>prime_validate</code></td><td>Generated artifact + atom set → verdict (L5).</td></tr>
+      <tr><td><code>prime_compile</code></td><td>Compile a <code>.prime</code> source on the fly (testing).</td></tr>
+    </tbody>
+  </table>
+
+  <p>See <a href="/docs/reference/mcp">MCP tool schemas</a> for full input/output JSON-Schema.</p>
+
+  <h2>Caching</h2>
+  <p>
+    Index parse → in-memory graph: cached for the lifetime of the server process.
+    Atom-yaml metadata: cached lazily as queries reference each atom.
+    Graph queries: not cached (cheap enough at corpus sizes ≤ 10k atoms).
+  </p>
+
+  <h2>Reload</h2>
+  <p>
+    The runtime watches the index file's mtime by default; touching
+    <code>_index.xml</code> triggers a hot reload of metadata. Chunk-content changes
+    are invisible to the runtime by design — only the agent sees them when it reads.
+  </p>
+</DocsLayout>

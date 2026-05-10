@@ -1,0 +1,96 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="About" current="about">
+  <article class="article">
+    <p class="article-meta">About Skill Wiki</p>
+    <h1>The protocol layer for AI knowledge.</h1>
+
+    <p style="font-size: 18px; color: var(--fg-muted); line-height: 1.55; margin-bottom: 32px; letter-spacing: -0.005em;">
+      Skill Wiki treats domain knowledge as <strong>typed atoms with a declared
+      edge graph, retrieved on demand</strong>. We don't ship 200-line markdown
+      blobs to your agent every turn. We ship a 3 KB index of what exists; the
+      agent decides what to load.
+    </p>
+
+    <h2>Who it's for</h2>
+    <p>
+      Three audiences, in order of impact:
+    </p>
+    <ul>
+      <li>
+        <strong>Agent builders</strong> shipping production AI systems. You
+        want a stable, addressable corpus of domain knowledge — not vibes
+        scraped at request time.
+      </li>
+      <li>
+        <strong>Teams</strong> with internal style guides, playbooks, security
+        policies, or cookbooks. You want them queryable, versioned, and
+        machine-checkable.
+      </li>
+      <li>
+        <strong>Curators</strong> publishing reference corpora that others
+        install with one command. <code>prime publish</code> /
+        <code>prime install</code>, like npm.
+      </li>
+    </ul>
+
+    <h2>The shape of the protocol</h2>
+    <p>
+      Each <strong>atom</strong> has a <strong>kind</strong> (one of 28: fact,
+      rule, pattern, method, persona, tradeoff, …), a <strong>domain</strong>,
+      three <strong>projection levels</strong> (~30 / ~150 / ~380 tokens)
+      compiled from a single source file, and a list of typed <strong>edges</strong>
+      (one of 14 verbs) to other atoms.
+    </p>
+    <p>
+      A consumer queries the graph, resolves a brief to the smallest covering
+      set, projects each atom at the level that fits the budget, and ships only
+      that to the model. <a href="/docs/spec/overview">Read the spec.</a>
+    </p>
+
+    <h2>Specification</h2>
+    <ul>
+      <li><a href="/docs/spec/overview">Spec overview</a> — the protocol surface in one page.</li>
+      <li><a href="/docs/spec/atoms">Atoms</a> — 28 kinds across 5 layers.</li>
+      <li><a href="/docs/spec/edges">Edges</a> — 14 typed verbs.</li>
+      <li><a href="/docs/spec/projection">Projection</a> — 3 levels, kind-aware splitting.</li>
+      <li><a href="/docs/spec/registry">Registry</a> — HTTP contract.</li>
+      <li><a href="https://github.com/skill-wiki/prime-system/blob/main/spec/PRIME-PROTOCOL-v1.md" rel="noopener">PRIME-PROTOCOL-v1.md</a> — the canonical document.</li>
+    </ul>
+
+    <h2>What this site is</h2>
+    <p>
+      A static documentation + marketplace site. No accounts, no analytics, no
+      telemetry. Pages render at build time from the corpora's compiled
+      <code>_index.xml</code> and per-atom <code>chunks/</code> projections.
+      Publishing happens via <code>prime publish</code> against a registry; this
+      site only reads.
+    </p>
+
+    <h2>License</h2>
+    <p>
+      Skill Wiki and the bundled reference packs are open source under <a href="https://github.com/skill-wiki/prime-system/blob/main/LICENSE" rel="noopener">Apache-2.0</a>.
+      Authoring is plain text. Your atoms are yours; the protocol guarantees
+      portability.
+    </p>
+
+    <h2>Contributing</h2>
+    <p>
+      Issues, PRs, and new Skills welcome at
+      <a href="https://github.com/skill-wiki/prime-system" rel="noopener">github.com/skill-wiki/prime-system</a>.
+      The governance model is documented in <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/governance.md" rel="noopener">governance.md</a> —
+      Tier-1 changes need consensus from the protocol team; Tier-2 (kinds, verbs)
+      need a 7-day RFC; Tier-3 (any Skill) needs only the Skill maintainer.
+    </p>
+
+    <h2>Colophon</h2>
+    <p style="color: var(--fg-muted); font-size: 14px;">
+      Built with <a href="https://astro.build" rel="noopener">Astro 4</a>.
+      Inter + JetBrains Mono via Google Fonts. Pages are static HTML; ~3 KB of
+      JS ships only on pages that need it (theme toggle, browse filters,
+      sidebar persistence). A11y baseline: semantic landmarks, keyboard
+      navigable, AA contrast in both themes.
+    </p>
+  </article>
+</Base>

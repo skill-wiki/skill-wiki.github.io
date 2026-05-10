@@ -1,0 +1,106 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="5-layer pipeline" slug="architecture/pipeline" description="From brief to validated output — the five layers of a Skill Wiki turn.">
+  <h1>5-layer pipeline</h1>
+  <p style="color: var(--fg-muted);">
+    A turn through Skill Wiki has exactly five layers. Three are protocol (frozen at v1);
+    two are pluggable (domain-defined).
+  </p>
+
+  <h2>The pipeline</h2>
+  <p><img src="/architecture-system.png" alt="Skill Wiki system architecture — 8 layers from entry to model providers" /></p>
+
+  <p>
+    The architecture image above shows the full surface (8 horizontal bands). Within
+    a single agent turn, the data path is:
+  </p>
+
+<pre><code>{`Brief (free text)
+  ↓ L1 — Intent classification         (plugin)
+IntentObject  ──────────────────────── domain-defined shape
+  ↓ L2 — Retrieval                     (protocol)
+ranked atom set
+  ↓ L3 — Composition                   (protocol)
+contracted atom set + projections
+  ↓ L4 — Generation                    (agent)
+artifact (HTML / JSON / prose)
+  ↓ L5 — Validation                    (plugin)
+verdict { ok | fix-instructions }`}</code></pre>
+
+  <h2>Layer-by-layer</h2>
+
+  <h3>L1 · Intent classification (plugin)</h3>
+  <p>
+    Free-text brief in. <code>IntentObject</code> out. The shape is
+    <em>domain-defined</em> — Skill Wiki only specifies that L1 must produce a
+    serialisable object that downstream layers can read.
+  </p>
+<pre><code>{`// Example (security domain)
+interface SecurityIntentObject {
+  task_type: "threat-model" | "compliance-check" | "code-review";
+  target_surface: "api-endpoint" | "auth-flow" | "data-pipeline";
+  severity_threshold: "low" | "medium" | "high" | "critical";
+  required_frameworks: string[];
+  ambiguity_flags: string[];
+}`}</code></pre>
+
+  <h3>L2 · Retrieval (protocol)</h3>
+  <p>
+    <code>IntentObject</code> + corpus index in. Ranked atom set out. The reference
+    implementation uses <strong>6-axis ranking</strong>: kind match, tag match, edge
+    centrality, projection-fit cost, persona affinity, validator quality. The protocol
+    only specifies that L2 returns an ordered list of atom ids with explanations.
+  </p>
+
+  <h3>L3 · Composition (protocol)</h3>
+  <p>
+    Ranked atoms + their contracts in. A "contracted set" out — atoms whose contracts
+    have been resolved (must-includes pulled in, must-avoids filtered, conditionals
+    evaluated against the IntentObject). The projection level for each atom is also
+    decided here based on the budget.
+  </p>
+
+  <h3>L4 · Generation (agent)</h3>
+  <p>
+    The agent itself is L4. Given the contracted atom set + their loaded projections,
+    the agent generates the final artifact. Skill Wiki has nothing to say about
+    <em>how</em> the agent generates — only about what's in its context when it does.
+  </p>
+
+  <h3>L5 · Validation (plugin)</h3>
+  <p>
+    Generated artifact + corpus rules in. Verdict out. The shape is
+    <em>domain-defined</em>: HTML structure validation, JSON-schema check, regex over
+    prose, LLM-judge over a rubric — all valid implementations of L5. Failures
+    surface fix instructions; up to two retry cycles before hard-failing.
+  </p>
+
+  <h2>Why "L5" and not "L4"?</h2>
+  <p>
+    L1, L2, L3 are <em>compile-time validators</em> in name (parser → semantic →
+    cross-atom). L4 is the agent. L5 is the <em>runtime output</em> validator. The
+    naming is consistent — every L-prefix is "validation layer N." Generation has no
+    L-number.
+  </p>
+
+  <h2>What's frozen vs what's free</h2>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Frozen at v1?</th><th>Variability</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>L1 — Intent</td><td>No (plugin)</td><td>Object shape per domain.</td></tr>
+      <tr><td>L2 — Retrieval</td><td>Yes (interface)</td><td>Ranking algo can vary.</td></tr>
+      <tr><td>L3 — Composition</td><td>Yes</td><td>Contract evaluation is deterministic.</td></tr>
+      <tr><td>L4 — Generation</td><td>—</td><td>Agent's job; not part of protocol.</td></tr>
+      <tr><td>L5 — Validation</td><td>No (plugin)</td><td>Validator shape per domain.</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    See <a href="/docs/architecture/compile-time">Compile time</a> and
+    <a href="/docs/architecture/runtime">Runtime</a> for how L2 + L3 + L5 are
+    implemented in the reference v0.1.0.
+  </p>
+</DocsLayout>

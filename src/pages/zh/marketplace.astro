@@ -1,0 +1,170 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loadAll, allKinds } from '../../lib/corpus';
+
+const { corpora: packs } = loadAll();
+const kinds = allKinds();
+
+const fmt = new Intl.NumberFormat('zh-CN');
+
+const featured = packs.find((c) => c.slug === 'frontend-design');
+const others = packs.filter((c) => c.slug !== 'frontend-design')
+  .sort((a, b) => b.total - a.total);
+
+function summarise(c: typeof packs[0]) {
+  const ns = [...new Set(c.atoms.map((a) => a.prefix))];
+  const ks = [...new Set(c.atoms.map((a) => a.kind))];
+  return { ns, ks };
+}
+---
+<Base title="市场" current="marketplace" lang="zh">
+  <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
+    <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="pill">市场</span>
+          {packs.length} 个 Skill · 共 {fmt.format(packs.reduce((s, c) => s + c.total, 0))} 个原子
+        </p>
+        <h1>浏览类型化原子 Skill。</h1>
+        <p class="lede">
+          每个 Skill 是一个自洽的 <code>@scope</code> —— 一组类型化原子。
+          用 <code>prime install @name</code> 装上，或在这里浏览。
+          协议 domain-blind；知识活在 Skill 里。
+        </p>
+        <p class="lede" style="margin-bottom: 0;">
+          想发布自己的？看 <a href="/zh/docs/usage/publish-install">发布与安装</a>。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {featured && (() => {
+    const { ns, ks } = summarise(featured);
+    return (
+      <section class="section" id="frontend-design">
+        <div class="section-inner">
+          <p class="section-eyebrow">★ 旗舰</p>
+          <div class="flagship">
+            <div class="flagship-head">
+              <span class="label">旗舰</span>
+              <span style="font-family: var(--font-mono); color: var(--fg-muted);">
+                <a href="https://github.com/skill-wiki/prime-corpus-frontend" rel="noopener">skill-wiki/prime-corpus-frontend</a>
+              </span>
+            </div>
+            <div class="flagship-body">
+              <div>
+                <h2><code>@frontend-design</code></h2>
+                <p class="flagship-desc">
+                  {fmt.format(featured.total)} 个类型化原子，覆盖 9 个设计子领域 ——
+                  色彩、版式、动效、间距、可访问性、文案 voice、视觉层次、布局、组件模式。
+                  参考语料 + 参考应用：5 工具 MCP 封装、31 个 persona、30 个任务分类、
+                  20-task benchmark。
+                </p>
+                <dl>
+                  <dt>原子</dt><dd>{fmt.format(featured.total)}</dd>
+                  <dt>命名空间</dt><dd>{ns.length}（{ns.slice(0, 3).join('、')}…）</dd>
+                  <dt>使用 kind</dt><dd>{ks.length} / {kinds.length}</dd>
+                  <dt>Token</dt><dd>编译产出 {fmt.format(featured.totalTokens || 0)}</dd>
+                  <dt>许可</dt><dd>Apache-2.0</dd>
+                </dl>
+                <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
+                <div class="hero-cta" style="margin-top: var(--s-4);">
+                  <a class="btn btn-primary" href={`/browse?corpus=${featured.slug}`}>浏览 {featured.total} 个原子 →</a>
+                  <a class="btn" href="/zh/docs/usage/install">安装</a>
+                </div>
+              </div>
+              <aside class="flagship-aside">
+                <div>
+                  <h4>命名空间</h4>
+                  <div class="chips">
+                    {ns.map((p) => <code>{p}</code>)}
+                  </div>
+                </div>
+                <div>
+                  <h4>子领域</h4>
+                  <div class="chips">
+                    <code>color</code>
+                    <code>typography</code>
+                    <code>motion</code>
+                    <code>spacing</code>
+                    <code>a11y</code>
+                    <code>voice</code>
+                    <code>hierarchy</code>
+                    <code>layout</code>
+                    <code>components</code>
+                  </div>
+                </div>
+                <div>
+                  <h4>MCP 工具</h4>
+                  <div class="chips">
+                    <code>prime_query</code>
+                    <code>prime_resolve</code>
+                    <code>prime_intent</code>
+                    <code>prime_validate</code>
+                    <code>prime_compile</code>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  })()}
+
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">其他 Skill</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">协议附带的示例</h2>
+      <p class="section-lede">
+        协议附带的示例 Skill —— 小、聚焦，适合学习 DSL 或冒烟测试运行时。
+      </p>
+      <div class="pack-grid">
+        {others.map((c) => {
+          const { ks } = summarise(c);
+          return (
+            <a class="pack-card" id={c.slug} href={`/browse?corpus=${c.slug}`}>
+              <div class="pack-head">
+                <h3 class="pack-name">@{c.slug}</h3>
+                <span class="pack-pill">{c.prefix}</span>
+                <span class="pack-pill">v0.1.0</span>
+              </div>
+              <p class="pack-desc">
+                {c.domain?.description ||
+                  `${c.total} 个原子，覆盖 ${ks.length} 种 kind。示例 Skill。`}
+              </p>
+              <div class="pack-stats">
+                <span><span class="dot" style="background: #1a7f37;"></span>{c.total} 原子</span>
+                <span>{ks.length} kind</span>
+                <span>v0.1.0</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">发布自己的</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">自托管 registry 或用我们的</h2>
+      <p class="section-lede">
+        Registry 协议是纯 HTTP。参考实现 ~600 行。
+        放到任何 VM 上，或挂到我们的公开 registry 上。
+      </p>
+      <pre><code>{`# 自托管 registry
+bun run packages/registry/src/index.ts --port 4000
+
+# 在任意 Skill 根目录
+prime publish --remote http://localhost:4000
+
+# 在任意消费端
+prime install @your/pack --remote http://localhost:4000`}</code></pre>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="/zh/docs/usage/publish-install">阅读发布指南 →</a>
+        <a class="btn" href="/zh/docs/spec/registry">阅读 registry 规范</a>
+      </div>
+    </div>
+  </section>
+</Base>

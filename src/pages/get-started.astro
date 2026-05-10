@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Get started" current="docs">
+  <h1>Get started</h1>
+  <p style="font-size: 1.05rem; color: var(--fg-soft); max-width: 70ch;">
+    Prime is a CLI for compiling, querying, and installing knowledge atoms.
+    Five minutes from zero to first atom.
+  </p>
+
+  <h2>1. Install the CLI</h2>
+  <pre><code># Bun (fastest)
+bun add -g @prime/cli
+
+# Or npm
+npm i -g @prime/cli</code></pre>
+
+  <h2>2. Install a corpus</h2>
+  <p>
+    Corpora are folders of atoms. Install one from a remote registry:
+  </p>
+  <pre><code>prime install @recipes
+# → ./prime/sources/@recipes/...</code></pre>
+
+  <p>
+    Or compile a local one:
+  </p>
+  <pre><code>cd my-corpus
+prime compile
+# → ./primes/compiled/_index.xml + per-atom folders</code></pre>
+
+  <h2>3. Inspect atoms</h2>
+  <pre><code># List atoms in the local corpus
+prime list
+
+# Show one atom — metadata, all edges, graph fan-out
+prime show @recipes/method-pan-sauce
+
+# Walk the dependency tree
+prime deps @recipes/method-pan-sauce</code></pre>
+
+  <h2>4. Query from an agent (MCP)</h2>
+  <p>
+    The MCP server exposes <code>prime_query</code> / <code>prime_resolve</code> /
+    <code>prime_intent</code> / <code>prime_validate</code> / <code>prime_compile</code>
+    tools to any MCP-capable client (Claude Code, Cursor, Continue, …).
+  </p>
+  <pre><code># Boot the server on the compiled corpus
+PRIME_DIR=primes/compiled bunx @prime-lang/mcp-server-core</code></pre>
+
+  <h2>5. Publish</h2>
+  <p>
+    When your corpus is ready, publish it for others to install:
+  </p>
+  <pre><code>prime publish --remote https://your-registry.example</code></pre>
+
+  <h2>What is an atom?</h2>
+  <p>
+    An atom is a self-contained typed unit of knowledge. It has:
+  </p>
+  <ul>
+    <li>A <strong>kind</strong> — fact, rule, pattern, anti-pattern, method, term, principle, tradeoff, or collection.</li>
+    <li>A <strong>domain</strong> — a tag declaring which subject area it lives in (cooking, coding-style, …).</li>
+    <li>Three <strong>projection levels</strong>: <code>summary</code> (~30 tokens), <code>core</code> (~150 tokens), <code>full</code> (~380 tokens). Pick the smallest one that fits your context window.</li>
+    <li><strong>Edges</strong> to other atoms with explicit verbs: <code>requires</code>, <code>supplies-to</code>, <code>related</code>, <code>see-also</code>, <code>enhances</code>, <code>includes</code>, …</li>
+  </ul>
+
+  <h2>Next</h2>
+  <ul>
+    <li><a href="/browse">Browse the live corpora</a></li>
+    <li><a href="/about">Read about the project</a></li>
+    <li><a href="https://github.com/skill-wiki/prime-system" rel="noopener">Source on GitHub</a></li>
+  </ul>
+</Base>

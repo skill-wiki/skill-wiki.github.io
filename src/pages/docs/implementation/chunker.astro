@@ -1,0 +1,108 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Chunker" slug="implementation/chunker" description="How an atom becomes summary.md, core.md, and full.md.">
+  <h1>Chunker</h1>
+  <p style="color: var(--fg-muted);">
+    The chunker turns a parsed <code>AtomDeclaration</code> into three Markdown
+    projections. Splits are <em>kind-aware</em> — every kind has its own rule for what
+    fits in summary, core, and full.
+  </p>
+
+  <h2>Signature</h2>
+<pre><code>{`// packages/compiler/src/chunker.ts
+export interface ChunkLevels {
+  /** ~30 tok: description + tags + 1-line claim */
+  summary: string;
+  /** ~150 tok: + core body fields */
+  core: string;
+  /** ~380 tok: + sources + examples + relations + notes */
+  full: string;
+}
+
+export function chunk(atom: AtomDeclaration): ChunkLevels {
+  const splitter = SPLITTERS[atom.kind] ?? defaultSplitter;
+  return splitter(atom);
+}`}</code></pre>
+
+  <h2>Per-kind splitters</h2>
+  <p>
+    Each kind has a splitter function. The chunker dispatches on
+    <code>atom.kind</code>. New kinds (see <a href="/docs/extending/custom-kinds">Custom kinds</a>)
+    register a splitter via the <code>SPLITTERS</code> map.
+  </p>
+
+<pre><code>{`const SPLITTERS: Record<AtomKind, Splitter> = {
+  rule:         ruleSplitter,
+  pattern:      patternSplitter,
+  fact:         factSplitter,
+  method:       methodSplitter,
+  // ...
+};
+
+function ruleSplitter(atom: AtomDeclaration): ChunkLevels {
+  return {
+    summary: \`# \${atom.name}
+
+\${atom.fields.find('claim')?.value}\`,
+
+    core: \`# \${atom.name}
+
+\${atom.fields.find('claim')?.value}
+
+**Applies to:** \${atom.fields.find('applies-to')?.value.join(', ')}
+**Severity:** \${atom.fields.find('severity')?.value}\`,
+
+    full: \`# \${atom.name}
+
+\${atom.fields.find('claim')?.value}
+
+**Applies to:** \${atom.fields.find('applies-to')?.value.join(', ')}
+**Severity:** \${atom.fields.find('severity')?.value}
+
+## Remediation
+\${atom.fields.find('remediation')?.value ?? '(none specified)'}
+
+## Validates with
+\${edgesByVerb(atom, 'validates-with').map(formatRef).join('\\n- ')}
+\`,
+  };
+}`}</code></pre>
+
+  <h2>Token counting</h2>
+  <p>
+    The token target is approximate; the chunker uses a fast char-based heuristic
+    (~3.5 chars/token) at compile time, not an LLM tokenizer. The
+    <code>tokens</code> attribute on <code>&lt;atom&gt;</code> in <code>_index.xml</code>
+    is the actual full-projection length, post-emit.
+  </p>
+
+  <h2>What gets dropped per level</h2>
+  <table>
+    <thead>
+      <tr><th>From → to</th><th>Dropped</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>full → core</td><td>sources, counter-examples, exception cases, related-via-soft verbs</td></tr>
+      <tr><td>core → summary</td><td>secondary fields (applies-to, severity, parameters)</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    The principle: an atom should be <em>useful at every level</em>. A summary that's
+    just the atom's name is wrong — the agent needs the claim. A full that's just the
+    atom's name + claim is also wrong — the agent needs the body.
+  </p>
+
+  <h2>Output files</h2>
+
+<pre><code>{`compiled/
+└── @scope/
+    └── rule-keyboard-accessible/
+        ├── atom.yaml
+        ├── graph.yaml
+        └── chunks/
+            ├── summary.md     ←  ~30 tok
+            ├── core.md        ←  ~150 tok
+            └── full.md        ←  ~380 tok`}</code></pre>
+</DocsLayout>

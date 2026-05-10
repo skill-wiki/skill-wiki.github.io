@@ -1,0 +1,174 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadAll, allKinds } from '../lib/corpus';
+
+const { corpora: packs } = loadAll();
+const kinds = allKinds();
+
+const fmt = new Intl.NumberFormat('en-US');
+
+// Order: featured first (frontend-design), then by atom count desc.
+const featured = packs.find((c) => c.slug === 'frontend-design');
+const others = packs.filter((c) => c.slug !== 'frontend-design')
+  .sort((a, b) => b.total - a.total);
+
+function summarise(c: typeof packs[0]) {
+  const ns = [...new Set(c.atoms.map((a) => a.prefix))];
+  const ks = [...new Set(c.atoms.map((a) => a.kind))];
+  return { ns, ks };
+}
+---
+<Base title="Marketplace" current="marketplace">
+  <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
+    <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="pill">Marketplace</span>
+          {packs.length} Skills · {fmt.format(packs.reduce((s, c) => s + c.total, 0))} atoms
+        </p>
+        <h1>Browse Skills.</h1>
+        <p class="lede">
+          Each Skill is a self-contained <code>@scope</code> of typed atoms — what
+          a SKILL.md would look like if every line had a type and an edge.
+          Install with <code>prime install @name</code>, or browse here. The protocol
+          is domain-blind; Skills are where domain knowledge lives.
+        </p>
+        <p class="lede" style="margin-bottom: 0;">
+          Want to publish your own? See <a href="/docs/usage/publish-install">Publish & install</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {featured && (() => {
+    const { ns, ks } = summarise(featured);
+    return (
+      <section class="section" id="frontend-design">
+        <div class="section-inner">
+          <p class="section-eyebrow">★ Featured</p>
+          <div class="flagship">
+            <div class="flagship-head">
+              <span class="label">FLAGSHIP</span>
+              <span style="font-family: var(--font-mono); color: var(--fg-muted);">
+                <a href="https://github.com/skill-wiki/prime-corpus-frontend" rel="noopener">skill-wiki/prime-corpus-frontend</a>
+              </span>
+            </div>
+            <div class="flagship-body">
+              <div>
+                <h2><code>@frontend-design</code></h2>
+                <p class="flagship-desc">
+                  {fmt.format(featured.total)} typed atoms across 9 design sub-domains —
+                  color, typography, motion, spacing, accessibility, copy voice,
+                  hierarchy, layout, and component patterns. Reference corpus +
+                  reference application: 5-tool MCP wrapper, 31 personas, 30 task
+                  taxonomies, 20-task benchmark.
+                </p>
+                <dl>
+                  <dt>Atoms</dt><dd>{fmt.format(featured.total)}</dd>
+                  <dt>Namespaces</dt><dd>{ns.length} ({ns.slice(0, 3).join(', ')}…)</dd>
+                  <dt>Kinds used</dt><dd>{ks.length} of {kinds.length}</dd>
+                  <dt>Tokens</dt><dd>{fmt.format(featured.totalTokens || 0)} compiled</dd>
+                  <dt>License</dt><dd>Apache-2.0</dd>
+                </dl>
+                <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
+                <div class="hero-cta" style="margin-top: var(--s-4);">
+                  <a class="btn btn-primary" href={`/browse?corpus=${featured.slug}`}>Browse {featured.total} atoms →</a>
+                  <a class="btn" href="/docs/usage/install">Install</a>
+                </div>
+              </div>
+              <aside class="flagship-aside">
+                <div>
+                  <h4>Namespaces</h4>
+                  <div class="chips">
+                    {ns.map((p) => <code>{p}</code>)}
+                  </div>
+                </div>
+                <div>
+                  <h4>Sub-domains</h4>
+                  <div class="chips">
+                    <code>color</code>
+                    <code>typography</code>
+                    <code>motion</code>
+                    <code>spacing</code>
+                    <code>a11y</code>
+                    <code>voice</code>
+                    <code>hierarchy</code>
+                    <code>layout</code>
+                    <code>components</code>
+                  </div>
+                </div>
+                <div>
+                  <h4>MCP tools</h4>
+                  <div class="chips">
+                    <code>prime_query</code>
+                    <code>prime_resolve</code>
+                    <code>prime_intent</code>
+                    <code>prime_validate</code>
+                    <code>prime_compile</code>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  })()}
+
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Other Skills</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Examples shipped with the protocol</h2>
+      <p class="section-lede">
+        Bundled example Skills — small, focused, useful for learning the DSL or
+        sanity-testing the runtime.
+      </p>
+      <div class="pack-grid">
+        {others.map((c) => {
+          const { ks } = summarise(c);
+          return (
+            <a class="pack-card" id={c.slug} href={`/browse?corpus=${c.slug}`}>
+              <div class="pack-head">
+                <h3 class="pack-name">@{c.slug}</h3>
+                <span class="pack-pill">{c.prefix}</span>
+                <span class="pack-pill">v0.1.0</span>
+              </div>
+              <p class="pack-desc">
+                {c.domain?.description ||
+                  `${c.total} typed atoms across ${ks.length} kinds. Example Skill.`}
+              </p>
+              <div class="pack-stats">
+                <span><span class="dot" style="background: #1a7f37;"></span>{c.total} atoms</span>
+                <span>{ks.length} kinds</span>
+                <span>v0.1.0</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">Publish your own</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">Self-host a registry, or use ours</h2>
+      <p class="section-lede">
+        The registry contract is HTTP-only. The reference implementation is
+        ~600 LOC. Run it on any VM, or use the public registry.
+      </p>
+      <pre><code>{`# Stand up a registry
+bun run packages/registry/src/index.ts --port 4000
+
+# From any Skill root
+prime publish --remote http://localhost:4000
+
+# From any consumer
+prime install @your/pack --remote http://localhost:4000`}</code></pre>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="/docs/usage/publish-install">Read the publish guide →</a>
+        <a class="btn" href="/docs/spec/registry">Read the registry spec</a>
+      </div>
+    </div>
+  </section>
+</Base>

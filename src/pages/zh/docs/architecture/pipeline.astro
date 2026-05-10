@@ -1,0 +1,98 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="5 层流水线" slug="architecture/pipeline" lang="zh" description="从 brief 到验证产物 —— Skill Wiki 一轮的五个层。">
+  <h1>5 层流水线</h1>
+  <p style="color: var(--fg-muted);">
+    一轮 Skill Wiki 严格分五层。三层是协议（v1 已冻结），两层可插拔（由领域定义）。
+  </p>
+
+  <h2>流水线</h2>
+  <p><img src="/architecture-system.png" alt="Skill Wiki system architecture — 8 layers from entry to model providers" /></p>
+
+  <p>
+    上面这张架构图展示完整表面（8 条横向带）。一次 agent 轮次内的数据路径是：
+  </p>
+
+<pre><code>{`Brief (free text)
+  ↓ L1 — Intent classification         (plugin)
+IntentObject  ──────────────────────── domain-defined shape
+  ↓ L2 — Retrieval                     (protocol)
+ranked atom set
+  ↓ L3 — Composition                   (protocol)
+contracted atom set + projections
+  ↓ L4 — Generation                    (agent)
+artifact (HTML / JSON / prose)
+  ↓ L5 — Validation                    (plugin)
+verdict { ok | fix-instructions }`}</code></pre>
+
+  <h2>逐层细看</h2>
+
+  <h3>L1 · 意图分类（plugin）</h3>
+  <p>
+    输入自由文本 brief。输出 <code>IntentObject</code>。形状由<em>领域定义</em> ——
+    Skill Wiki 只规定 L1 必须产出一个下游可读的可序列化对象。
+  </p>
+<pre><code>{`// Example (security domain)
+interface SecurityIntentObject {
+  task_type: "threat-model" | "compliance-check" | "code-review";
+  target_surface: "api-endpoint" | "auth-flow" | "data-pipeline";
+  severity_threshold: "low" | "medium" | "high" | "critical";
+  required_frameworks: string[];
+  ambiguity_flags: string[];
+}`}</code></pre>
+
+  <h3>L2 · 检索（protocol）</h3>
+  <p>
+    输入 <code>IntentObject</code> + corpus index。输出排序后的原子集合。
+    参考实现用 <strong>6 轴排序</strong>：kind 匹配、tag 匹配、边的中心性、投影适配度成本、persona 亲和度、validator 质量。
+    协议本身只规定 L2 返回带解释的 atom id 有序列表。
+  </p>
+
+  <h3>L3 · 组合（protocol）</h3>
+  <p>
+    输入排序后的原子 + 各自的 contract。输出"已契约化的集合" ——
+    contract 解析过的原子（must-include 拉进来、must-avoid 过滤掉、conditional 对照 IntentObject 计算）。
+    每个原子的投影层级也在这一步根据预算决定。
+  </p>
+
+  <h3>L4 · 生成（agent）</h3>
+  <p>
+    L4 就是 agent 自己。在已契约化的原子集合 + 加载好的投影下，agent 生成最终产物。
+    Skill Wiki 不规定 agent <em>怎么</em>生成 —— 只规定它生成时上下文里有什么。
+  </p>
+
+  <h3>L5 · 验证（plugin）</h3>
+  <p>
+    输入生成产物 + corpus 规则。输出裁决。形状由<em>领域定义</em>：
+    HTML 结构校验、JSON-schema 校验、对散文跑 regex、用 LLM judge 对照打分卡 —— 都是合法的 L5 实现。
+    失败会暴露修复指令；最多两轮重试，再失败就硬抛错。
+  </p>
+
+  <h2>为什么叫 "L5" 不叫 "L4"？</h2>
+  <p>
+    L1、L2、L3 名字上都是<em>编译期校验器</em>（parser → semantic → cross-atom）。
+    L4 是 agent。L5 是<em>运行时输出</em>校验器。命名一致 —— 每个 L 前缀都是"第 N 层校验"。
+    生成本身没有 L 编号。
+  </p>
+
+  <h2>哪些冻结、哪些自由</h2>
+  <table>
+    <thead>
+      <tr><th>层</th><th>v1 是否冻结</th><th>可变性</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>L1 — Intent</td><td>否（plugin）</td><td>每个领域有自己的对象形状。</td></tr>
+      <tr><td>L2 — Retrieval</td><td>是（接口）</td><td>排序算法可以变。</td></tr>
+      <tr><td>L3 — Composition</td><td>是</td><td>contract 评估是确定性的。</td></tr>
+      <tr><td>L4 — Generation</td><td>—</td><td>agent 的事；不属于协议。</td></tr>
+      <tr><td>L5 — Validation</td><td>否（plugin）</td><td>每个领域有自己的 validator 形状。</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    L2 + L3 + L5 在参考 v0.1.0 中怎么实现，见
+    <a href="/zh/docs/architecture/compile-time">编译期</a>和
+    <a href="/zh/docs/architecture/runtime">运行时</a>。
+  </p>
+</DocsLayout>

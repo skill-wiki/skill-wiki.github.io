@@ -1,0 +1,19 @@
+{
+  "name": "skill-wiki-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Skill Wiki — typed atoms, edge graph, lazy projection. Static discovery site.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^4.16.18",
+    "fast-xml-parser": "^4.5.0",
+    "yaml": "^2.6.1",
+    "marked": "^14.1.3"
+  }
+}

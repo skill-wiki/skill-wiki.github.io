@@ -1,0 +1,31 @@
+---
+import { DOCS_TREE } from '../data/docs-tree';
+
+interface Props {
+  current: string;
+  lang?: 'en' | 'zh';
+}
+const { current, lang = 'en' } = Astro.props;
+const isZh = lang === 'zh';
+const base = isZh ? '/zh/docs' : '/docs';
+---
+<aside class="docs-sidebar" aria-label="Documentation navigation">
+  {DOCS_TREE.map((sec) => (
+    <>
+      <h3>{isZh ? sec.zhHeading : sec.heading}</h3>
+      <ul>
+        {sec.pages.map((p) => {
+          const href = p.slug === '' ? base : `${base}/${p.slug}`;
+          const isCurrent = current === p.slug;
+          return (
+            <li>
+              <a href={href} aria-current={isCurrent ? 'page' : undefined}>
+                {isZh ? p.zhTitle : p.title}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  ))}
+</aside>

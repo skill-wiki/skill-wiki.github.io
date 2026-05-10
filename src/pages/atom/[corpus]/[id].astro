@@ -1,0 +1,638 @@
+---
+import Base from '../../../layouts/Base.astro';
+import MiniGraph from '../../../components/MiniGraph.astro';
+import { loadAll, type Atom } from '../../../lib/corpus';
+import { renderMarkdown } from '../../../lib/md';
+
+export async function getStaticPaths() {
+  const { corpora } = loadAll();
+  return corpora.flatMap((c) =>
+    c.atoms.map((atom) => ({
+      params: { corpus: c.slug, id: atom.shortId },
+      props: { atom },
+    })),
+  );
+}
+
+interface Props { atom: Atom; }
+const { atom } = Astro.props;
+
+const summaryHtml = renderMarkdown(atom.summary);
+const coreHtml = renderMarkdown(atom.core);
+const fullHtml = renderMarkdown(atom.full);
+
+// Group edges by verb
+const grouped = new Map<string, { target: string; href: string; label: string }[]>();
+for (const e of atom.edges) {
+  const targetShort = e.target.split('/').pop() ?? '';
+  const arr = grouped.get(e.type) ?? [];
+  arr.push({
+    target: e.target,
+    href: `/atom/${atom.corpus}/${targetShort}`,
+    label: targetShort,
+  });
+  grouped.set(e.type, arr);
+}
+const groupedSorted = [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+const inGrouped = new Map<string, { target: string; href: string; label: string }[]>();
+for (const e of atom.edgesIn) {
+  const targetShort = e.target.split('/').pop() ?? '';
+  const arr = inGrouped.get(e.type) ?? [];
+  arr.push({
+    target: e.target,
+    href: `/atom/${atom.corpus}/${targetShort}`,
+    label: targetShort,
+  });
+  inGrouped.set(e.type, arr);
+}
+const inGroupedSorted = [...inGrouped.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+const pretty = atom.shortId
+  .replace(new RegExp(`^${atom.kind}-`), '')
+  .replace(/-/g, ' ')
+  .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const fmt = new Intl.NumberFormat('en-US');
+---
+<Base title={atom.id} description={atom.preview} current="marketplace">
+  <div class="atom-wrap">
+
+    <nav class="atom-crumb" aria-label="Breadcrumb">
+      <a href="/marketplace">Marketplace</a>
+      <span class="sep">/</span>
+      <a href={`/browse?corpus=${atom.corpus}`}>{atom.prefix}</a>
+      <span class="sep">/</span>
+      <a href={`/browse?domain=${atom.domain}`}>{atom.domain}</a>
+      <span class="sep">/</span>
+      <span class="here">{atom.shortId}</span>
+    </nav>
+
+    <header class="atom-hero">
+      <div class="atom-hero-tags">
+        <span class={`badge kind-${atom.kind}`}>{atom.kind}</span>
+        <code class="atom-hero-id">{atom.id}</code>
+      </div>
+      <h1 class="atom-hero-title">{pretty}</h1>
+      <p class="atom-hero-preview">{atom.preview}</p>
+    </header>
+
+    <dl class="atom-meta-strip">
+      <div><dt>Skill</dt><dd><a href={`/browse?corpus=${atom.corpus}`}>{atom.prefix}</a></dd></div>
+      <div><dt>Domain</dt><dd><a href={`/domain/${atom.domain}`}>{atom.domain}</a></dd></div>
+      <div><dt>Version</dt><dd>{atom.version}</dd></div>
+      <div><dt>Quality</dt><dd>{atom.quality.toFixed(1)}</dd></div>
+      <div><dt>Edges</dt><dd>{atom.edges.length} out · {atom.edgesIn.length} in</dd></div>
+      <div><dt>Tokens</dt><dd>{atom.tokens.summary}/{atom.tokens.core}/{atom.tokens.full}</dd></div>
+    </dl>
+
+    <pre class="atom-install"><code>$ prime install {atom.id}</code></pre>
+
+    <div class="atom-body">
+      {/* LEFT — main projection + provenance */}
+      <main class="atom-main">
+        <section class="atom-section">
+          <header class="atom-section-h">
+            <h2>Projection</h2>
+            <span class="atom-section-meta">3 levels · agent picks one per query</span>
+          </header>
+
+          <div class="proj-tabs" role="tablist" aria-label="Projection level">
+            <button class="proj-tab active" role="tab" aria-selected="true" data-level="summary">
+              <span class="proj-tab-name">Summary</span>
+              <span class="proj-tab-tok">{atom.tokens.summary} tok</span>
+            </button>
+            <button class="proj-tab" role="tab" aria-selected="false" data-level="core">
+              <span class="proj-tab-name">Core</span>
+              <span class="proj-tab-tok">{atom.tokens.core} tok</span>
+            </button>
+            <button class="proj-tab" role="tab" aria-selected="false" data-level="full">
+              <span class="proj-tab-name">Full</span>
+              <span class="proj-tab-tok">{atom.tokens.full} tok</span>
+            </button>
+          </div>
+
+          <div class="proj-panel proj-panel-active" data-panel="summary">
+            <p class="proj-when">Always in <code>_index.xml</code> · the agent never has to ask for this.</p>
+            <div class="atom-prose" set:html={summaryHtml || '<p><em>No summary chunk.</em></p>'} />
+          </div>
+          <div class="proj-panel" data-panel="core" hidden>
+            <p class="proj-when">Loaded when retrieval picks the atom as adjacent / supporting.</p>
+            <div class="atom-prose" set:html={coreHtml || '<p><em>No core chunk.</em></p>'} />
+          </div>
+          <div class="proj-panel" data-panel="full" hidden>
+            <p class="proj-when">Loaded when retrieval picks the atom as a focal / direct hit.</p>
+            <div class="atom-prose" set:html={fullHtml || '<p><em>No full chunk.</em></p>'} />
+          </div>
+        </section>
+
+        <section class="atom-section">
+          <header class="atom-section-h">
+            <h2>Source</h2>
+            <span class="atom-section-meta">where the compiled artifact came from</span>
+          </header>
+          <pre class="atom-source"><code>{atom.sourcePath}</code></pre>
+          {atom.createdAt && (
+            <p class="atom-source-meta">Compiled at <strong>{atom.createdAt}</strong></p>
+          )}
+        </section>
+      </main>
+
+      {/* RIGHT — single card: graph + edges, dividers not nested boxes */}
+      <aside class="atom-side" aria-label="Edges and graph">
+        {(atom.edges.length + atom.edgesIn.length) === 0 ? (
+          <div class="atom-side-card">
+            <p class="atom-empty">No edges declared.</p>
+          </div>
+        ) : (
+          <div class="atom-side-card">
+
+            {/* Graph */}
+            <div class="atom-side-graph">
+              <MiniGraph atom={atom} />
+            </div>
+
+            {/* Outgoing */}
+            {atom.edges.length > 0 && (
+              <div class="atom-side-section">
+                <header class="atom-side-h">
+                  <span class="dir-arrow" aria-hidden="true">↗</span>
+                  <span>Outgoing</span>
+                  <span class="atom-side-count">{atom.edges.length}</span>
+                </header>
+                {groupedSorted.map(([verb, list]) => (
+                  <div class="edge-group">
+                    <div class="edge-verb-row">
+                      <span class="edge-verb">{verb}</span>
+                      <span class="edge-verb-count">{list.length}</span>
+                    </div>
+                    <ul class="edge-list">
+                      {list.map((e) => (
+                        <li>
+                          <a href={e.href} title={e.target}>
+                            <code>{e.target}</code>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Incoming */}
+            {atom.edgesIn.length > 0 && (
+              <div class="atom-side-section">
+                <header class="atom-side-h">
+                  <span class="dir-arrow" aria-hidden="true">↘</span>
+                  <span>Incoming</span>
+                  <span class="atom-side-count">{atom.edgesIn.length}</span>
+                </header>
+                {inGroupedSorted.map(([verb, list]) => (
+                  <div class="edge-group">
+                    <div class="edge-verb-row">
+                      <span class="edge-verb">{verb}</span>
+                      <span class="edge-verb-count">{list.length}</span>
+                    </div>
+                    <ul class="edge-list">
+                      {list.map((e) => (
+                        <li>
+                          <a href={e.href} title={e.target}>
+                            <code>{e.target}</code>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        )}
+      </aside>
+    </div>
+
+    <nav class="atom-foot">
+      <a href={`/browse?corpus=${atom.corpus}`}>← Back to {atom.prefix}</a>
+      <a href="/marketplace">All Skills →</a>
+    </nav>
+  </div>
+
+  <script>
+    (function () {
+      const tabs = document.querySelectorAll<HTMLButtonElement>('.proj-tab');
+      const panels = document.querySelectorAll<HTMLElement>('.proj-panel');
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const level = tab.dataset.level;
+          tabs.forEach((t) => {
+            const active = t === tab;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', String(active));
+          });
+          panels.forEach((p) => {
+            const active = p.dataset.panel === level;
+            p.classList.toggle('proj-panel-active', active);
+            p.hidden = !active;
+          });
+        });
+      });
+    })();
+  </script>
+</Base>
+
+<style>
+  .atom-wrap {
+    max-width: var(--max-w-narrow);
+    margin: 0 auto;
+    padding: 32px var(--s-4) 80px;
+  }
+
+  /* Breadcrumb */
+  .atom-crumb {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-muted);
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .atom-crumb a { color: var(--fg-muted); text-decoration: none; transition: color 120ms ease; }
+  .atom-crumb a:hover { color: var(--accent-fg); }
+  .atom-crumb .sep { color: var(--border-default); }
+  .atom-crumb .here { color: var(--fg-default); font-weight: 500; }
+
+  /* Hero */
+  .atom-hero {
+    padding-bottom: 24px;
+    margin-bottom: 20px;
+  }
+  .atom-hero-tags {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .atom-hero-id {
+    font-size: 13px; color: var(--fg-muted);
+    background: var(--bg-emph);
+    padding: 2px 8px; border-radius: 4px;
+    word-break: break-all;
+  }
+  .atom-hero-title {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700; letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0 0 14px;
+    border: 0; padding: 0;
+    color: var(--fg-default);
+  }
+  .atom-hero-preview {
+    font-size: 16px; line-height: 1.55;
+    color: var(--fg-muted);
+    margin: 0; max-width: 70ch;
+    letter-spacing: -0.005em;
+  }
+
+  /* Meta strip — 6 cells horizontal, full width */
+  .atom-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    margin: 0 0 16px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-2);
+    background: var(--bg-canvas);
+    overflow: hidden;
+  }
+  .atom-meta-strip > div {
+    padding: 12px 14px;
+    border-right: 1px solid var(--border-muted);
+  }
+  .atom-meta-strip > div:last-child { border-right: 0; }
+  .atom-meta-strip dt {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--fg-muted); margin: 0 0 4px;
+  }
+  .atom-meta-strip dd {
+    margin: 0; font-size: 13px;
+    color: var(--fg-default);
+    font-family: var(--font-mono);
+    word-break: break-all;
+  }
+  .atom-meta-strip a { color: var(--accent-fg); text-decoration: none; }
+  .atom-meta-strip a:hover { text-decoration: underline; }
+  @media (max-width: 800px) {
+    .atom-meta-strip { grid-template-columns: repeat(3, 1fr); }
+    .atom-meta-strip > div:nth-child(3) { border-right: 0; }
+    .atom-meta-strip > div:nth-child(-n+3) { border-bottom: 1px solid var(--border-muted); }
+  }
+  @media (max-width: 500px) {
+    .atom-meta-strip { grid-template-columns: repeat(2, 1fr); }
+    .atom-meta-strip > div { border-right: 1px solid var(--border-muted); border-bottom: 1px solid var(--border-muted); }
+    .atom-meta-strip > div:nth-child(2n) { border-right: 0; }
+    .atom-meta-strip > div:nth-last-child(-n+2) { border-bottom: 0; }
+  }
+
+  /* Install — wrap long IDs cleanly */
+  .atom-install {
+    margin: 0 0 36px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-2);
+    padding: 12px 16px; font-size: 13px;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .atom-install code {
+    background: transparent;
+    color: var(--fg-default);
+    padding: 0; font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* 2-COLUMN body — left projection / right graph + edges */
+  .atom-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .atom-body { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  .atom-main { min-width: 0; }
+
+  .atom-section { margin-bottom: 40px; }
+  .atom-section-h {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .atom-section-h h2 {
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0; border: 0; padding: 0;
+    color: var(--fg-default);
+  }
+  .atom-section-meta {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--fg-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+
+  /* Tabs */
+  .proj-tabs {
+    display: flex; gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .proj-tab {
+    background: transparent; border: 0;
+    padding: 12px 20px 14px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    color: var(--fg-muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  .proj-tab:hover { color: var(--fg-default); }
+  .proj-tab.active {
+    color: var(--fg-default);
+    border-bottom-color: var(--fg-default);
+  }
+  .proj-tab-name { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; }
+  .proj-tab-tok {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--fg-muted);
+    background: var(--bg-emph);
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .proj-tab.active .proj-tab-tok {
+    color: var(--accent-fg);
+    background: var(--accent-subtle);
+  }
+
+  .proj-panel { padding: 8px 0 0; }
+  .proj-when {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--fg-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin: 0 0 16px; padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border-muted);
+  }
+  .proj-when code {
+    background: transparent; text-transform: none;
+    letter-spacing: 0; padding: 0;
+    color: var(--fg-default);
+  }
+
+  /* Prose */
+  .atom-prose { font-size: 15px; line-height: 1.7; color: var(--fg-default); }
+  .atom-prose :global(h1) { font-size: 22px; font-weight: 700; margin: 0 0 12px; border: 0; padding: 0; }
+  .atom-prose :global(h1):first-child { margin-top: 0; }
+  .atom-prose :global(h2) { font-size: 18px; font-weight: 600; margin: 24px 0 8px; border: 0; padding: 0; }
+  .atom-prose :global(h3) { font-size: 16px; font-weight: 600; margin: 16px 0 4px; }
+  .atom-prose :global(p) { margin: 0 0 14px; }
+  .atom-prose :global(ul), .atom-prose :global(ol) { margin: 0 0 14px; padding-left: 24px; }
+  .atom-prose :global(li) { margin-bottom: 4px; }
+  .atom-prose :global(strong) { font-weight: 600; }
+  .atom-prose :global(code) { background: var(--bg-emph); font-size: 13px; padding: 1px 5px; border-radius: 3px; }
+  .atom-prose :global(pre) {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--r-2);
+    padding: 14px 18px;
+    margin: 0 0 16px;
+    font-size: 13px; line-height: 1.6;
+  }
+  .atom-prose :global(pre code) { background: transparent; padding: 0; font-size: 13px; }
+
+  /* Source — wrap long paths instead of showing a scrollbar */
+  .atom-source {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-2);
+    padding: 14px 16px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.55;
+  }
+  .atom-source code {
+    background: transparent; padding: 0;
+    font-size: 12px; color: var(--fg-muted);
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .atom-source-meta { font-size: 13px; color: var(--fg-muted); margin: 0; }
+  .atom-source-meta strong {
+    color: var(--fg-default); font-weight: 500;
+    font-family: var(--font-mono); font-size: 12px;
+  }
+
+  /* RIGHT sidebar — sticky, no inner scroll. Page scroll handles overflow. */
+  .atom-side {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .atom-side { position: static; }
+  }
+
+  /* ONE card holds graph + outgoing + incoming, separated by dividers */
+  .atom-side-card {
+    border: 1px solid var(--border-muted);
+    border-radius: var(--r-2);
+    background: var(--bg-canvas);
+    overflow: hidden;
+  }
+
+  /* Graph block — clean, borderless, just padding */
+  .atom-side-graph {
+    padding: 12px 14px 4px;
+  }
+  .atom-side-graph .mini-graph {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .atom-side-graph .mini-graph figcaption { display: none; }
+
+  /* Section (Outgoing / Incoming) */
+  .atom-side-section {
+    border-top: 1px solid var(--border-muted);
+    padding: 14px 14px 10px;
+  }
+  .atom-side-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+    border: 0;
+    padding: 0;
+  }
+  .dir-arrow {
+    color: var(--accent-fg);
+    font-weight: 700;
+  }
+  .atom-side-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--bg-emph);
+    padding: 1px 8px;
+    border-radius: 999px;
+    color: var(--fg-default);
+    margin-left: auto;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 500;
+  }
+
+  /* Edge group — flat, no inner box, just verb-row + list */
+  .edge-group {
+    margin: 0 0 10px;
+  }
+  .edge-group:last-child { margin-bottom: 0; }
+  .edge-verb-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .edge-verb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-fg);
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent-muted);
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .edge-verb-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-muted);
+  }
+
+  /* List items — each on one line, ellipsis on overflow */
+  .edge-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .edge-list li {
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .edge-list a {
+    display: block;
+    padding: 3px 0;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: background 80ms ease;
+    border-radius: 3px;
+    margin: 0 -4px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .edge-list a:hover {
+    background: var(--bg-muted);
+  }
+  .edge-list a code {
+    background: transparent;
+    padding: 0;
+    color: var(--accent-fg);
+    font-size: 12px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+  .edge-list a:hover code { text-decoration: underline; }
+
+  .atom-empty {
+    color: var(--fg-muted);
+    font-style: italic;
+    margin: 0;
+    font-size: 13px;
+  }
+
+  /* Foot nav */
+  .atom-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-muted);
+    font-size: 13px;
+  }
+  .atom-foot a { color: var(--fg-default); text-decoration: none; transition: color 120ms ease; }
+  .atom-foot a:hover { color: var(--accent-fg); }
+</style>

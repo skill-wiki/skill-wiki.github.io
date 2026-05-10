@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Specification — overview" slug="spec/overview" description="The canonical Skill Wiki protocol surface in one page.">
+  <h1>Specification — overview</h1>
+  <p style="color: var(--fg-muted);">
+    The protocol surface, frozen at v1.0 (2026-05-07). One paragraph per piece;
+    each links to its full sub-page.
+  </p>
+
+  <h2 id="status">Status</h2>
+  <p>
+    <strong>Spec:</strong> v1.0, frozen 2026-05-07. No further breaking changes
+    before v2.<br />
+    <strong>Implementation:</strong> ~75 % of v1 spec. See <a href="/docs">site index</a>
+    for the component-by-component status table.
+  </p>
+
+  <h2>The seven things in the protocol</h2>
+
+  <h3><a href="/docs/spec/atoms">1. Atoms</a></h3>
+  <p>
+    The unit of knowledge. 28 kinds across 5 layers (Data / Behaviour /
+    Composition / Style / Meta). Every atom declares its <code>id</code>,
+    <code>version</code>, body fields specific to its kind, and a list of
+    <em>edges out</em>.
+  </p>
+
+  <h3><a href="/docs/spec/edges">2. Edges</a></h3>
+  <p>
+    14 typed verbs: <code>related</code>, <code>requires</code>, <code>enhances</code>,
+    <code>validates-with</code>, <code>contradicts</code>, <code>specializes</code>,
+    <code>conflicts</code>, <code>extends</code>, <code>derived-from</code>,
+    <code>compatible</code>, <code>supplies-to</code>, <code>see-also</code>,
+    <code>includes</code>, <code>relationships</code>. Each verb has allowed source
+    and target kinds, and semantics the L3 cross-atom checker reasons over.
+  </p>
+
+  <h3><a href="/docs/spec/projection">3. Projection</a></h3>
+  <p>
+    Each atom is rendered to three Markdown views:
+    <code>summary</code> (~30 tokens, always-in-index),
+    <code>core</code> (~150 tokens, on retrieval-hit),
+    <code>full</code> (~380 tokens, on direct hit). The chunker is kind-aware —
+    a <code>rule</code>'s summary is its claim; a <code>method</code>'s summary
+    is its goal.
+  </p>
+
+  <h3><a href="/docs/spec/contracts">4. Composition contracts</a></h3>
+  <p>
+    The <code>contract</code> block on a <code>method</code>, <code>persona</code>, or
+    <code>scope</code> declares atoms that <strong>must be included</strong> when the
+    parent is loaded, atoms that <strong>must be avoided</strong>, and atoms that are
+    <strong>conditionally required</strong>. Contracts are evaluated by the runtime,
+    not by the agent — the agent always sees a complete-by-construction set.
+  </p>
+
+  <h3><a href="/docs/spec/registry">5. Registry contract</a></h3>
+  <p>
+    A Skill ships as a tarball + manifest. A registry is anything that implements the
+    HTTP routes <code>POST /publish</code>, <code>GET /pack/:scope</code>, and
+    <code>GET /pack/:scope/:version/tarball</code>. <code>prime publish</code> and
+    <code>prime install</code> are clients of this contract; the reference
+    implementation is <code>@prime-lang/registry</code>.
+  </p>
+
+  <h3><a href="/docs/spec/index-format"><code>_index.xml</code> format</a></h3>
+  <p>
+    The always-loaded index. One <code>&lt;cluster&gt;</code> per domain;
+    <code>&lt;atom&gt;</code> entries inside list <code>id</code>, <code>kind</code>,
+    <code>tokens</code> (full count), <code>q</code> (quality score), and
+    <code>&lt;edge&gt;</code> children.
+  </p>
+
+  <h3>Projection levels are agent-selectable</h3>
+  <p>
+    The agent chooses which projection to load via the MCP tool's <code>level</code>
+    parameter. A retrieval-driven turn typically loads <code>core</code> for selected
+    atoms; a focal turn loads <code>full</code>. <code>summary</code> never needs to be
+    loaded — it's already in the index.
+  </p>
+
+  <h2>What the protocol does not specify</h2>
+  <p>
+    Skill Wiki is intentionally <em>domain-blind</em>. The protocol does not specify:
+  </p>
+  <ul>
+    <li><strong>What kinds your domain uses.</strong> Pick from the 28; the rest are no-ops in your corpus.</li>
+    <li><strong>Which intent fields to emit at L1.</strong> That's the domain plugin's job.</li>
+    <li><strong>How to validate generated output at L5.</strong> Also domain plugin.</li>
+    <li><strong>How to retrieve.</strong> The reference impl uses 6-axis ranking; alternative implementations are free to differ.</li>
+  </ul>
+
+  <p>
+    See <a href="/docs/architecture/domain-plugin">Domain plugin</a> for the boundary.
+  </p>
+</DocsLayout>

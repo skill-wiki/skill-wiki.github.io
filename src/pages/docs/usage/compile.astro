@@ -1,0 +1,86 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Compile" slug="usage/compile" description="prime compile and the build-atom-dirs script — turn .prime sources into runtime artifacts.">
+  <h1>Compile</h1>
+  <p style="color: var(--fg-muted);">
+    Compilation walks <code>primes/sources/</code> and emits <code>primes/compiled/</code>
+    — one directory per atom plus the global <code>_index.xml</code>.
+  </p>
+
+  <h2>Two entry points</h2>
+  <p>You can compile a single file (smoke-test) or a whole tree (production).</p>
+
+<pre><code>{`# Single file — useful for iterating on one atom
+prime compile primes/sources/@my/rule-x.prime
+
+# Whole tree — what you ship
+bun scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled
+
+# With L2 (LLM semantic check)
+DEEPSEEK_API_KEY=sk-... \\
+  bun scripts/build-atom-dirs.ts \\
+    --src primes/sources \\
+    --out primes/compiled \\
+    --deep`}</code></pre>
+
+  <h2>What gets written</h2>
+
+<pre><code>{`primes/compiled/
+├── _index.xml                              ← always-loaded surface
+└── @my/
+    ├── rule-x/
+    │   ├── atom.yaml                       ← metadata only
+    │   ├── graph.yaml                      ← resolved edges
+    │   └── chunks/
+    │       ├── summary.md                  ← ~30 tok
+    │       ├── core.md                     ← ~150 tok
+    │       └── full.md                     ← ~380 tok
+    └── term-y/
+        ├── atom.yaml
+        ├── graph.yaml
+        └── chunks/...`}</code></pre>
+
+  <h2>Output guarantees</h2>
+  <ul>
+    <li><strong>Idempotent:</strong> compiling the same sources twice produces byte-identical output.</li>
+    <li><strong>L2-cached:</strong> LLM check results are stored in <code>.l2-cache.json</code>; unchanged atoms don't re-pay.</li>
+    <li><strong>Atomic per atom:</strong> a compile failure in atom A doesn't corrupt atom B's output. Each atom directory is written then renamed.</li>
+  </ul>
+
+  <h2>Inspect after compile</h2>
+
+<pre><code>{`# List everything
+prime list --dir primes/compiled
+
+# Show one atom's full body
+prime show @my/rule-x --dir primes/compiled
+
+# Walk the dep tree from one seed
+prime deps @my/method-foo --dir primes/compiled
+
+# Print the index size
+wc -c primes/compiled/_index.xml`}</code></pre>
+
+  <h2>Continuous compile</h2>
+  <p>For development, watch + recompile:</p>
+<pre><code>{`bun --watch scripts/build-atom-dirs.ts \\
+  --src primes/sources \\
+  --out primes/compiled`}</code></pre>
+
+  <h2>Common errors</h2>
+  <table>
+    <thead>
+      <tr><th>Error</th><th>Cause</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>L1: required field missing</td><td>Atom doesn't have a kind-required field</td><td>Add it; see <a href="/docs/spec/atoms">Atoms</a></td></tr>
+      <tr><td>L1: unknown atom id <code>@x/y</code></td><td>Edge points to a non-existent atom</td><td>Author the target or remove the edge</td></tr>
+      <tr><td>L3: cycle detected in <code>requires</code></td><td>A→B→C→A</td><td>Break the cycle by replacing one edge with <code>see-also</code></td></tr>
+      <tr><td>L3: kind mismatch on <code>validates-with</code></td><td>Edge points to wrong kind</td><td>Use <code>source</code>/<code>metric</code>/<code>check</code> as the target</td></tr>
+      <tr><td>L2: AI client unreachable</td><td>API key missing or rate-limited</td><td>Run without <code>--deep</code> or set the key</td></tr>
+    </tbody>
+  </table>
+</DocsLayout>

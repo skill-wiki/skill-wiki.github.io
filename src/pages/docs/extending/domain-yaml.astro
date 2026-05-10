@@ -1,0 +1,100 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="domain.yaml" slug="extending/domain-yaml" description="Author a domain plugin — declarative, no code, dropped into a corpus root.">
+  <h1>domain.yaml</h1>
+  <p style="color: var(--fg-muted);">
+    A domain plugin is one YAML file. It declares the tags, axes, contract scaffolds,
+    and L5 validators specific to your domain. The runtime discovers it recursively
+    from <code>$PRIME_DIR</code>; no code changes.
+  </p>
+
+  <h2>Minimum example</h2>
+<pre><code>{`# domain.yaml — at the corpus root
+name: my-domain
+version: "1.0.0"
+description: One sentence describing what knowledge lives in this corpus.`}</code></pre>
+
+  <p>
+    That's the smallest valid domain. The runtime will load it; tags and validators
+    are optional.
+  </p>
+
+  <h2>Full reference</h2>
+<pre><code>{`name: frontend-design
+version: "1.0.0"
+description: Design knowledge for AI agents — color, typography, motion, spacing,
+             accessibility, and component patterns.
+
+# Optional. Hints to the retriever about the dominant taxonomy.
+hierarchy: visual-hierarchy
+
+# Optional. Multi-axis tags the retriever boosts on when intent matches.
+axes:
+  - layout
+  - typography
+  - spacing
+  - color
+  - motion
+  - accessibility
+
+# Optional. Default contract scaffolds applied when a method doesn't override.
+contract:
+  typography: atom-12-array
+  color: atom-token-semantic
+
+# Optional. L5 validator hooks (zero or more).
+validators:
+  - name: html-semantic
+    checker: regex
+    pattern: '^<([a-z][a-z0-9]*)\\b[^>]*>'
+  - name: color-token
+    checker: ai-judge
+    rubric: '@frontend-design/rubric-color-token'
+
+# Optional. Default budget hints — used by the retriever when none specified.
+budgets:
+  default-tokens: 1200
+  max-tokens: 2400`}</code></pre>
+
+  <h2>Field reference</h2>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>name</code></td><td>kebab-case string</td><td>yes</td><td>Unique across loaded domains.</td></tr>
+      <tr><td><code>version</code></td><td>semver</td><td>yes</td><td>Use the same versioning policy as your Skill.</td></tr>
+      <tr><td><code>description</code></td><td>string</td><td>yes</td><td>Shown in marketplace listings.</td></tr>
+      <tr><td><code>hierarchy</code></td><td>string</td><td>no</td><td>Hints to the retriever about dominant taxonomy.</td></tr>
+      <tr><td><code>axes</code></td><td>list of strings</td><td>no</td><td>Tags the retriever boosts on. Unicode allowed.</td></tr>
+      <tr><td><code>contract</code></td><td>map</td><td>no</td><td>Default contract scaffolds.</td></tr>
+      <tr><td><code>validators</code></td><td>list of validator specs</td><td>no</td><td>L5 hooks.</td></tr>
+      <tr><td><code>budgets</code></td><td>map</td><td>no</td><td>Default token budgets.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Validator specs</h2>
+  <p>v0.1.0 supports two checker types out of the box. Domain-specific MCP wrappers can register more.</p>
+
+  <table>
+    <thead><tr><th>Checker</th><th>Parameters</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>regex</code></td><td><code>pattern</code></td><td>Match against generated artifact; pass if at least one match.</td></tr>
+      <tr><td><code>ai-judge</code></td><td><code>rubric</code> (atom id)</td><td>Send artifact + rubric atom to an LLM, parse pass/fix verdict.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Discovery rules</h2>
+  <ul>
+    <li>Files named exactly <code>domain.yaml</code> at any level of <code>$PRIME_DIR</code>, max depth 4.</li>
+    <li>Names must be unique across loaded domains. Conflicts hard-fail at boot.</li>
+    <li>Loaded once per server process. Send <code>SIGHUP</code> to reload.</li>
+  </ul>
+
+  <h2>From v0.0.x code-defined domains</h2>
+  <p>
+    If you have an old monorepo with a <code>packages/domain-foo/</code> directory,
+    migrate by lifting its tag list into <code>axes</code>, its validators into
+    <code>validators</code>, and dropping it into the corpus root as
+    <code>domain.yaml</code>. The runtime will pick it up automatically.
+  </p>
+</DocsLayout>

@@ -1,0 +1,113 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Checkers · L1 / L2 / L3" slug="implementation/checkers" lang="zh" description="三层检查 —— schema、语义 LLM 检查、跨原子图推理。">
+  <h1>Checkers · L1 / L2 / L3</h1>
+  <p style="color: var(--fg-muted);">
+    三层检查，各自抓不同类型的 bug。L1 + L3 是纯逻辑、强制；L2 可选，调一个小 LLM。
+  </p>
+
+  <h2>L1 · Schema（强制）</h2>
+  <p>
+    校验每个原子的结构是否符合它 kind 的 schema。必填字段是否齐？装饰器约束是否满足？
+    atom id 是否符合 <code>@scope/kind-kebab-name</code>？跨原子引用在 Skill 内能否解析？
+  </p>
+
+<pre><code>{`// packages/compiler/src/checker-l1.ts
+export function checkL1(ast: PrimeAST): Diagnostic[] {
+  const errors: Diagnostic[] = [];
+  for (const atom of ast.atoms) {
+    errors.push(...validateRequiredFields(atom));
+    errors.push(...validateIdShape(atom));
+    errors.push(...validateKindSchema(atom));
+    errors.push(...validateEdgeShape(atom));
+  }
+  return errors;
+}`}</code></pre>
+
+  <p>成本：每个原子约 5 ms。没有 API key 也能跑。</p>
+
+  <h2>L2 · 语义 LLM 检查（可选）</h2>
+  <p>
+    调一个小 LLM（默认 DeepSeek）抓语义漂移。问题是：<em>body 是不是和 metadata 矛盾？</em>
+    一条 rule 写着 <code>severity: low</code>，但 remediation 描述的是关键无障碍阻断 ——
+    L2 会标出来。
+  </p>
+
+<pre><code>{`// packages/compiler/src/checker-l2.ts (excerpt)
+const prompt = \`Atom \${atom.id} of kind \${atom.kind}.
+
+Metadata says: severity=\${atom.severity}, applies-to=\${atom.appliesTo}.
+Body says: "\${atom.body}"
+
+Does the body's tone, scope, or severity match the metadata?
+Reply: { "ok": bool, "reason"?: string }
+\`;
+
+const verdict = await aiClient.json(prompt);
+if (!verdict.ok) {
+  diagnostics.push({ atom: atom.id, message: verdict.reason });
+}`}</code></pre>
+
+  <p>
+    成本：DeepSeek 上每个原子约 $0.0001；结果按内容 hash 缓存到 <code>.l2-cache.json</code>。
+    没 API key 的构建会跳过 L2 并打 notice。
+  </p>
+
+  <h2>L3 · 跨原子（强制）</h2>
+  <p>
+    在解析后的边图上走一遍。三类错：
+  </p>
+  <ol>
+    <li><strong><code>requires</code> 链里的环</strong> —— 加载顺序无法满足。</li>
+    <li><strong>矛盾</strong> —— 带 <code>contradicts</code> 边的原子又出现在同一组合 contract 里。</li>
+    <li><strong>kind 不匹配</strong> —— 某条 <code>validates-with</code> 从一条 rule 指向另一条 rule（应当是 source / metric / check）。</li>
+  </ol>
+
+<pre><code>{`// packages/compiler/src/checker-l3-cross.ts (excerpt)
+function detectCycles(graph: EdgeGraph): Cycle[] {
+  // Tarjan's SCC over the requires-only subgraph
+  const sccs = stronglyConnectedComponents(graph.subgraph('requires'));
+  return sccs.filter((scc) => scc.size > 1).map(toCycle);
+}
+
+function checkContradicts(atoms: Atom[]): Diagnostic[] {
+  const ds: Diagnostic[] = [];
+  for (const atom of atoms) {
+    for (const c of atom.contradicts) {
+      const target = byId.get(c);
+      if (!target) continue;
+      const sharedScope = scopesContaining(atom).filter(
+        (s) => scopesContaining(target).includes(s),
+      );
+      if (sharedScope.length > 0) {
+        ds.push(scopeContradictsError(atom, target, sharedScope));
+      }
+    }
+  }
+  return ds;
+}`}</code></pre>
+
+  <h2>诊断格式</h2>
+  <p>三种 checker 都吐统一的 <code>Diagnostic</code> 形状：</p>
+
+<pre><code>{`interface Diagnostic {
+  level:    'error' | 'warning' | 'info';
+  layer:    'L1' | 'L2' | 'L3';
+  atom:     string;            // atom id
+  message:  string;
+  hint?:    string;            // suggested fix
+  source?:  { file: string; line: number };
+}`}</code></pre>
+
+  <h2>怎么跑检查</h2>
+
+<pre><code>{`# All three on a whole sources tree
+prime check --registry
+
+# Only L1 + L3 (no API key needed)
+prime check --registry --no-l2
+
+# Single file
+prime check primes/sources/@my/rule-x.prime`}</code></pre>
+</DocsLayout>

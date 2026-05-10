@@ -1,0 +1,91 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="CLI reference" slug="reference/cli" description="Every prime command, flag, and exit code.">
+  <h1>CLI reference</h1>
+  <p style="color: var(--fg-muted);">
+    The <code>prime</code> binary handles authoring, compilation, and distribution.
+    Source: <code>packages/cli/src/index.ts</code>.
+  </p>
+
+  <h2>Commands</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Args</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>init</code></td><td>—</td><td>Create a new <code>.prime</code> file interactively.</td></tr>
+      <tr><td><code>compile</code></td><td><code>&lt;file&gt; [--deep]</code></td><td>Compile <code>.prime</code> → atom dir + index.</td></tr>
+      <tr><td><code>check</code></td><td><code>&lt;file&gt; | --registry</code></td><td>Validate without emitting.</td></tr>
+      <tr><td><code>test</code></td><td><code>&lt;file&gt;</code></td><td>Run evaluation criteria tests.</td></tr>
+      <tr><td><code>graph</code></td><td><code>&lt;file&gt; [--format ascii\|svg]</code></td><td>Visualise the relationship graph.</td></tr>
+      <tr><td><code>decompose</code></td><td><code>&lt;SKILL.md&gt;</code></td><td>AI-assisted skill → atoms decomposition.</td></tr>
+      <tr><td><code>compose</code></td><td><code>--name &lt;name&gt;</code></td><td>Compose atoms into a new SKILL.md.</td></tr>
+      <tr><td><code>list</code></td><td><code>[--scope @s] [--dir]</code></td><td>List atoms in a local registry.</td></tr>
+      <tr><td><code>show</code></td><td><code>&lt;@scope/name&gt;</code></td><td>Print atom details + edges.</td></tr>
+      <tr><td><code>deps</code></td><td><code>&lt;@scope/name&gt;</code></td><td>Walk dependency tree.</td></tr>
+      <tr><td><code>install</code></td><td><code>[name] [--remote]</code></td><td>Install Skill(s) from a registry.</td></tr>
+      <tr><td><code>publish</code></td><td><code>[--remote] [--token]</code></td><td>Publish current Skill.</td></tr>
+      <tr><td><code>search</code></td><td><code>&lt;query&gt; [--remote]</code></td><td>Search the registry.</td></tr>
+      <tr><td><code>info</code></td><td><code>&lt;name&gt;</code></td><td>View Skill details.</td></tr>
+      <tr><td><code>ls</code></td><td><code>[--dir]</code></td><td>List installed packs.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Global flags</h2>
+  <ul>
+    <li><code>--version</code>, <code>-v</code> — print version</li>
+    <li><code>--help</code>, <code>-h</code> — print usage</li>
+    <li><code>--dir &lt;path&gt;</code> — override default sources/compiled directory</li>
+    <li><code>--remote &lt;url&gt;</code> — registry URL (for publish/install/search/info)</li>
+    <li><code>--json</code> — machine-readable output (where applicable)</li>
+  </ul>
+
+  <h2>Exit codes</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Success.</td></tr>
+      <tr><td>1</td><td>Generic error (parse, IO, network).</td></tr>
+      <tr><td>2</td><td>Validation error (L1 / L3 surfaced diagnostics).</td></tr>
+      <tr><td>3</td><td>Bad CLI usage (missing required arg, unknown command).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Environment variables</h2>
+  <ul>
+    <li><code>PRIME_DIR</code> — default compiled-output directory the runtime + MCP server use.</li>
+    <li><code>DEEPSEEK_API_KEY</code> — enables L2 LLM checking.</li>
+    <li><code>ANTHROPIC_API_KEY</code> — alternative L2 backend.</li>
+    <li><code>PRIME_REGISTRY</code> — default <code>--remote</code> if not specified.</li>
+  </ul>
+
+  <h2>Help output</h2>
+<pre><code>{`$ prime --help
+
+prime v0.1.0 — A protocol layer for AI knowledge.
+
+Usage: prime <command> [options]
+
+Core:
+  init                    Create a new .prime file
+  compile <file>          Compile .prime → atom dir + index
+  check <file>            Validate without emitting
+  test <file>             Run evaluation criteria tests
+  graph <file>            Visualise relationship graph
+
+Authoring:
+  decompose <SKILL.md>    AI-assisted Skill → Primes decomposition
+  compose --name <name>   Compose Primes into a new Skill
+
+Registry (local):
+  list [--scope @s]       List atoms
+  show <@scope/name>      Print atom details + edges
+  deps <@scope/name>      Walk dependency tree
+  install <@scope/name>   Resolve atom + verify deps locally
+
+Distribution:
+  install [name]          Install Skill(s) from prime.dev
+  publish                 Publish to prime.dev
+  search <query>          Search the registry
+  info <name>             View Skill details
+  ls                      List installed Skills (.primes/)`}</code></pre>
+</DocsLayout>

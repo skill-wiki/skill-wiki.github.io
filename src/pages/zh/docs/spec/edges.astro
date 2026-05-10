@@ -1,0 +1,117 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Edges · 14 个 verb" slug="spec/edges" lang="zh" description="14 个带类型的边 verb，语义、允许的源/目标 kind。">
+  <h1>Edges · 14 个 verb</h1>
+  <p style="color: var(--fg-muted);">
+    边声明原子之间的带类型关系。每个 verb 都有清楚定义的语义；
+    L3 跨原子检查器基于这些语义推理；运行时沿着这些边走来满足 contract。
+  </p>
+
+  <h2>为什么要带类型的 verb（而不是平铺的 <code>related</code>）</h2>
+  <p>
+    一个平铺的 <code>related: [...]</code> —— 像 SKILL.md 的 <em>see also</em> ——
+    没办法被推理。系统不知道被引用的原子到底是<em>依赖</em>、<em>例证</em>、
+    <em>反例</em>，还是<em>特化</em>。这四个答案对应不同的运行时行为：
+  </p>
+  <ul>
+    <li><strong>依赖</strong> → 必须一起加载（<code>requires</code>）</li>
+    <li><strong>例证</strong> → 可选的软性增强（<code>enhances</code>、<code>example</code>）</li>
+    <li><strong>反例 / 矛盾</strong> → 标记并警告（<code>contradicts</code>、<code>conflicts</code>）</li>
+    <li><strong>特化</strong> → 更窄的版本（<code>specializes</code>、<code>extends</code>）</li>
+  </ul>
+
+  <h2>14 个 verb</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Verb</th>
+        <th>语义</th>
+        <th>允许的源 kind</th>
+        <th>允许的目标 kind</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>related</code></td><td>泛关联 —— 可发现性。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>requires</code></td><td>强依赖。A 加载 ⇒ B 必须加载。</td><td><code>method</code>、<code>pattern</code>、<code>persona</code>、<code>rule</code></td><td>任意</td></tr>
+      <tr><td><code>enhances</code></td><td>软依赖。B 改进 A，但可选。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>validates-with</code></td><td>A 的正确性由 B 校验。</td><td><code>rule</code>、<code>fact</code>、<code>pattern</code></td><td><code>source</code>、<code>metric</code>、<code>check</code></td></tr>
+      <tr><td><code>contradicts</code></td><td>A 和 B 提出不兼容的断言。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>specializes</code></td><td>A 是 B 的更窄版本。</td><td>任意</td><td>与源同 kind</td></tr>
+      <tr><td><code>conflicts</code></td><td>A 和 B 不能同时加载（变体闸门）。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>extends</code></td><td>A 从 B 继承结构。</td><td><code>type</code>、<code>persona</code>、<code>method</code></td><td>与源同 kind</td></tr>
+      <tr><td><code>derived-from</code></td><td>A 是从 B 计算 / 推导出来的。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>compatible</code></td><td>A 和 B 可无冲突组合。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>supplies-to</code></td><td>A 的输出被 B 消费。</td><td><code>tool</code>、<code>transform</code>、<code>method</code></td><td><code>method</code>、<code>tool</code></td></tr>
+      <tr><td><code>see-also</code></td><td>纯交叉引用，无语义断言。</td><td>任意</td><td>任意</td></tr>
+      <tr><td><code>includes</code></td><td>结构性包含（collection→atoms）。</td><td><code>collection</code>、<code>scope</code></td><td>任意</td></tr>
+      <tr><td><code>relationships</code></td><td>自由形式的标签关系（逃生通道）。</td><td>任意</td><td>任意</td></tr>
+    </tbody>
+  </table>
+
+  <h2>L3 检查器会查什么</h2>
+  <p>
+    跨原子检查器（<code>checker-l3-cross.ts</code>）在解析后的边图上运行，
+    会暴露三类错误：
+  </p>
+  <ol>
+    <li>
+      <strong>循环</strong> —— <code>requires</code> 链里的环。A requires B、
+      B requires C、C requires A。运行时无法满足这种加载顺序。
+    </li>
+    <li>
+      <strong>矛盾</strong>。如果 A <code>contradicts</code> B，而某个 method 的 contract
+      把它俩拉进同一组合，要在 agent 见到之前抛硬错。
+    </li>
+    <li>
+      <strong>kind 不匹配</strong>。如果 <code>validates-with</code> 边从一条 <code>rule</code>
+      指向另一条 <code>rule</code>（而不是 <code>source</code>、<code>metric</code> 或 <code>check</code>），
+      要抛 schema 错。
+    </li>
+  </ol>
+
+  <h2>代码里走一条边</h2>
+
+  <p>
+    编译后，每个原子的边存在它目录旁的 <code>graph.yaml</code> 里。运行时按需读取：
+  </p>
+
+<pre><code>{`// packages/runtime/src/atom-loader.ts (excerpt)
+async function loadAtom(id: string): Promise<AtomMeta> {
+  const dir = atomDirFor(id);
+  const meta  = parseYaml(await read(\`\${dir}/atom.yaml\`));
+  const graph = parseYaml(await read(\`\${dir}/graph.yaml\`));
+  return {
+    ...meta,
+    edges: graph.edges, // [{ verb, target, ... }]
+  };
+  // Note: chunk content is *not* read here. Only metadata.
+}`}</code></pre>
+
+  <h2>怎么写一条边</h2>
+  <p>
+    边就是原子 body 里的字段赋值。字段名是 verb，值是 atom id 列表。
+  </p>
+
+<pre><code>{`rule MyRule {
+  id: "@my/rule-x"
+  version: "1.0.0"
+  description: "..."
+  domain: my-domain
+
+  claim: "..."
+  severity: recommended
+
+  // edges:
+  requires: [@my/term-x, @my/term-y]
+  validates-with: [@my/source-rfc-1234]
+  contradicts: [@my/anti-pattern-y]
+  see-also: [@my/pattern-z]
+}`}</code></pre>
+
+  <h2>加新的 verb</h2>
+  <p>
+    14 个 verb 在 v1 的 parser 里是固定的。加新 verb 需要 patch parser，再走 Tier-2 RFC。
+    见 <a href="/zh/docs/extending/custom-verbs">自定义 verb</a>。
+  </p>
+</DocsLayout>

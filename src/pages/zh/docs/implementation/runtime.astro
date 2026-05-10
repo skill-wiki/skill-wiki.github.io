@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Runtime —— loader 与 resolver" slug="implementation/runtime" lang="zh" description="@prime-lang/runtime —— 进程内的 atom loader、projection resolver 和边图构建。">
+  <h1>Runtime —— loader 与 resolver</h1>
+  <p style="color: var(--fg-muted);">
+    <code>@prime-lang/runtime</code> 读磁盘上的编译产物，把 metadata + 投影路径喂给 MCP server。
+    它从不读 chunk 正文。
+  </p>
+
+  <h2>模块</h2>
+  <table>
+    <thead>
+      <tr><th>模块</th><th>角色</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>atom-loader.ts</code></td><td>按原子读 <code>atom.yaml</code> + <code>graph.yaml</code>；不读 chunks。</td></tr>
+      <tr><td><code>index-loader.ts</code></td><td>解析 <code>_index.xml</code>，构建内存 atom map。</td></tr>
+      <tr><td><code>projection-resolver.ts</code></td><td>根据 (atom, level) 返回磁盘路径。</td></tr>
+      <tr><td><code>domain-config.ts</code></td><td>递归发现 <code>domain.yaml</code> + DomainRegistry。</td></tr>
+      <tr><td><code>edge-walker.ts</code></td><td>在内存边图上做 BFS / DFS。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>启动时序</h2>
+<pre><code>{`async function boot(primeDir: string) {
+  // 1. Discover domain plugins.
+  const domains = await discoverDomains(primeDir);
+  for (const d of domains) DomainRegistry.register(d);
+
+  // 2. Parse the index.
+  const index = await loadIndex(\`\${primeDir}/_index.xml\`);
+
+  // 3. Build the in-memory graph.
+  //    Atoms map id → metadata; no chunk content read here.
+  const graph = buildGraph(index);
+
+  return { domains, index, graph };
+}`}</code></pre>
+
+  <h2>"永不读 chunk 内容" 这条规矩</h2>
+  <p>
+    运行时契约规定 <code>chunks/{`{summary,core,full}`}.md</code> <em>不归</em>运行时管。为什么？
+  </p>
+  <ul>
+    <li><strong>跟 agent 的工作方式一致。</strong>agent 有一个 <code>Read</code> 工具。在运行时再造一份会引来格式漂移和缓存 bug。</li>
+    <li><strong>内存有界。</strong>chunk 内容随 corpus 大小膨胀。Metadata + index 不会（即便 1k 原子也只有约 50 KB）。</li>
+    <li><strong>热重载。</strong>运行时可以热重载 index，而不必让 agent 视图里的具体原子失效。</li>
+  </ul>
+
+  <pre><code>{`// packages/runtime/src/atom-loader.ts
+//
+// IMPORTANT: This module NEVER reads chunks/*.md content.
+// It only reads _index.xml and atom.yaml (metadata).
+// Chunk content is exclusively for the agent to pull via the Read tool.`}</code></pre>
+
+  <h2>边遍历器</h2>
+  <p>
+    MCP server 用它来满足 contract 解析、走 <code>requires</code> 链：
+  </p>
+
+<pre><code>{`function walkRequires(seed: AtomMeta, depth = 5): AtomMeta[] {
+  const out: AtomMeta[] = [];
+  const seen = new Set<string>([seed.id]);
+  const queue: [AtomMeta, number][] = [[seed, 0]];
+  while (queue.length > 0) {
+    const [atom, d] = queue.shift()!;
+    if (d >= depth) continue;
+    for (const edge of atom.edges) {
+      if (edge.verb !== 'requires' || seen.has(edge.target)) continue;
+      const target = byId.get(edge.target);
+      if (!target) continue;
+      seen.add(target.id);
+      out.push(target);
+      queue.push([target, d + 1]);
+    }
+  }
+  return out;
+}`}</code></pre>
+
+  <h2>对外 API</h2>
+<pre><code>{`import { Runtime } from "@prime-lang/runtime";
+
+const rt = await Runtime.boot({ primeDir: "/path/to/compiled" });
+
+// Lookup
+const atom = rt.lookup("@recipes/method-pan-sauce");
+
+// Resolve a projection (returns a path, NOT content)
+const path = rt.resolveProjection(atom.id, "core");
+
+// Walk
+const deps = rt.walkRequires(atom);
+
+// Domains
+console.log(rt.domains);                  // [DomainConfig, ...]`}</code></pre>
+</DocsLayout>

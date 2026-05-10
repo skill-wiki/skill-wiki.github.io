@@ -1,0 +1,103 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Parser & AST" slug="implementation/parser" description="The lexer + parser + AST shape that turns .prime source into typed nodes.">
+  <h1>Parser & AST</h1>
+  <p style="color: var(--fg-muted);">
+    <code>@prime-lang/parser</code> is a hand-written recursive-descent parser. ~1.5k
+    LOC; 125 tests; zero dependencies beyond <code>typescript</code>. It produces a
+    typed AST that the rest of the toolchain consumes.
+  </p>
+
+  <h2>Lexer</h2>
+  <p>
+    The lexer reads <code>.prime</code> source and emits a token stream. Tokens
+    include keywords (one per kind), punctuation (<code>{`{`} {`}`} [ ] : ,</code>),
+    identifiers (<code>@scope/name</code>), strings, numbers, and comments.
+  </p>
+
+<pre><code>{`// packages/parser/src/lexer.ts
+export type Token =
+  | { kind: 'keyword';     value: string;  line: number }
+  | { kind: 'identifier';  value: string;  line: number }
+  | { kind: 'atom-id';     value: string;  line: number }   // "@scope/name"
+  | { kind: 'string';      value: string;  line: number }
+  | { kind: 'number';      value: number;  line: number }
+  | { kind: 'punct';       value: string;  line: number }
+  | { kind: 'eof' };`}</code></pre>
+
+  <h2>AST</h2>
+
+<pre><code>{`// packages/types/src/ast.ts
+export interface PrimeAST {
+  atoms: AtomDeclaration[];
+}
+
+export interface AtomDeclaration {
+  kind: AtomKind;             // one of 28
+  name: string;                // PascalCase
+  fields: FieldNode[];
+}
+
+export interface FieldNode {
+  name: string;                // "id" | "version" | "claim" | "requires" | ...
+  value: ValueNode;
+  line: number;
+}
+
+export type ValueNode =
+  | { type: 'string';  value: string }
+  | { type: 'number';  value: number }
+  | { type: 'bool';    value: boolean }
+  | { type: 'atom-id'; value: string }                 // "@scope/name"
+  | { type: 'list';    items: ValueNode[] }
+  | { type: 'object';  fields: FieldNode[] };
+`}</code></pre>
+
+  <h2>Recursive descent</h2>
+  <p>The parser has 6 entry points; the rest is straightforward descent:</p>
+
+<pre><code>{`parsePrimeFile  ──▶  parseAtomDeclaration
+                       │
+                       ├─▶ parseKindKeyword
+                       ├─▶ parseAtomBody
+                       │     │
+                       │     └─▶ parseField
+                       │            │
+                       │            └─▶ parseValue
+                       │                  │
+                       │                  ├─▶ parseString / parseNumber
+                       │                  ├─▶ parseAtomId
+                       │                  ├─▶ parseList
+                       │                  └─▶ parseObject (recurse)`}</code></pre>
+
+  <h2>Error reporting</h2>
+  <p>
+    Parse errors carry line numbers + a <em>span</em> to highlight the offending text:
+  </p>
+
+<pre><code>{`Error: expected ',' or '}' before end of object body
+  at primes/sources/@my/rule-x.prime:14:6
+
+  12 |   severity: critical
+  13 |   requires: [@my/term-x
+  14 | }
+       ^^
+       |
+       +— missing comma after list item or closing bracket`}</code></pre>
+
+  <h2>Why hand-written?</h2>
+  <p>
+    Parser generators (Tree-sitter, ANTLR, peg.js) all add a runtime dependency and
+    obscure error messages. Skill Wiki's grammar is small enough (28 keywords, 14 verb
+    field names, ~6 punctuation classes) that recursive descent is shorter than the
+    generated alternative — and the error messages are author-friendly.
+  </p>
+
+  <h2>Performance</h2>
+  <p>
+    Parsing the frontend-design Skill (898 atoms, ~3 MB of source) takes ~140 ms on
+    M1. Per-atom: ~150 µs. The L1 checker adds another ~100 ms total. Compile time is
+    not a bottleneck even at 10× the current corpus.
+  </p>
+</DocsLayout>

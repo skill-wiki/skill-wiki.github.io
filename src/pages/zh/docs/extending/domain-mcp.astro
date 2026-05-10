@@ -1,0 +1,81 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="领域 MCP wrapper" slug="extending/domain-mcp" lang="zh" description="把 @prime-lang/mcp-server-core 包成带领域专属工具、标签、validator 的服务。">
+  <h1>领域 MCP wrapper</h1>
+  <p style="color: var(--fg-muted);">
+    核心 MCP server 是领域无关的。多数 agentic 工作流都会从一个<em>领域定制</em>的 wrapper 中得益 ——
+    它加上专门为这个领域准备的工具。参考 frontend Skill 就提供了这样一个 wrapper。
+  </p>
+
+  <h2>Wrapper 加什么</h2>
+  <ul>
+    <li><strong>领域命名的工具</strong> —— 比如 <code>frontend_color_check</code>、<code>frontend_layout_resolve</code>，而不是泛化的 <code>prime_query</code>。</li>
+    <li><strong>预置的标签包</strong> —— wrapper 知道一次 query 该带什么 axes，agent 不必自己挑。</li>
+    <li><strong>领域 L5 validator</strong> —— 进程内注册的 checker，<code>domain.yaml</code> 可以引用。</li>
+    <li><strong>品牌</strong> —— wrapper 有自己的 npm 包名和版本。</li>
+  </ul>
+
+  <h2>骨架</h2>
+<pre><code>{`// packages/mcp-server-frontend/src/index.ts
+import { createCoreServer } from "@prime-lang/mcp-server-core";
+
+const core = await createCoreServer({ primeDir: process.env.PRIME_DIR });
+
+// Add domain tools.
+core.registerTool("frontend_color_check", {
+  description: "Check generated CSS for color-token compliance.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      css: { type: "string" },
+    },
+  },
+  handler: async (args) => {
+    const verdict = await checkColorTokens(args.css);
+    return { ok: verdict.ok, fixes: verdict.fixes };
+  },
+});
+
+// Register domain L5 validators referenced from domain.yaml.
+core.registerValidator("color-token", colorTokenValidator);
+
+await core.serve();`}</code></pre>
+
+  <h2>命名约定</h2>
+  <table>
+    <thead><tr><th>项</th><th>约定</th></tr></thead>
+    <tbody>
+      <tr><td>包名</td><td><code>@prime-lang/mcp-server-&lt;domain&gt;</code></td></tr>
+      <tr><td>工具前缀</td><td><code>&lt;domain&gt;_&lt;verb&gt;</code>，比如 <code>frontend_color_check</code></td></tr>
+      <tr><td>是否包含核心 5 工具</td><td>是 —— 包装，别替换。</td></tr>
+      <tr><td>版本</td><td>Semver；跟随上游 <code>mcp-server-core</code>。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>分发</h2>
+  <p>
+    把 wrapper 发布到 npm 你自己的 scope 下。消费者接入方式跟核心 server 一样：
+  </p>
+
+<pre><code>{`{
+  "mcpServers": {
+    "frontend-design": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-frontend"],
+      "env": {
+        "PRIME_DIR": "/abs/path/to/frontend-design/compiled"
+      }
+    }
+  }
+}`}</code></pre>
+
+  <h2>参考实现</h2>
+  <p>
+    见
+    <a href="https://github.com/skill-wiki/prime-corpus-frontend" rel="noopener">skill-wiki/prime-corpus-frontend</a>
+    里的 <code>packages/mcp-server-frontend/</code>。
+    它在核心 5 工具之上注册了 4 个 frontend 专用工具，
+    并自带 color-token 与 a11y-audit 两个 validator。
+  </p>
+</DocsLayout>

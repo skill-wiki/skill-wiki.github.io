@@ -1,0 +1,83 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Registry 契约" slug="spec/registry" lang="zh" description="一个 Skill Wiki registry 想要与 prime publish / prime install 互通，必须实现的 HTTP 契约。">
+  <h1>Registry 契约</h1>
+  <p style="color: var(--fg-muted);">
+    一个 Skill 以 tarball + manifest 形式发布。任何暴露下面这套最小 HTTP 契约的服务都可以做 registry。
+    <code>prime publish</code> 和 <code>prime install</code> 是这套契约的客户端。参考实现是
+    <code>@prime-lang/registry</code>。
+  </p>
+
+  <h2>最小 HTTP 契约</h2>
+  <table>
+    <thead>
+      <tr><th>方法</th><th>路径</th><th>用途</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/publish</code></td><td>上传 Skill tarball + manifest。</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope</code></td><td>按 scope 列出某个 Skill 的所有版本。</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope/:version</code></td><td>取某个具体版本的 manifest。</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope/:version/tarball</code></td><td>下载 Skill tarball。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Skill manifest</h2>
+  <p>
+    每个发布的 Skill 都在 tarball 根目录带一份 <code>pack.yaml</code>：
+  </p>
+
+<pre><code>{`name: "@frontend-design"
+version: "0.1.0"
+description: "Design knowledge for AI agents — 898 atoms across 9 sub-domains."
+license: Apache-2.0
+
+atoms: 898
+namespaces:
+  - "@community"
+  - "@impeccable"
+  - "@anthropic-impeccable"
+  - "@nielsen"
+  - "@w3c"
+
+prime-version: "1.0"   # protocol version the pack targets
+sha256: "..."          # over the tarball; verified at install`}</code></pre>
+
+  <h2>Tarball 布局</h2>
+<pre><code>{`pack.tar.gz
+├── pack.yaml
+├── domain.yaml          # if the pack ships its own domain
+├── primes/
+│   └── sources/
+│       └── @scope/
+│           └── kind-name.prime
+└── compiled/            # optional, pre-compiled artifact
+    └── ...`}</code></pre>
+
+  <h2>认证</h2>
+  <p>
+    参考 registry 用 bearer token 鉴权 <code>POST /publish</code>；读操作公开。
+    Token 怎么发是 registry 各自的事，协议不规定 —— 按你的分发模型挑（按组织、按用户、按 CI 都行）。
+  </p>
+
+  <h2>版本</h2>
+  <ul>
+    <li>Skill 版本走 <strong>semver</strong>。Patch = 原子内容修改。Minor = 新增原子或新增边目标。Major = 删原子或删 verb。</li>
+    <li>Skill 内的原子也通过自身的 <code>version</code> 字段走 semver。</li>
+    <li><code>prime install @scope</code> 会解析到匹配消费方 <code>SKILL.md</code> 声明范围的最新 semver。</li>
+  </ul>
+
+  <h2>跑你自己的 registry</h2>
+  <p>参考 registry 是一个文件：</p>
+
+<pre><code>{`# Run on port 4000 with a SQLite-backed pack store.
+bun run packages/registry/src/index.ts --port 4000
+
+# Publish to it from any pack root.
+prime publish --remote http://localhost:4000
+
+# Install from it on any consumer.
+prime install @your-pack --remote http://localhost:4000`}</code></pre>
+
+  <p>完整闭环见 <a href="/zh/docs/usage/publish-install">发布与安装</a>。</p>
+</DocsLayout>

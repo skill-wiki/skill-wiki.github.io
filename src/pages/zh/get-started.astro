@@ -1,0 +1,94 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="开始使用" current="docs" lang="zh">
+  <div class="zh-getstart-wrap">
+    <p class="article-meta">开始使用 · 5 分钟</p>
+    <h1>30 秒装好。</h1>
+    <p class="zh-getstart-lede">
+      Skill Wiki 走 MCP 协议 —— 把 Claude Code、Cursor、Continue 或任何 MCP 客户端
+      指向本地服务即可。下面是最小步骤。完整指南见
+      <a href="/zh/docs/usage/install">文档 → 用法 → 安装</a>。
+    </p>
+
+    <h2>1. 安装 CLI</h2>
+    <pre><code># Bun（推荐）
+bun add -g @prime-lang/cli
+
+# 或 npm
+npm install -g @prime-lang/cli
+
+prime --version
+# → prime 0.1.0</code></pre>
+
+    <h2>2. 安装一个示例 Skill</h2>
+    <pre><code>prime install @recipes
+# → 装到 ./.primes/@recipes</code></pre>
+
+    <h2>3. 启动 MCP server</h2>
+    <pre><code>PRIME_DIR=./.primes/@recipes bunx @prime-lang/mcp-server-core</code></pre>
+
+    <h2>4. 接入 Claude Code</h2>
+    <p>编辑 <code>~/.config/claude-code/mcp.json</code>：</p>
+<pre><code>{`{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": { "PRIME_DIR": "/abs/path/to/compiled" }
+    }
+  }
+}`}</code></pre>
+
+    <p>重启 Claude Code，5 个工具会出现在 agent 工具列表里：</p>
+    <ul>
+      <li><code>prime_query</code></li>
+      <li><code>prime_resolve</code></li>
+      <li><code>prime_intent</code></li>
+      <li><code>prime_validate</code></li>
+      <li><code>prime_compile</code></li>
+    </ul>
+
+    <h2>下一步</h2>
+    <ul>
+      <li><a href="/zh/marketplace">浏览市场</a> —— 4 个示例 Skill + 旗舰 @frontend-design</li>
+      <li><a href="/docs/spec/overview">阅读规范</a></li>
+      <li><a href="/docs/architecture/pipeline">查看架构</a></li>
+      <li><a href="/docs/extending/custom-kinds">如何拓展自己的 kind</a></li>
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .zh-getstart-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px var(--s-4) 80px;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  .zh-getstart-wrap h1 {
+    font-size: clamp(32px, 4.5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0 0 20px;
+    border: 0;
+    padding: 0;
+  }
+  .zh-getstart-lede {
+    font-size: 17px;
+    color: var(--fg-muted);
+    line-height: 1.55;
+    margin: 0 0 40px;
+    letter-spacing: -0.005em;
+  }
+  .zh-getstart-wrap h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    margin: 48px 0 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-muted);
+  }
+</style>

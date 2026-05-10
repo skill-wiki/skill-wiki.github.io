@@ -1,0 +1,121 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="HTTP registry 端点" slug="reference/http-registry" lang="zh" description="一个 Skill Wiki registry 的完整 REST 契约。">
+  <h1>HTTP registry 端点</h1>
+  <p style="color: var(--fg-muted);">
+    一个 Skill Wiki registry 必须实现的最小 HTTP 契约。
+    参考实现：<code>packages/registry/src/index.ts</code>。
+  </p>
+
+  <h2>认证</h2>
+  <p>
+    <code>POST</code> 端点要求 <code>Authorization: Bearer &lt;token&gt;</code>。
+    读端点公开，除非 registry 自己另行规定。token 在带外签发；格式和生命周期由 registry 决定。
+  </p>
+
+  <h2>端点</h2>
+
+  <h3><code>POST /publish</code></h3>
+  <p>上传 Skill tarball + manifest。</p>
+<pre><code>{`Headers:
+  Authorization: Bearer <token>
+  Content-Type:  multipart/form-data
+
+Form parts:
+  manifest:  pack.yaml content (string)
+  tarball:   .tar.gz binary
+
+Response (201):
+{
+  "name":     "@my/pack",
+  "version":  "1.0.0",
+  "sha256":   "...",
+  "url":      "/pack/@my/pack/1.0.0/tarball"
+}
+
+Errors:
+  400  bad manifest schema
+  401  bad token
+  409  version already published`}</code></pre>
+
+  <h3><code>GET /pack/:scope</code></h3>
+  <p>列出某个 Skill 的所有版本。</p>
+<pre><code>{`Path: /pack/%40my%2Fcooking          // url-encoded "@my/cooking"
+
+Response (200):
+{
+  "name": "@my/cooking",
+  "versions": [
+    { "version": "1.0.0", "published_at": "2026-05-01T12:00:00Z" },
+    { "version": "1.1.0", "published_at": "2026-05-08T09:30:00Z" }
+  ],
+  "latest": "1.1.0"
+}`}</code></pre>
+
+  <h3><code>GET /pack/:scope/:version</code></h3>
+  <p>取某个具体版本的 manifest。</p>
+<pre><code>{`Response (200):
+{
+  "name":          "@my/cooking",
+  "version":       "1.1.0",
+  "description":   "Cooking knowledge ...",
+  "license":       "Apache-2.0",
+  "atoms":         123,
+  "namespaces":    ["@my"],
+  "prime-version": "1.0",
+  "sha256":        "...",
+  "tarball_url":   "/pack/@my/cooking/1.1.0/tarball"
+}`}</code></pre>
+
+  <h3><code>GET /pack/:scope/:version/tarball</code></h3>
+  <p>下载 Skill tarball。</p>
+<pre><code>{`Response (200):
+  Content-Type: application/gzip
+  Body: tarball bytes`}</code></pre>
+
+  <h2>可选端点</h2>
+
+  <h3><code>GET /search?q=...</code></h3>
+<pre><code>{`Response (200):
+{
+  "results": [
+    {
+      "name":        "@my/cooking",
+      "version":     "1.1.0",
+      "description": "...",
+      "score":       0.84
+    }
+  ]
+}`}</code></pre>
+
+  <h3><code>DELETE /pack/:scope/:version</code></h3>
+  <p>撤回某个版本。需要鉴权。多数 registry <em>应当</em>对非预发布版本拒绝这个操作。</p>
+
+  <h2>状态码</h2>
+  <table>
+    <thead><tr><th>码</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td>200</td><td>OK。</td></tr>
+      <tr><td>201</td><td>已创建（publish）。</td></tr>
+      <tr><td>304</td><td>未修改（tarball 用 ETag）。</td></tr>
+      <tr><td>400</td><td>manifest 或 query 的 schema 错。</td></tr>
+      <tr><td>401</td><td>认证缺失或错误。</td></tr>
+      <tr><td>404</td><td>Skill 或版本不存在。</td></tr>
+      <tr><td>409</td><td>publish 时版本冲突。</td></tr>
+      <tr><td>500</td><td>Server 错误。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>镜像 / 回退</h2>
+  <p>
+    CLI 接受多个 <code>--remote</code> 值；遇到 404 时解析器自动回退到下一个。
+    所以做镜像（比如在公共 registry 前架一个企业代理）很简单。
+  </p>
+
+  <h2>参考实现</h2>
+  <p>
+    <code>packages/registry/src/index.ts</code> —— 单文件 Bun server，
+    用 SQLite 存 manifest，用本地文件系统存 tarball，约 600 行。
+  </p>
+</DocsLayout>

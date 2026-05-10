@@ -1,0 +1,100 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="自定义 kind" slug="extending/custom-kinds" lang="zh" description="给协议加新原子 kind —— 4 文件 patch + Tier-2 RFC。">
+  <h1>自定义 kind</h1>
+  <p style="color: var(--fg-muted);">
+    28 种 kind 在 v1 的 parser 里是写死的。加一个新的需要 4 文件 patch + 一份 Tier-2 RFC。
+    一个新 kind 进入规范，预计 1 周评审周期。
+  </p>
+
+  <h2>什么时候加 kind</h2>
+  <p>满足以下条件再加：</p>
+  <ol>
+    <li>28 种里没有一种能装下你领域要的结构。</li>
+    <li>这个结构通用到能服务多个 corpus。</li>
+    <li>L3 检查器需要对它的语义做推理（否则一个 <code>type</code> 原子加 tag 就够）。</li>
+  </ol>
+
+  <p>如果只是你自己 corpus 用，一个 <code>type</code> 原子 + <code>domain.yaml</code> 里加一项 <code>axes</code>，通常才是对的答案。</p>
+
+  <h2>要 patch 的 4 个文件</h2>
+
+  <h3>1. 类型定义 —— <code>packages/types/src/ast.ts</code></h3>
+<pre><code>{`// Add the literal to the union
+export type AtomKind =
+  | 'fact' | 'term' | 'value' | 'category'
+  | 'example' | 'counter-example' | 'source' | 'metric'
+  | 'step' | 'check' | 'transform' | 'tool'
+  | 'method' | 'rule' | 'taxonomy' | 'pattern'
+  | 'anti-pattern' | 'type' | 'constraint'
+  | 'collection' | 'scope' | 'tradeoff' | 'principle' | 'feedback'
+  | 'persona' | 'voice' | 'template' | 'provocation'
+  | 'recipe';   // ←  your new kind`}</code></pre>
+
+  <h3>2. Lexer 关键字 —— <code>packages/parser/src/lexer.ts</code></h3>
+<pre><code>{`const KEYWORDS = new Set<AtomKind>([
+  'fact', 'term', 'value', 'category',
+  // ...
+  'recipe',   // ← here
+]);`}</code></pre>
+
+  <h3>3. L1 schema —— <code>packages/compiler/src/checker-l1.ts</code></h3>
+<pre><code>{`const SCHEMAS: Record<AtomKind, FieldSchema> = {
+  // ...
+  'recipe': {
+    required: ['ingredients', 'steps', 'serves'],
+    optional: ['source', 'time-minutes'],
+  },
+};`}</code></pre>
+
+  <h3>4. Chunker splitter —— <code>packages/compiler/src/chunker.ts</code></h3>
+<pre><code>{`const SPLITTERS: Record<AtomKind, Splitter> = {
+  // ...
+  'recipe': recipeSplitter,
+};
+
+function recipeSplitter(atom: AtomDeclaration): ChunkLevels {
+  return {
+    summary: \`# \${atom.name}\\n\\n\${atom.fields.find('description')?.value}\`,
+    core: ...,
+    full: ...,
+  };
+}`}</code></pre>
+
+  <h2>5. 加一个 fixture 测试</h2>
+<pre><code>{`// packages/parser/test/fixtures/atom-recipe.prime
+recipe Spaghetti {
+  id: "@kitchen/recipe-spaghetti"
+  version: "1.0.0"
+  description: "Classic spaghetti."
+  domain: cooking
+
+  ingredients: [
+    { name: "spaghetti", weight-g: 200 },
+    { name: "garlic", count: 3 },
+  ]
+  steps: [...]
+  serves: 2
+}
+
+// packages/parser/test/parser.test.ts
+test("parses recipe kind", () => {
+  const ast = parse(readFixture("atom-recipe.prime"));
+  expect(ast.atoms[0].kind).toBe("recipe");
+});`}</code></pre>
+
+  <h2>6. 提 RFC</h2>
+  <p>
+    带这 5 处改动开 PR，附简短理由（问题、考虑过的替代方案、预期影响）。
+    Tier-2 RFC 意思是：1 个协议组评审 + 7 天异议窗口。详见
+    <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/governance.md" rel="noopener">governance.md</a>。
+  </p>
+
+  <h2>YAML 声明的 <code>custom-kind</code>（roadmap）</h2>
+  <p>
+    v0.2 计划中：在 <code>domain.yaml</code> 里通过 YAML 声明一个 kind，不用 patch parser。
+    取舍：你拿到了结构，但 L3 不会对这个 kind 做语义推理。详见
+    <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/roadmap.md" rel="noopener">roadmap</a>。
+  </p>
+</DocsLayout>

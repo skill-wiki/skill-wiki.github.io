@@ -1,0 +1,116 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Existence ≠ content" slug="background/existence-not-content" description="The load-bearing line of Skill Wiki's design.">
+  <h1>Existence ≠ content</h1>
+  <p style="color: var(--fg-muted);">
+    The architectural pivot that the rest of the protocol is downstream of.
+  </p>
+
+  <blockquote>
+    <strong>Knowing that an atom for "OWASP input-validation rules" exists is
+    different from holding all 1,841 bytes of its prose in working memory.</strong>
+  </blockquote>
+
+  <p>
+    Wikipedia separates the two. Every reader of the encyclopedia knows there is an
+    article on prime numbers — but they don't have its 4,000 words in their head until
+    they navigate to it. The Wikipedia <em>index</em> is small; the <em>articles</em>
+    are large; readers pull the article on demand.
+  </p>
+
+  <p>
+    Pre-Skill-Wiki agent stacks routinely conflate the two. Every skill that <em>might</em> be
+    relevant ships its full prose into the prompt every turn, "just in case." This
+    is the design pivot Skill Wiki rejects.
+  </p>
+
+  <h2>How Skill Wiki separates them</h2>
+  <p>The protocol distinguishes two surfaces that an agent interacts with:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Surface</th>
+        <th>Cost</th>
+        <th>Always in context?</th>
+        <th>Contains</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Index</strong> (<code>_index.xml</code>)</td>
+        <td>~3 KB regardless of corpus size</td>
+        <td>Yes</td>
+        <td>id, kind, one-line summary, edges out</td>
+      </tr>
+      <tr>
+        <td><strong>Atom body</strong> (chunks/*.md)</td>
+        <td>~30 / ~150 / ~380 tok per atom</td>
+        <td>No — loaded by id, on demand</td>
+        <td>full description, parameters, examples</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The index is the agent's <em>map</em>; atom bodies are the <em>territory</em>.</p>
+
+  <h2>What this enables</h2>
+
+  <h3>Bounded cost</h3>
+  <p>
+    Token cost grows with what the agent <em>actually decides to load</em>, not with
+    corpus size. A 1,000-atom corpus costs the same to "have available" as a 50-atom
+    one. The marginal atom is free until used.
+  </p>
+
+  <h3>Bounded pollution</h3>
+  <p>
+    Bad atoms in the corpus don't poison every turn. They sit in the index, get
+    filtered out by retrieval per-turn, and never enter context unless retrieved. A
+    bad SKILL.md, by contrast, pollutes every turn it's loaded for.
+  </p>
+
+  <h3>Push → pull inversion</h3>
+  <p>
+    The traditional pattern is <em>push</em>: the system pushes everything the brief
+    might need into context, hoping the model picks the right parts. Skill Wiki is
+    <em>pull</em>: the index says "an atom for GDPR right-to-erasure rules exists";
+    the agent decides whether to read its summary, core, or full projection.
+  </p>
+
+  <pre><code>{`Push (skill bulk-loading):
+  ┌────────────────────────────────┐
+  │  All 60 SKILL.md               │ → agent
+  │  ~30 KB context every turn     │
+  └────────────────────────────────┘
+
+Pull (Skill Wiki):
+  ┌─────────────┐  retrieval    ┌─────────────────┐
+  │ _index.xml  │ ───picks 3 ──▶│ chunks/core.md  │ → agent
+  │ ~3 KB       │   atoms        │ ~450 tok        │
+  └─────────────┘                └─────────────────┘`}</code></pre>
+
+  <h2>Why "exact" is exact</h2>
+  <p>
+    The Wikipedia analogy isn't approximate; it's structural. Wikipedia's
+    <a href="https://en.wikipedia.org/wiki/Special:AllPages" rel="noopener">Special:AllPages</a>
+    is a 7 MB index. Loading it doesn't mean loading the encyclopedia. The MediaWiki
+    runtime gives readers stable URLs, and articles materialise when the URL is
+    requested. Replace "URL" with "atom id," "browser" with "agent," "MediaWiki"
+    with "MCP server" and you have Skill Wiki.
+  </p>
+
+  <h2>Where this goes</h2>
+  <p>
+    Five further decisions follow from this line — typed atoms (not blob skills),
+    typed edges (not flat <code>related</code>), composition contracts (not free
+    composition), and small-LLM compile-time checking. They are all consequences of
+    taking <em>existence ≠ content</em> seriously.
+  </p>
+  <p>
+    Read on:
+    <a href="/docs/spec/atoms">Atoms</a> · <a href="/docs/spec/edges">Edges</a> ·
+    <a href="/docs/spec/projection">Projection</a> · <a href="/docs/architecture/pipeline">Pipeline</a>.
+  </p>
+</DocsLayout>

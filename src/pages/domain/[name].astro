@@ -1,0 +1,107 @@
+---
+import Base from '../../layouts/Base.astro';
+import AtomCard from '../../components/AtomCard.astro';
+import { loadAll, type Domain } from '../../lib/corpus';
+
+export async function getStaticPaths() {
+  const { corpora, domains } = loadAll();
+  // We render a page for every domain that's *either* a registered domain.yaml
+  // or that just appears as the "domain" field on at least one atom.
+  const names = new Set<string>(domains.map((d) => d.name));
+  for (const c of corpora) for (const a of c.atoms) names.add(a.domain);
+  return [...names].map((name) => ({ params: { name } }));
+}
+
+const { name } = Astro.params;
+const { corpora, domains } = loadAll();
+const registered = domains.find((d) => d.name === name);
+const atoms = corpora.flatMap((c) => c.atoms).filter((a) => a.domain === name);
+
+const kindCounts = new Map<string, number>();
+for (const a of atoms) kindCounts.set(a.kind, (kindCounts.get(a.kind) ?? 0) + 1);
+const kindRows = [...kindCounts.entries()].sort((a, b) => b[1] - a[1]);
+
+const sample = atoms.slice(0, 12);
+---
+<Base title={`Domain: ${name}`} current="marketplace">
+  <div class="domain-wrap">
+  <p class="docs-breadcrumb">
+    <a href="/marketplace">Marketplace</a> {' / '}
+    <a href="/browse">Browse</a> {' / '}
+    <span style="color: var(--fg-default)">{name}</span>
+  </p>
+  <h1>{name}</h1>
+  <p style="font-size: 1.05rem; color: var(--fg-muted); max-width: 70ch;">
+    {registered?.description || `Domain inferred from ${atoms.length} atoms across the corpora.`}
+  </p>
+  <div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: var(--s-5);">
+    {registered ? <span class="badge">v{registered.version}</span> : null}
+    <span class="badge">{atoms.length} atoms</span>
+    {registered ? <span class="badge">{registered.tags.length} tags</span> : null}
+    {registered ? <span class="badge">{registered.axes.length} axes</span> : null}
+  </div>
+
+  <h2>Atom counts by kind</h2>
+  <table class="kind-table" aria-label={`Atoms in domain ${name} by kind`}>
+    <thead>
+      <tr><th>Kind</th><th class="n">Count</th></tr>
+    </thead>
+    <tbody>
+      {kindRows.map(([k, n]) => (
+        <tr>
+          <td><a href={`/browse?domain=${name}&kind=${k}`}><span class={`badge kind-${k}`}>{k}</span></a></td>
+          <td class="n">{n}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  {registered ? (
+    <>
+      <h2>Tag vocabulary</h2>
+      <p style="color: var(--fg-muted);">
+        Words a brief might contain that signal this domain.
+      </p>
+      <div class="tag-cloud">
+        {registered.tags.map((t) => <span class="tag">{t}</span>)}
+      </div>
+
+      <h2>Retrieval axes</h2>
+      <p style="color: var(--fg-muted);">
+        Domain-specific dimensions used by Prime's retrieval scoring.
+      </p>
+      {registered.axes.map((a) => (
+        <details class="projection">
+          <summary>{a.name} <span style="color: var(--fg-muted); font-weight: 400;">· {(a.matches?.length ?? 0)} matches</span></summary>
+          <div class="body">
+            <p>{a.description}</p>
+            {a.matches && a.matches.length > 0 ? (
+              <div class="tag-cloud">
+                {a.matches.map((m) => <span class="tag">{m}</span>)}
+              </div>
+            ) : null}
+          </div>
+        </details>
+      ))}
+    </>
+  ) : null}
+
+  <h2>Sample atoms</h2>
+  <div class="card-grid">
+    {sample.map((atom) => <AtomCard atom={atom} />)}
+  </div>
+  {atoms.length > sample.length ? (
+    <p style="margin-top: var(--s-4);">
+      <a href={`/browse?domain=${name}`}>See all {atoms.length} atoms in {name} →</a>
+    </p>
+  ) : null}
+  </div>
+</Base>
+
+<style>
+  .domain-wrap {
+    max-width: var(--max-w-narrow);
+    margin: 0 auto;
+    padding: 32px var(--s-4) 80px;
+  }
+</style>

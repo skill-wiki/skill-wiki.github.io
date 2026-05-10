@@ -1,0 +1,90 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Composition contracts" slug="spec/contracts" description="must-include / must-avoid declarations on methods, personas, and scopes.">
+  <h1>Composition contracts</h1>
+  <p style="color: var(--fg-muted);">
+    A contract block declares atoms that must (or must not) be loaded together.
+    It guarantees a complete-by-construction set when the agent loads a parent atom.
+  </p>
+
+  <h2>Why contracts</h2>
+  <p>
+    Agents are free to compose atoms — but not every combination is safe. A method
+    might require a specific term to be in context for its instructions to make sense,
+    or it might be nonsense to load alongside an antagonistic anti-pattern. Contracts
+    make those constraints declarative.
+  </p>
+
+  <h2>Three contract clauses</h2>
+  <table>
+    <thead>
+      <tr><th>Clause</th><th>Meaning</th><th>Runtime behaviour</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>must-include</code></td><td>Loading the parent loads these atoms.</td><td>Inserted into the agent's atom set automatically.</td></tr>
+      <tr><td><code>must-avoid</code></td><td>These atoms cannot be loaded with the parent.</td><td>Filtered from candidates; warning if forced.</td></tr>
+      <tr><td><code>conditionally-required</code></td><td>If <em>condition</em>, must include atoms.</td><td>Evaluated at L3 against the IntentObject.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Where contracts attach</h2>
+  <p>Contracts can be declared on these kinds:</p>
+  <ul>
+    <li><code>method</code> — most common. Every step needs supporting terms / facts / sources.</li>
+    <li><code>persona</code> — defines the voice + companion atoms a posture brings.</li>
+    <li><code>scope</code> — declares an exclusive subset (e.g. "regulated-fintech-mode").</li>
+    <li><code>collection</code> — implicit: all members are <code>must-include</code>.</li>
+  </ul>
+
+  <h2>Example</h2>
+
+<pre><code>{`method PanSauce {
+  id: "@recipes/method-pan-sauce"
+  version: "1.0.0"
+  description: "Build a pan sauce from fond after searing."
+  domain: cooking
+
+  steps: [
+    @recipes/step-deglaze,
+    @recipes/step-reduce,
+    @recipes/step-mount-with-butter,
+  ]
+
+  contract: {
+    must-include: [
+      @recipes/term-fond,
+      @recipes/term-deglazing,
+      @recipes/fact-water-evaporation-temp,
+    ]
+    must-avoid: [
+      @recipes/anti-pattern-microwave-reduce,
+    ]
+    conditionally-required: [
+      { when: "vegetarian:true", include: [@recipes/value-stock-vegetable] },
+    ]
+  }
+}`}</code></pre>
+
+  <h2>Resolution at runtime</h2>
+  <p>
+    When the retriever picks <code>method-pan-sauce</code> as a hit, the runtime walks
+    the contract and ensures the agent's atom set includes <code>term-fond</code>,
+    <code>term-deglazing</code>, and <code>fact-water-evaporation-temp</code>. It also
+    flags <code>anti-pattern-microwave-reduce</code> as not-loadable for this turn.
+  </p>
+
+  <p>
+    The agent never gets a half-resolved set. Missing must-includes are surfaced
+    as L3 errors at compile time, so the agent at runtime sees only validated
+    contracts.
+  </p>
+
+  <h2>Contracts vs explicit edges</h2>
+  <p>
+    A contract is a stronger commitment than a <code>requires</code> edge. The verb
+    <code>requires</code> says "if you load A you should also load B." A contract's
+    <code>must-include</code> says "the protocol guarantees B is loaded whenever A is."
+    Use the contract when correctness depends on the bundling.
+  </p>
+</DocsLayout>

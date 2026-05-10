@@ -1,0 +1,85 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="关于" current="about" lang="zh">
+  <article class="article">
+    <p class="article-meta">关于 Skill Wiki</p>
+    <h1>AI 知识的协议层。</h1>
+
+    <p style="font-size: 18px; color: var(--fg-muted); line-height: 1.55; margin-bottom: 32px; letter-spacing: -0.005em;">
+      Skill Wiki 把领域知识表达为<strong>有类型的原子 + 显式边图，按需载入</strong>。
+      不是每轮都把 200 行的 markdown 塞进 agent —— 而是塞 3 KB 的"什么存在"索引，
+      具体内容由 agent 自己挑要不要读。
+    </p>
+
+    <h2>面向谁</h2>
+    <p>三类受众，按影响排序：</p>
+    <ul>
+      <li>
+        <strong>Agent 构建者</strong> —— 在生产里跑 AI 系统的人。
+        你要的是稳定可寻址的领域知识库，不是请求时现搜的 vibe。
+      </li>
+      <li>
+        <strong>团队</strong> —— 维护内部 style guide / playbook /
+        安全策略 / 菜谱的团队。你要它可查询、可版本化、可机器校验。
+      </li>
+      <li>
+        <strong>语料维护者</strong> —— 想发布参考语料让别人一键安装的人。
+        <code>prime publish</code> / <code>prime install</code>，像 npm 一样。
+      </li>
+    </ul>
+
+    <h2>协议形状</h2>
+    <p>
+      每个<strong>原子</strong>有一个 <strong>kind</strong>（28 种之一：fact、rule、
+      pattern、method、persona、tradeoff…）、一个<strong>领域</strong>、
+      由单一源文件编译产出的<strong>三级投影</strong>（~30 / ~150 / ~380 token）、
+      以及一组到其他原子的<strong>类型化边</strong>（14 种动词之一）。
+    </p>
+    <p>
+      消费方查图、把 brief 解析到最小覆盖原子集、按预算选投影层，把这些喂给模型。
+      <a href="/zh/docs/spec/overview">阅读规范。</a>
+    </p>
+
+    <h2>规范文档</h2>
+    <ul>
+      <li><a href="/zh/docs/spec/overview">规范总览</a> —— 协议表面，一页讲清。</li>
+      <li><a href="/zh/docs/spec/atoms">原子</a> —— 28 种 kind，分 5 层。</li>
+      <li><a href="/zh/docs/spec/edges">边</a> —— 14 个类型化动词。</li>
+      <li><a href="/zh/docs/spec/projection">投影</a> —— 三级、kind-aware 切分。</li>
+      <li><a href="/zh/docs/spec/registry">Registry</a> —— HTTP 协议。</li>
+      <li><a href="https://github.com/skill-wiki/prime-system/blob/main/spec/PRIME-PROTOCOL-v1.md" rel="noopener">PRIME-PROTOCOL-v1.md</a> —— 标准文档原文。</li>
+    </ul>
+
+    <h2>这个站点是什么</h2>
+    <p>
+      静态文档站 + 市场。无账号、无埋点、无 telemetry。所有页面在构建时由语料的编译产出
+      <code>_index.xml</code> 和每原子的 <code>chunks/</code> 投影渲染。
+      发布通过 <code>prime publish</code> 推到 registry；本站只读。
+    </p>
+
+    <h2>许可</h2>
+    <p>
+      Skill Wiki 和参考语料包都是 Apache-2.0 开源 ——
+      见 <a href="https://github.com/skill-wiki/prime-system/blob/main/LICENSE" rel="noopener">LICENSE</a>。
+      原子是纯文本，归你所有；协议保证可移植。
+    </p>
+
+    <h2>参与贡献</h2>
+    <p>
+      Issue、PR、新 Skill 都欢迎，仓库：
+      <a href="https://github.com/skill-wiki/prime-system" rel="noopener">github.com/skill-wiki/prime-system</a>。
+      治理模型见 <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/governance.md" rel="noopener">governance.md</a> ——
+      Tier-1 改动需协议组共识，Tier-2（kind / verb）需 7 天 RFC，
+      Tier-3（任意 Skill）只需该包维护者同意。
+    </p>
+
+    <h2>Colophon</h2>
+    <p style="color: var(--fg-muted); font-size: 14px;">
+      用 <a href="https://astro.build" rel="noopener">Astro 4</a> 搭建。
+      Inter + JetBrains Mono 字体来自 Google Fonts。所有页面是静态 HTML；
+      只在需要的页面（主题切换、浏览过滤、sidebar 持久化）发约 3 KB 的 JS。
+      可访问性基线：语义 landmark、键盘可达、双主题 AA 对比度。
+    </p>
+  </article>
+</Base>

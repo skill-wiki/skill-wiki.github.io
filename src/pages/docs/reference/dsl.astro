@@ -1,0 +1,98 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+
+const BNF = `prime-file       ::= atom-decl*
+
+atom-decl        ::= kind-keyword name "OPEN" field* "CLOSE"
+
+kind-keyword     ::= "fact" | "term" | "rule" | "method" | ... (28 kinds)
+
+name             ::= [A-Z][A-Za-z0-9]*
+
+field            ::= field-name ":" value
+
+field-name       ::= [a-z][a-z0-9-]*           // kebab-case
+
+value            ::= string | number | bool
+                   | atom-id
+                   | list
+                   | object
+
+string           ::= '"' (escaped-char | non-quote)* '"'
+number           ::= integer | decimal
+bool             ::= "true" | "false"
+atom-id          ::= "@" scope "/" name-kebab
+                     scope ::= [a-z][a-z0-9-]*
+                     name-kebab ::= [a-z][a-z0-9-]*
+list             ::= "[" (value ("," value)* ","?)? "]"
+object           ::= "OPEN" (field ("," field)* ","?)? "CLOSE"`
+  .replace(/OPEN/g, '{').replace(/CLOSE/g, '}');
+---
+<DocsLayout title=".prime DSL grammar" slug="reference/dsl" description="The .prime DSL — BNF grammar, lexical rules, and atom body forms.">
+  <h1>.prime DSL grammar</h1>
+  <p style="color: var(--fg-muted);">
+    A small, hand-written grammar. 28 keywords (one per kind), 14 verb names as field
+    identifiers, 6 punctuation classes. Comments use <code>//</code>.
+  </p>
+
+  <h2>Lexical structure</h2>
+  <ul>
+    <li><strong>Keywords</strong> — the 28 atom kinds. Reserved.</li>
+    <li><strong>Identifiers</strong> — atom names (<code>PascalCase</code>) and field names (<code>kebab-case</code>).</li>
+    <li><strong>Atom IDs</strong> — <code>@scope/kind-kebab-name</code>. Cross-Skill refs allowed.</li>
+    <li><strong>Strings</strong> — double-quoted, <code>\\</code>-escapes for <code>"</code>, <code>n</code>, <code>t</code>.</li>
+    <li><strong>Numbers</strong> — integers and decimals.</li>
+    <li><strong>Booleans</strong> — <code>true</code>, <code>false</code>.</li>
+    <li><strong>Punctuation</strong> — <code>{`{`}</code> <code>{`}`}</code> <code>[</code> <code>]</code> <code>:</code> <code>,</code></li>
+    <li><strong>Comments</strong> — <code>// to end of line</code>.</li>
+  </ul>
+
+  <h2>BNF (sketch)</h2>
+<pre><code>{BNF}</code></pre>
+
+  <h2>Trailing commas</h2>
+  <p>
+    Allowed in lists and objects. The parser silently accepts <code>[a, b, c,]</code>
+    so reordering edge lists doesn't churn diffs.
+  </p>
+
+  <h2>Field types per value</h2>
+  <table>
+    <thead><tr><th>Field shape</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>string</td><td><code>statement: "..."</code></td></tr>
+      <tr><td>number</td><td><code>confidence: 0.99</code></td></tr>
+      <tr><td>bool</td><td><code>verified: true</code></td></tr>
+      <tr><td>atom id</td><td><code>requires: [@my/term-x]</code></td></tr>
+      <tr><td>list of strings</td><td><code>tags: ["fintech", "button"]</code></td></tr>
+      <tr><td>list of objects</td><td><code>{`steps: [{ action: "..." }]`}</code></td></tr>
+      <tr><td>nested object</td><td><code>{`contract: { must-include: [...] }`}</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Edge fields</h2>
+  <p>The 14 edge verbs are recognised as field names. Their values are always lists of atom IDs.</p>
+
+<pre><code>{`requires:        [@my/term-x, @my/term-y]
+validates-with:  [@my/source-rfc-1234]
+contradicts:     [@my/anti-pattern-y]
+see-also:        [@my/pattern-z]`}</code></pre>
+
+  <h2>Edge cases</h2>
+  <ul>
+    <li><strong>Duplicate fields</strong> — last wins; L1 emits a warning.</li>
+    <li><strong>Empty list</strong> — equivalent to omitting the field.</li>
+    <li><strong>Empty object</strong> — invalid for kind-required fields.</li>
+    <li><strong>Self-reference</strong> — an atom that references itself in <code>requires</code> is an L3 cycle.</li>
+  </ul>
+
+  <h2>Why a DSL?</h2>
+  <p>
+    YAML or JSON would have worked. We picked a thin DSL because:
+  </p>
+  <ol>
+    <li>YAML's whitespace + 9 ways to write a string makes parser errors fragile.</li>
+    <li>Atom IDs (<code>@scope/name</code>) get a dedicated lexical class — better error messages on typos.</li>
+    <li>Reserved kind keywords are clearer than YAML's <code>kind: rule</code> with arbitrary other fields.</li>
+  </ol>
+</DocsLayout>

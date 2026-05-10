@@ -1,0 +1,195 @@
+---
+import Base from '../layouts/Base.astro';
+import AtomCard from '../components/AtomCard.astro';
+import { loadAll, allKinds, allEdgeVerbs, allDomainNames } from '../lib/corpus';
+
+// Static-friendly browse:
+// - At build time, render every atom card with data-* attributes.
+// - Sidebar links carry query params; a tiny client script reads window.location
+//   and toggles card visibility. No filtering runs server-side.
+// - Without JS, all atoms show — graceful degradation.
+
+const { corpora } = loadAll();
+const kinds = allKinds();
+const verbs = allEdgeVerbs();
+const domains = allDomainNames();
+
+const allAtoms = corpora.flatMap((c) => c.atoms);
+
+function countBy<K extends string>(items: typeof allAtoms, fn: (a: typeof allAtoms[number]) => K | K[]) {
+  const m = new Map<K, number>();
+  for (const it of items) {
+    const k = fn(it);
+    const ks = Array.isArray(k) ? k : [k];
+    for (const x of ks) m.set(x, (m.get(x) ?? 0) + 1);
+  }
+  return m;
+}
+const corpusCounts = countBy(allAtoms, (a) => a.corpus);
+const kindCounts = countBy(allAtoms, (a) => a.kind);
+const domainCounts = countBy(allAtoms, (a) => a.domain);
+const verbCounts = countBy(allAtoms, (a) => [...new Set(a.edges.map((e) => e.type))]);
+---
+<Base title="Browse atoms" current="marketplace">
+  <div class="browse-wrap">
+  <p class="docs-breadcrumb">
+    <a href="/marketplace">Marketplace</a>
+    {' / '}
+    <span style="color: var(--fg-default)">Browse atoms</span>
+  </p>
+  <h1>Browse atoms</h1>
+  <p style="color: var(--fg-muted); max-width: 70ch;">
+    {allAtoms.length} atoms across {corpora.length} Skills.
+    Filter by Skill, kind, domain, or edge verb in the sidebar.
+    Click a card to inspect projection levels and edges.
+  </p>
+
+  <p id="active-filters" hidden style="margin-bottom: var(--s-4);">
+    <span style="color: var(--fg-muted); font-size: 13px;">Active filters:</span>
+    <span id="active-filters-chips"></span>
+    <a href="/browse" style="margin-left: 12px; font-size: 13px;">Clear all</a>
+  </p>
+
+  <div class="browse">
+    <aside class="filters" aria-label="Filters">
+      <h3>Corpus</h3>
+      <ul>
+        <li><a href="/browse" data-filter="corpus" data-value="">All <span class="count">{allAtoms.length}</span></a></li>
+        {corpora.map((c) => (
+          <li>
+            <a href={`/browse?corpus=${c.slug}`} data-filter="corpus" data-value={c.slug}>
+              {c.slug} <span class="count">{corpusCounts.get(c.slug) ?? 0}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Kind</h3>
+      <ul>
+        <li><a href="/browse" data-filter="kind" data-value="">All</a></li>
+        {kinds.map((k) => (
+          <li>
+            <a href={`/browse?kind=${k}`} data-filter="kind" data-value={k}>
+              {k} <span class="count">{kindCounts.get(k) ?? 0}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Domain</h3>
+      <ul>
+        <li><a href="/browse" data-filter="domain" data-value="">All</a></li>
+        {domains.map((d) => (
+          <li>
+            <a href={`/browse?domain=${d}`} data-filter="domain" data-value={d}>
+              {d} <span class="count">{domainCounts.get(d) ?? 0}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Edge verb</h3>
+      <ul>
+        <li><a href="/browse" data-filter="verb" data-value="">All</a></li>
+        {verbs.map((v) => (
+          <li>
+            <a href={`/browse?verb=${v}`} data-filter="verb" data-value={v}>
+              {v} <span class="count">{verbCounts.get(v) ?? 0}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    <section aria-live="polite">
+      <p style="color: var(--fg-muted); font-size: 13px; margin-bottom: var(--s-3);">
+        Showing <strong id="result-count">{allAtoms.length}</strong>
+        <span id="result-noun">atoms</span>.
+      </p>
+      <div id="card-grid" class="card-grid">
+        {allAtoms.map((atom) => (
+          <div
+            data-corpus={atom.corpus}
+            data-kind={atom.kind}
+            data-domain={atom.domain}
+            data-verbs={[...new Set(atom.edges.map((e) => e.type))].join(',')}
+          >
+            <AtomCard atom={atom} />
+          </div>
+        ))}
+      </div>
+      <p id="no-results" hidden>No atoms match these filters. <a href="/browse">Clear all</a>.</p>
+    </section>
+  </div>
+  </div>
+
+  <script is:inline>
+    // Tiny client-side filter — reads ?corpus=&kind=&domain=&verb= and toggles cards.
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const filters = {
+        corpus: params.get('corpus') || '',
+        kind: params.get('kind') || '',
+        domain: params.get('domain') || '',
+        verb: params.get('verb') || '',
+      };
+
+      const grid = document.getElementById('card-grid');
+      if (!grid) return;
+      const cards = Array.from(grid.children);
+      let visible = 0;
+      for (const card of cards) {
+        const c = card.getAttribute('data-corpus') || '';
+        const k = card.getAttribute('data-kind') || '';
+        const d = card.getAttribute('data-domain') || '';
+        const v = (card.getAttribute('data-verbs') || '').split(',').filter(Boolean);
+        const ok =
+          (!filters.corpus || filters.corpus === c) &&
+          (!filters.kind || filters.kind === k) &&
+          (!filters.domain || filters.domain === d) &&
+          (!filters.verb || v.includes(filters.verb));
+        card.hidden = !ok;
+        if (ok) visible++;
+      }
+
+      const count = document.getElementById('result-count');
+      const noun = document.getElementById('result-noun');
+      if (count) count.textContent = String(visible);
+      if (noun) noun.textContent = visible === 1 ? 'atom' : 'atoms';
+
+      const noRes = document.getElementById('no-results');
+      if (noRes) noRes.hidden = visible !== 0;
+
+      // Mark active sidebar links and show chips.
+      const links = document.querySelectorAll('.filters a[data-filter]');
+      links.forEach((a) => {
+        const key = a.getAttribute('data-filter');
+        const val = a.getAttribute('data-value') || '';
+        if (filters[key] === val) a.classList.add('active');
+      });
+
+      const chipsParent = document.getElementById('active-filters');
+      const chips = document.getElementById('active-filters-chips');
+      if (chips) {
+        const items = Object.entries(filters).filter(([_, v]) => v);
+        if (items.length) {
+          chipsParent.hidden = false;
+          chips.innerHTML = items
+            .map(([k, v]) => '<code style="margin-left:6px;">' + k + '=' + v + '</code>')
+            .join('');
+        }
+      }
+    })();
+  </script>
+</Base>
+
+<style>
+  .browse-wrap {
+    max-width: var(--max-w-narrow);
+    margin: 0 auto;
+    padding: 32px var(--s-4) 80px;
+  }
+  @media (min-width: 1280px) {
+    .browse-wrap { max-width: var(--max-w-wide); }
+  }
+</style>

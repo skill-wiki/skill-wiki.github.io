@@ -1,0 +1,95 @@
+---
+import Base from './Base.astro';
+import DocsSidebar from '../components/DocsSidebar.astro';
+import { DOCS_FLAT, findNeighbors } from '../data/docs-tree';
+
+interface Props {
+  title: string;
+  slug: string;            // empty for index, e.g. "spec/atoms"
+  description?: string;
+  lang?: 'en' | 'zh';
+}
+const { title, slug, description, lang = 'en' } = Astro.props;
+const isZh = lang === 'zh';
+const base = isZh ? '/zh/docs' : '/docs';
+const { prev, next } = findNeighbors(slug);
+
+// Breadcrumb: /docs > section > page
+const segments = slug.split('/').filter(Boolean);
+---
+<Base title={title} description={description} current="docs" lang={lang}>
+  <div class="docs-layout">
+    <DocsSidebar current={slug} lang={lang} />
+
+    <article class="docs-content">
+      <p class="docs-breadcrumb">
+        <a href={base}>{isZh ? '文档' : 'Docs'}</a>
+        {segments.length > 0 && ' / '}
+        {segments.map((s, i) => (
+          <span>
+            {i === segments.length - 1
+              ? <span style="color: var(--fg-default)">{s}</span>
+              : <a href={`${base}/${segments.slice(0, i + 1).join('/')}`}>{s}</a>}
+            {i < segments.length - 1 && ' / '}
+          </span>
+        ))}
+      </p>
+
+      <slot />
+
+      <nav class="docs-pager" aria-label="Pagination">
+        {prev ? (
+          <a href={prev.slug === '' ? base : `${base}/${prev.slug}`}>
+            <span class="dir">← {isZh ? '上一页' : 'Previous'}</span>
+            <span class="ttl">{isZh ? prev.zhTitle : prev.title}</span>
+          </a>
+        ) : <div></div>}
+        {next ? (
+          <a href={next.slug === '' ? base : `${base}/${next.slug}`} class="right">
+            <span class="dir">{isZh ? '下一页' : 'Next'} →</span>
+            <span class="ttl">{isZh ? next.zhTitle : next.title}</span>
+          </a>
+        ) : <div></div>}
+      </nav>
+    </article>
+
+    <aside class="docs-toc">
+      <slot name="toc" />
+    </aside>
+  </div>
+
+  <script>
+    // Sidebar scroll persistence — keep the user's place when navigating between
+    // doc pages. Saves on scroll (debounced) and restores on every page load.
+    (function () {
+      const KEY = 'sw-docs-sidebar-scroll';
+      const sidebar = document.querySelector<HTMLElement>('.docs-sidebar');
+      if (!sidebar) return;
+
+      // Restore.
+      try {
+        const saved = sessionStorage.getItem(KEY);
+        if (saved !== null) sidebar.scrollTop = Number(saved);
+      } catch {}
+
+      // Make sure the active link is visible — scroll into view if hidden.
+      const active = sidebar.querySelector<HTMLElement>('a[aria-current="page"]');
+      if (active) {
+        const rect = active.getBoundingClientRect();
+        const sidebarRect = sidebar.getBoundingClientRect();
+        if (rect.top < sidebarRect.top || rect.bottom > sidebarRect.bottom) {
+          active.scrollIntoView({ block: 'center' });
+        }
+      }
+
+      // Save (debounced).
+      let timer: number | undefined;
+      sidebar.addEventListener('scroll', () => {
+        if (timer) clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          try { sessionStorage.setItem(KEY, String(sidebar.scrollTop)); } catch {}
+        }, 80);
+      });
+    })();
+  </script>
+</Base>

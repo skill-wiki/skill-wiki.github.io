@@ -1,0 +1,102 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Custom kinds" slug="extending/custom-kinds" description="Adding a new atom kind to the protocol — 4-file patch + Tier-2 RFC.">
+  <h1>Custom kinds</h1>
+  <p style="color: var(--fg-muted);">
+    The 28 kinds are fixed in v1's parser. Adding a new one is a 4-file patch + a
+    Tier-2 RFC. Plan on a 1-week review cycle for a kind to land in the spec.
+  </p>
+
+  <h2>When to add a kind</h2>
+  <p>Add a kind when:</p>
+  <ol>
+    <li>None of the 28 captures the structure your domain needs.</li>
+    <li>The structure is general enough to serve more than one corpus.</li>
+    <li>The L3 checker needs to reason about its specific semantics (otherwise <code>type</code> + tags are enough).</li>
+  </ol>
+
+  <p>If it's only your corpus, a <code>type</code> atom + an <code>axes</code> entry in <code>domain.yaml</code> is usually the right answer instead.</p>
+
+  <h2>The 4 files to patch</h2>
+
+  <h3>1. Type definition — <code>packages/types/src/ast.ts</code></h3>
+<pre><code>{`// Add the literal to the union
+export type AtomKind =
+  | 'fact' | 'term' | 'value' | 'category'
+  | 'example' | 'counter-example' | 'source' | 'metric'
+  | 'step' | 'check' | 'transform' | 'tool'
+  | 'method' | 'rule' | 'taxonomy' | 'pattern'
+  | 'anti-pattern' | 'type' | 'constraint'
+  | 'collection' | 'scope' | 'tradeoff' | 'principle' | 'feedback'
+  | 'persona' | 'voice' | 'template' | 'provocation'
+  | 'recipe';   // ←  your new kind`}</code></pre>
+
+  <h3>2. Lexer keyword — <code>packages/parser/src/lexer.ts</code></h3>
+<pre><code>{`const KEYWORDS = new Set<AtomKind>([
+  'fact', 'term', 'value', 'category',
+  // ...
+  'recipe',   // ← here
+]);`}</code></pre>
+
+  <h3>3. L1 schema — <code>packages/compiler/src/checker-l1.ts</code></h3>
+<pre><code>{`const SCHEMAS: Record<AtomKind, FieldSchema> = {
+  // ...
+  'recipe': {
+    required: ['ingredients', 'steps', 'serves'],
+    optional: ['source', 'time-minutes'],
+  },
+};`}</code></pre>
+
+  <h3>4. Chunker splitter — <code>packages/compiler/src/chunker.ts</code></h3>
+<pre><code>{`const SPLITTERS: Record<AtomKind, Splitter> = {
+  // ...
+  'recipe': recipeSplitter,
+};
+
+function recipeSplitter(atom: AtomDeclaration): ChunkLevels {
+  return {
+    summary: \`# \${atom.name}\\n\\n\${atom.fields.find('description')?.value}\`,
+    core: ...,
+    full: ...,
+  };
+}`}</code></pre>
+
+  <h2>5. Add a fixture test</h2>
+<pre><code>{`// packages/parser/test/fixtures/atom-recipe.prime
+recipe Spaghetti {
+  id: "@kitchen/recipe-spaghetti"
+  version: "1.0.0"
+  description: "Classic spaghetti."
+  domain: cooking
+
+  ingredients: [
+    { name: "spaghetti", weight-g: 200 },
+    { name: "garlic", count: 3 },
+  ]
+  steps: [...]
+  serves: 2
+}
+
+// packages/parser/test/parser.test.ts
+test("parses recipe kind", () => {
+  const ast = parse(readFixture("atom-recipe.prime"));
+  expect(ast.atoms[0].kind).toBe("recipe");
+});`}</code></pre>
+
+  <h2>6. Open the RFC</h2>
+  <p>
+    File a PR with all 5 changes and a brief rationale (problem, alternatives
+    considered, expected impact). Tier-2 RFC means: 1 protocol-team review + 7-day
+    objection window. See
+    <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/governance.md" rel="noopener">governance.md</a>.
+  </p>
+
+  <h2>YAML-declared <code>custom-kind</code> (roadmap)</h2>
+  <p>
+    A planned v0.2 feature: declare a kind via YAML in <code>domain.yaml</code> without
+    a parser patch. Trade-off: you get the structure, but no L3 semantic reasoning
+    over the kind. See the
+    <a href="https://github.com/skill-wiki/prime-system/blob/main/docs/community/roadmap.md" rel="noopener">roadmap</a>.
+  </p>
+</DocsLayout>

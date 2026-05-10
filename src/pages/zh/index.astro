@@ -1,0 +1,350 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loadAll, totals, allKinds } from '../../lib/corpus';
+
+const { corpora } = loadAll();
+const t = totals();
+const kinds = allKinds();
+
+const flagship = corpora.find((c) => c.slug === 'frontend-design');
+const otherPacks = corpora.filter((c) => c.slug !== 'frontend-design');
+const flagshipKindCount = flagship ? new Set(flagship.atoms.map((a) => a.kind)).size : 0;
+const flagshipNS = flagship ? [...new Set(flagship.atoms.map((a) => a.prefix))].sort() : [];
+
+const fmt = new Intl.NumberFormat('zh-CN');
+
+const heroSnippet = `<span class="k">rule</span> <span class="id">DeglazeAfterSearing</span> {
+  <span class="k">id</span>: <span class="s">"@recipes/rule-deglaze-after-searing"</span>
+  <span class="k">version</span>: <span class="s">"1.0.0"</span>
+
+  <span class="k">claim</span>: <span class="s">"煎制后用高汤或葡萄酒</span>
+<span class="s">          deglaze 锅底融合 fond。"</span>
+
+  <span class="k">applies-to</span>: [<span class="v">braise</span>, <span class="v">roast</span>]
+  <span class="k">severity</span>: <span class="v">recommended</span>
+
+  <span class="k">requires</span>: [
+    <span class="id">@recipes/term-deglazing</span>,
+    <span class="id">@recipes/method-pan-sauce</span>,
+  ]
+
+  <span class="k">validates-with</span>: [
+    <span class="id">@recipes/source-mcgee-on-food</span>,
+  ]
+}`;
+
+const mcpConfigSnippet = `{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": { "PRIME_DIR": "/abs/path/to/compiled" }
+    }
+  }
+}`;
+---
+<Base title="Skill Wiki" current="home" lang="zh">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="pill">v0.1.0</span> Apache-2.0 · MCP 原生 · 开放协议
+        </p>
+        <h1>Skill 的协议层。</h1>
+        <p class="lede">
+          Skill Wiki 把每个 <code>SKILL.md</code> 拆成一份
+          <strong>类型化原子的 wiki</strong> —— 用 ID 寻址，带声明式边图，按需取用。
+          Agent 只看一份 ~3 KB 的索引；原子正文只在 brief 真需要时才进上下文。
+        </p>
+        <p class="lede" style="margin-bottom: 0;">
+          Skill 的 Wikipedia。类型贯穿到底。
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-large" href="/zh/docs/usage/install">开始使用 →</a>
+          <a class="btn btn-large" href="/zh/marketplace">浏览市场</a>
+          <a class="btn btn-large" href="https://github.com/skill-wiki/prime-system" rel="noopener">GitHub ↗</a>
+        </div>
+      </div>
+
+      <div class="hero-snippet" aria-hidden="true">
+        <div class="hero-snippet-head">
+          <span>rule-deglazing.prime</span>
+          <span>1.0.0</span>
+        </div>
+        <pre><code set:html={heroSnippet}></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">为什么需要 Skill Wiki</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        别再把 SKILL.md 整个塞进 agent 了。
+      </h2>
+      <p class="section-lede">
+        三个架构倒置，每一个都对应一个可量化的代价。完整论证见
+        <a href="/zh/docs/background/problem">背景文档</a>。
+      </p>
+
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-icon">≠</div>
+          <h3>存在 ≠ 内容</h3>
+          <p>
+            Agent 始终只看 ~3 KB 的 <code>_index.xml</code>。原子内容只在被检索命中时
+            才载入 —— 用 ID 寻址，不靠相关性瞎猜。
+          </p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">→</div>
+          <h3>类型化边，不是平表 <code>related</code></h3>
+          <p>
+            14 种动词（<code>requires</code>、<code>validates-with</code>、
+            <code>contradicts</code>、<code>specializes</code>…）
+            带语义，parser 和 L3 检查器能据此推理。图不是装饰。
+          </p>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">⊗</div>
+          <h3>三级投影</h3>
+          <p>
+            每个原子编译产出 <code>summary</code>（~30 tok）、
+            <code>core</code>（~150 tok）、<code>full</code>（~380 tok）。
+            按预算挑能装下的最小那一档。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS — 两组：协议本身 vs 市场部署 -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">协议表面 · v1.0 冻结</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        规范定义的内容
+      </h2>
+      <p class="section-lede">
+        关于协议本身的四个数字 —— v1.0 已冻结。装多少 Skill 都不会变。
+      </p>
+      <div class="kpi">
+        <div>
+          <div class="lbl">原子 kind</div>
+          <div class="n">28</div>
+          <div class="sub">5 层 · v1.0 冻结</div>
+        </div>
+        <div>
+          <div class="lbl">边动词</div>
+          <div class="n">14</div>
+          <div class="sub">L3 校验语义</div>
+        </div>
+        <div>
+          <div class="lbl">投影层级</div>
+          <div class="n">3</div>
+          <div class="sub">~30 / ~150 / ~380 tok</div>
+        </div>
+        <div>
+          <div class="lbl">索引体积</div>
+          <div class="n">~3 KB</div>
+          <div class="sub">常驻 agent 上下文</div>
+        </div>
+      </div>
+
+      <p class="metrics-divider">—  当前的发布情况  —</p>
+
+      <p class="section-eyebrow" style="margin-top: 0;">市场 · 实时</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0; margin-bottom: 16px;">
+        参考部署
+      </h2>
+      <p class="section-lede">
+        本站市场里 {t.corpora} 个参考 Skill 的实际数字 —— 用 v0.1.0 参考实现编译产出。
+      </p>
+      <div class="kpi">
+        <div>
+          <div class="lbl">编译原子</div>
+          <div class="n">{fmt.format(t.atoms)}</div>
+          <div class="sub">{t.corpora} 个 Skill</div>
+        </div>
+        <div>
+          <div class="lbl">类型化边</div>
+          <div class="n">{fmt.format(t.edges)}</div>
+          <div class="sub">L3 已校验</div>
+        </div>
+        <div>
+          <div class="lbl">Skill</div>
+          <div class="n">{t.corpora}</div>
+          <div class="sub">1 旗舰 · 3 示例</div>
+        </div>
+        <div>
+          <div class="lbl">参考包</div>
+          <div class="n">7</div>
+          <div class="sub">parser · compiler · runtime · …</div>
+        </div>
+      </div>
+      <p style="margin-top: 20px; font-size: 14px; color: var(--fg-muted);">
+        详细列表见 <a href="/zh/marketplace">市场 →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- FLAGSHIP -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">旗舰 Skill</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        来自市场
+      </h2>
+      <p class="section-lede">
+        协议 domain-blind —— 知识活在 Skill 里。
+        <code>@frontend-design</code> 是旗舰参考包：898 个关于视觉设计的类型化原子，
+        建在你拿来 ship 安全包或菜谱包同样的协议之上。
+      </p>
+
+      {flagship && (
+        <div class="flagship">
+          <div class="flagship-head">
+            <span class="label">旗舰</span>
+            <span style="font-family: var(--font-mono); color: var(--fg-muted);">
+              skill-wiki/prime-corpus-frontend
+            </span>
+          </div>
+          <div class="flagship-body">
+            <div>
+              <h2><code>@frontend-design</code></h2>
+              <p class="flagship-desc">
+                {fmt.format(flagship.total)} 个类型化原子，覆盖 9 个设计子领域 ——
+                色彩、版式、动效、间距、可访问性、文案 voice、视觉层次、布局、组件模式。
+                参考语料 + 参考应用：5 工具 MCP 封装、31 个 persona、30 个任务分类、
+                20-task benchmark。
+              </p>
+              <dl>
+                <dt>原子</dt><dd>{fmt.format(flagship.total)}</dd>
+                <dt>使用 kind</dt><dd>{flagshipKindCount} / {kinds.length}</dd>
+                <dt>Token</dt><dd>编译产出 {fmt.format(flagship.totalTokens || 0)}</dd>
+                <dt>命名空间</dt><dd>{flagshipNS.length}</dd>
+                <dt>许可</dt><dd>Apache-2.0</dd>
+              </dl>
+              <div class="flagship-install">bunx @prime-lang/mcp-server-frontend</div>
+              <div class="hero-cta" style="margin-top: var(--s-4);">
+                <a class="btn btn-primary" href="/zh/marketplace#frontend-design">查看 Skill →</a>
+                <a class="btn" href="/browse?corpus=frontend-design">浏览 {flagship.total} 个原子</a>
+              </div>
+            </div>
+            <aside class="flagship-aside">
+              <div>
+                <h4>命名空间</h4>
+                <div class="chips">
+                  {flagshipNS.map((ns) => <code>{ns}</code>)}
+                </div>
+              </div>
+              <div>
+                <h4>MCP 工具（5 个）</h4>
+                <div class="chips">
+                  <code>prime_query</code>
+                  <code>prime_resolve</code>
+                  <code>prime_intent</code>
+                  <code>prime_validate</code>
+                  <code>prime_compile</code>
+                </div>
+              </div>
+              <div>
+                <h4>子领域</h4>
+                <div class="chips">
+                  <code>color</code>
+                  <code>typography</code>
+                  <code>motion</code>
+                  <code>spacing</code>
+                  <code>a11y</code>
+                  <code>voice</code>
+                  <code>hierarchy</code>
+                  <code>layout</code>
+                  <code>components</code>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      <div class="pack-grid">
+        {otherPacks.map((c) => (
+          <a class="pack-card" href={`/zh/marketplace#${c.slug}`}>
+            <div class="pack-head">
+              <h3 class="pack-name">@{c.slug}</h3>
+              <span class="pack-pill">{c.prefix}</span>
+              <span class="pack-pill">v0.1.0</span>
+            </div>
+            <p class="pack-desc">
+              {c.domain?.description || `${c.total} 个原子，${[...new Set(c.atoms.map((a) => a.kind))].length} 种 kind。示例 Skill。`}
+            </p>
+            <div class="pack-stats">
+              <span><span class="dot" style="background: #1a7f37;"></span>{c.total} 原子</span>
+              <span>{[...new Set(c.atoms.map((a) => a.kind))].length} kind</span>
+              <span>v0.1.0</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="section">
+    <div class="section-inner">
+      <p class="section-eyebrow">上手</p>
+      <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
+        30 秒装好。
+      </h2>
+      <p class="section-lede">
+        Skill Wiki 走 MCP。把 Claude Code、Cursor、Continue 或任何 MCP 客户端指过来即可。
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);" class="install-grid">
+        <div class="feat" style="padding: var(--s-5);">
+          <h3 style="margin-top: 0;">1 · 启动 server</h3>
+<pre style="margin: 0;"><code>bun add -g @prime-lang/cli
+bunx @prime-lang/mcp-server-core</code></pre>
+        </div>
+        <div class="feat" style="padding: var(--s-5);">
+          <h3 style="margin-top: 0;">2 · 接入 Claude Code</h3>
+<pre style="margin: 0;"><code>{mcpConfigSnippet}</code></pre>
+        </div>
+      </div>
+
+      <div class="hero-cta" style="margin-top: var(--s-5);">
+        <a class="btn btn-primary" href="/zh/docs/usage/install">完整安装指南 →</a>
+        <a class="btn" href="/zh/docs/spec/overview">阅读规范</a>
+        <a class="btn" href="/zh/docs/architecture/pipeline">查看架构</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST STRIP -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="lead-strip">
+        <div>{fmt.format(t.atoms)} 原子 · 1.94 s 构建</div>
+        <div>448 测试通过</div>
+        <div>0 类型错误</div>
+        <div>7 个包 · Apache-2.0</div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  @media (max-width: 760px) {
+    .install-grid { grid-template-columns: 1fr !important; }
+  }
+  .metrics-divider {
+    text-align: center;
+    margin: 48px 0 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+  }
+</style>

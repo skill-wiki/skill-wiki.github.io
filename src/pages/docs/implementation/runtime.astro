@@ -1,0 +1,99 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Runtime — loader & resolver" slug="implementation/runtime" description="@prime-lang/runtime — the in-process atom loader, projection resolver, and edge graph builder.">
+  <h1>Runtime — loader & resolver</h1>
+  <p style="color: var(--fg-muted);">
+    <code>@prime-lang/runtime</code> reads compiled artifacts on disk and serves
+    metadata + projection paths to the MCP server. It never reads chunk bodies.
+  </p>
+
+  <h2>Modules</h2>
+  <table>
+    <thead>
+      <tr><th>Module</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>atom-loader.ts</code></td><td>Reads <code>atom.yaml</code> + <code>graph.yaml</code> per atom; never reads chunks.</td></tr>
+      <tr><td><code>index-loader.ts</code></td><td>Parses <code>_index.xml</code>, builds the in-memory atom map.</td></tr>
+      <tr><td><code>projection-resolver.ts</code></td><td>Returns the on-disk path for a (atom, level) pair.</td></tr>
+      <tr><td><code>domain-config.ts</code></td><td>Recursive <code>domain.yaml</code> discovery + DomainRegistry.</td></tr>
+      <tr><td><code>edge-walker.ts</code></td><td>BFS / DFS over the in-memory edge graph.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Boot sequence</h2>
+<pre><code>{`async function boot(primeDir: string) {
+  // 1. Discover domain plugins.
+  const domains = await discoverDomains(primeDir);
+  for (const d of domains) DomainRegistry.register(d);
+
+  // 2. Parse the index.
+  const index = await loadIndex(\`\${primeDir}/_index.xml\`);
+
+  // 3. Build the in-memory graph.
+  //    Atoms map id → metadata; no chunk content read here.
+  const graph = buildGraph(index);
+
+  return { domains, index, graph };
+}`}</code></pre>
+
+  <h2>The "never read chunk content" rule</h2>
+  <p>
+    The runtime contract says that <code>chunks/{`{summary,core,full}`}.md</code> is
+    <em>not</em> the runtime's job. Why?
+  </p>
+  <ul>
+    <li><strong>Consistent with how the agent works.</strong> The agent has a <code>Read</code> tool. Doubling it in the runtime invites format drift and caching bugs.</li>
+    <li><strong>Memory bound.</strong> Chunk content scales with corpus size. Metadata + the index do not (~50 KB even for 1k atoms).</li>
+    <li><strong>Hot reload.</strong> The runtime can hot-reload the index without invalidating the agent's view of any specific atom.</li>
+  </ul>
+
+  <pre><code>{`// packages/runtime/src/atom-loader.ts
+//
+// IMPORTANT: This module NEVER reads chunks/*.md content.
+// It only reads _index.xml and atom.yaml (metadata).
+// Chunk content is exclusively for the agent to pull via the Read tool.`}</code></pre>
+
+  <h2>Edge walker</h2>
+  <p>
+    Used by the MCP server to satisfy contract resolution and walk
+    <code>requires</code> chains:
+  </p>
+
+<pre><code>{`function walkRequires(seed: AtomMeta, depth = 5): AtomMeta[] {
+  const out: AtomMeta[] = [];
+  const seen = new Set<string>([seed.id]);
+  const queue: [AtomMeta, number][] = [[seed, 0]];
+  while (queue.length > 0) {
+    const [atom, d] = queue.shift()!;
+    if (d >= depth) continue;
+    for (const edge of atom.edges) {
+      if (edge.verb !== 'requires' || seen.has(edge.target)) continue;
+      const target = byId.get(edge.target);
+      if (!target) continue;
+      seen.add(target.id);
+      out.push(target);
+      queue.push([target, d + 1]);
+    }
+  }
+  return out;
+}`}</code></pre>
+
+  <h2>Public API</h2>
+<pre><code>{`import { Runtime } from "@prime-lang/runtime";
+
+const rt = await Runtime.boot({ primeDir: "/path/to/compiled" });
+
+// Lookup
+const atom = rt.lookup("@recipes/method-pan-sauce");
+
+// Resolve a projection (returns a path, NOT content)
+const path = rt.resolveProjection(atom.id, "core");
+
+// Walk
+const deps = rt.walkRequires(atom);
+
+// Domains
+console.log(rt.domains);                  // [DomainConfig, ...]`}</code></pre>
+</DocsLayout>

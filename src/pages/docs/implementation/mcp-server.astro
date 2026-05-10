@@ -1,0 +1,83 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="MCP server" slug="implementation/mcp-server" description="@prime-lang/mcp-server-core — five tools that expose the runtime to MCP-capable agents.">
+  <h1>MCP server</h1>
+  <p style="color: var(--fg-muted);">
+    The <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>
+    is the integration surface. <code>@prime-lang/mcp-server-core</code> is a generic,
+    domain-blind MCP server that wraps the runtime and exposes 5 tools.
+  </p>
+
+  <h2>The 5 tools</h2>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Input</th><th>Output</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>prime_query</code></td><td><code>{`{ scope, level, tags, budget_tokens }`}</code></td><td><code>{`{ hits: [{ id, kind, path, tokens }] }`}</code></td><td>Search ranked atoms.</td></tr>
+      <tr><td><code>prime_resolve</code></td><td><code>{`{ brief, max_tokens }`}</code></td><td>+ contracted set</td><td>Brief → ranked atoms (L1+L2+L3).</td></tr>
+      <tr><td><code>prime_intent</code></td><td><code>{`{ brief }`}</code></td><td><code>IntentObject</code></td><td>Brief → IntentObject (L1).</td></tr>
+      <tr><td><code>prime_validate</code></td><td><code>{`{ artifact, atom_set }`}</code></td><td><code>{`{ ok, fixes }`}</code></td><td>Validate output (L5).</td></tr>
+      <tr><td><code>prime_compile</code></td><td><code>{`{ source }`}</code></td><td>Compiled artifacts</td><td>Compile a <code>.prime</code> on the fly.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Boot</h2>
+<pre><code>{`# Standalone (stdio transport)
+PRIME_DIR=/abs/path/to/compiled bunx @prime-lang/mcp-server-core
+
+# Via the prime CLI
+prime mcp serve --port stdio --dir /abs/path/to/compiled`}</code></pre>
+
+  <h2>Wire into Claude Code</h2>
+<pre><code>{`{
+  "mcpServers": {
+    "skill-wiki": {
+      "command": "bunx",
+      "args": ["@prime-lang/mcp-server-core"],
+      "env": { "PRIME_DIR": "/abs/path/to/compiled" }
+    }
+  }
+}`}</code></pre>
+
+  <p>See <a href="/docs/usage/mcp-claude">Wire into Claude</a> for the full setup.</p>
+
+  <h2>Server architecture</h2>
+<pre><code>{`agent  ◀──MCP stdio──▶  mcp-server-core
+                              │
+                              ├── handlers/
+                              │   ├── prime_query.ts
+                              │   ├── prime_resolve.ts
+                              │   ├── prime_intent.ts
+                              │   ├── prime_validate.ts
+                              │   └── prime_compile.ts
+                              │
+                              └── runtime (in-process)
+                                  ├── index loader
+                                  ├── atom loader
+                                  ├── domain registry
+                                  └── projection resolver`}</code></pre>
+
+  <h2>Tool input/output JSON Schema</h2>
+  <p>
+    Each tool ships a JSON Schema, registered with the MCP SDK. See
+    <a href="/docs/reference/mcp">Reference → MCP</a> for the full schemas.
+  </p>
+
+  <h2>Domain-specific MCP wrappers</h2>
+  <p>
+    <code>@prime-lang/mcp-server-core</code> is domain-blind. A domain might want a
+    wrapper that adds:
+  </p>
+  <ul>
+    <li>Domain-specific tool names (<code>frontend_color_check</code>, <code>security_threat_model</code>).</li>
+    <li>Pre-baked persona+style tag sets.</li>
+    <li>Domain-specific L5 validators.</li>
+  </ul>
+
+  <p>
+    The reference frontend Skill ships <code>@prime-lang/mcp-server-frontend</code> as
+    such a wrapper. See <a href="/docs/extending/domain-mcp">Extending → Domain MCP</a>.
+  </p>
+</DocsLayout>

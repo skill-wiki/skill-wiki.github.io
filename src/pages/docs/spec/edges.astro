@@ -1,0 +1,123 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Edges · 14 verbs" slug="spec/edges" description="The 14 typed edge verbs, their semantics, and allowed source/target kinds.">
+  <h1>Edges · 14 verbs</h1>
+  <p style="color: var(--fg-muted);">
+    Edges declare typed relationships between atoms. Each verb has documented
+    semantics; the L3 cross-atom checker reasons over them; the runtime walks them
+    to satisfy contracts.
+  </p>
+
+  <h2>Why typed verbs (vs flat <code>related</code>)</h2>
+  <p>
+    A flat <code>related: [...]</code> list — like SKILL.md's <em>see also</em> —
+    can't be reasoned over. The system can't know whether a referenced atom is a
+    <em>dependency</em>, an <em>illustration</em>, a <em>contradiction</em>, or a
+    <em>specialisation</em>. Each of those answers needs different runtime behaviour:
+  </p>
+  <ul>
+    <li><strong>Dependency</strong> → must be loaded together (<code>requires</code>)</li>
+    <li><strong>Illustration</strong> → optional, soft enhancement (<code>enhances</code>, <code>example</code>)</li>
+    <li><strong>Contradiction</strong> → flag and warn (<code>contradicts</code>, <code>conflicts</code>)</li>
+    <li><strong>Specialisation</strong> → narrowed version of (<code>specializes</code>, <code>extends</code>)</li>
+  </ul>
+
+  <h2>The 14 verbs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Verb</th>
+        <th>Semantic</th>
+        <th>Allowed source kinds</th>
+        <th>Allowed target kinds</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>related</code></td><td>General association — discoverable.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>requires</code></td><td>Strong dep. A loaded ⇒ B MUST load.</td><td><code>method</code>, <code>pattern</code>, <code>persona</code>, <code>rule</code></td><td>any</td></tr>
+      <tr><td><code>enhances</code></td><td>Soft dep. B improves A but optional.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>validates-with</code></td><td>A's correctness verified against B.</td><td><code>rule</code>, <code>fact</code>, <code>pattern</code></td><td><code>source</code>, <code>metric</code>, <code>check</code></td></tr>
+      <tr><td><code>contradicts</code></td><td>A and B make incompatible claims.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>specializes</code></td><td>A is a narrower version of B.</td><td>any</td><td>same kind as src</td></tr>
+      <tr><td><code>conflicts</code></td><td>A and B can't both load (variant gates).</td><td>any</td><td>any</td></tr>
+      <tr><td><code>extends</code></td><td>A inherits structure from B.</td><td><code>type</code>, <code>persona</code>, <code>method</code></td><td>same kind as src</td></tr>
+      <tr><td><code>derived-from</code></td><td>A is computed from / based on B.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>compatible</code></td><td>A and B compose without conflict.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>supplies-to</code></td><td>A's output is consumed by B.</td><td><code>tool</code>, <code>transform</code>, <code>method</code></td><td><code>method</code>, <code>tool</code></td></tr>
+      <tr><td><code>see-also</code></td><td>Pure cross-reference, no semantic claim.</td><td>any</td><td>any</td></tr>
+      <tr><td><code>includes</code></td><td>Structural containment (collection→atoms).</td><td><code>collection</code>, <code>scope</code></td><td>any</td></tr>
+      <tr><td><code>relationships</code></td><td>Free-form labelled relationship (escape hatch).</td><td>any</td><td>any</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What the L3 checker enforces</h2>
+  <p>
+    The cross-atom checker (<code>checker-l3-cross.ts</code>) runs over the resolved
+    edge graph and surfaces three classes of error:
+  </p>
+  <ol>
+    <li>
+      <strong>Cycles</strong> in <code>requires</code> chains. Atom A requires B, B
+      requires C, C requires A. The runtime can't satisfy this load order.
+    </li>
+    <li>
+      <strong>Contradictions</strong>. If A <code>contradicts</code> B and a method's
+      contract pulls both into the same composition, surface a hard error before the
+      agent ever sees them.
+    </li>
+    <li>
+      <strong>Kind mismatches</strong>. If a <code>validates-with</code> edge points
+      from a <code>rule</code> to another <code>rule</code> (instead of a
+      <code>source</code>, <code>metric</code>, or <code>check</code>), surface a
+      schema error.
+    </li>
+  </ol>
+
+  <h2>An edge walk in code</h2>
+
+  <p>
+    Once compiled, edges are stored per-atom in <code>graph.yaml</code> next to
+    the atom directory. The runtime reads them lazily:
+  </p>
+
+<pre><code>{`// packages/runtime/src/atom-loader.ts (excerpt)
+async function loadAtom(id: string): Promise<AtomMeta> {
+  const dir = atomDirFor(id);
+  const meta  = parseYaml(await read(\`\${dir}/atom.yaml\`));
+  const graph = parseYaml(await read(\`\${dir}/graph.yaml\`));
+  return {
+    ...meta,
+    edges: graph.edges, // [{ verb, target, ... }]
+  };
+  // Note: chunk content is *not* read here. Only metadata.
+}`}</code></pre>
+
+  <h2>Authoring an edge</h2>
+  <p>
+    Edges are field assignments inside an atom body. The field name is the verb;
+    the value is a list of atom IDs.
+  </p>
+
+<pre><code>{`rule MyRule {
+  id: "@my/rule-x"
+  version: "1.0.0"
+  description: "..."
+  domain: my-domain
+
+  claim: "..."
+  severity: recommended
+
+  // edges:
+  requires: [@my/term-x, @my/term-y]
+  validates-with: [@my/source-rfc-1234]
+  contradicts: [@my/anti-pattern-y]
+  see-also: [@my/pattern-z]
+}`}</code></pre>
+
+  <h2>Adding a verb</h2>
+  <p>
+    The 14 verbs are fixed in the parser at v1. To add a verb you patch the parser
+    and run a Tier-2 RFC. See <a href="/docs/extending/custom-verbs">Custom verbs</a>.
+  </p>
+</DocsLayout>

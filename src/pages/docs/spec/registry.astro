@@ -1,0 +1,84 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout title="Registry contract" slug="spec/registry" description="The HTTP contract a Skill Wiki registry must implement to interoperate with prime publish and prime install.">
+  <h1>Registry contract</h1>
+  <p style="color: var(--fg-muted);">
+    A Skill ships as a tarball + manifest. A registry is anything that exposes the
+    minimum HTTP contract below. <code>prime publish</code> and <code>prime install</code>
+    are clients of this contract. The reference implementation is <code>@prime-lang/registry</code>.
+  </p>
+
+  <h2>The minimum HTTP contract</h2>
+  <table>
+    <thead>
+      <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/publish</code></td><td>Upload a Skill tarball + manifest.</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope</code></td><td>List versions of a Skill by scope.</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope/:version</code></td><td>Get manifest of a specific version.</td></tr>
+      <tr><td>GET</td><td><code>/pack/:scope/:version/tarball</code></td><td>Download the Skill tarball.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Skill manifest</h2>
+  <p>
+    Every published Skill ships with <code>pack.yaml</code> at the tarball root:
+  </p>
+
+<pre><code>{`name: "@frontend-design"
+version: "0.1.0"
+description: "Design knowledge for AI agents — 898 atoms across 9 sub-domains."
+license: Apache-2.0
+
+atoms: 898
+namespaces:
+  - "@community"
+  - "@impeccable"
+  - "@anthropic-impeccable"
+  - "@nielsen"
+  - "@w3c"
+
+prime-version: "1.0"   # protocol version the Skill targets
+sha256: "..."          # over the tarball; verified at install`}</code></pre>
+
+  <h2>Tarball layout</h2>
+<pre><code>{`pack.tar.gz
+├── pack.yaml
+├── domain.yaml          # if the Skill ships its own domain
+├── primes/
+│   └── sources/
+│       └── @scope/
+│           └── kind-name.prime
+└── compiled/            # optional, pre-compiled artifact
+    └── ...`}</code></pre>
+
+  <h2>Authentication</h2>
+  <p>
+    The reference registry uses bearer tokens for <code>POST /publish</code>; reads are
+    public. Token issuance is registry-specific and outside the protocol — pick a model
+    (per-org, per-user, per-CI) that fits your distribution.
+  </p>
+
+  <h2>Versioning</h2>
+  <ul>
+    <li>Skill versions are <strong>semver</strong>. Patch = atom edits. Minor = new atoms or new edge targets. Major = removed atoms or removed verbs.</li>
+    <li>Atoms inside a Skill are also semver'd via the <code>version</code> field.</li>
+    <li><code>prime install @scope</code> resolves to the latest semver matching the consumer's <code>SKILL.md</code>'s declared range.</li>
+  </ul>
+
+  <h2>Running your own registry</h2>
+  <p>The reference registry is a single file:</p>
+
+<pre><code>{`# Run on port 4000 with a SQLite-backed Skill store.
+bun run packages/registry/src/index.ts --port 4000
+
+# Publish to it from any Skill root.
+prime publish --remote http://localhost:4000
+
+# Install from it on any consumer.
+prime install @your-Skill --remote http://localhost:4000`}</code></pre>
+
+  <p>See <a href="/docs/usage/publish-install">Publish & Install</a> for the full round-trip.</p>
+</DocsLayout>
