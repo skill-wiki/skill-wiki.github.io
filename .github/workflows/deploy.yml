@@ -18,14 +18,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout website
+        uses: actions/checkout@v4
+
+      # Vendor the two sibling repos that hold the actual corpus data the
+      # marketplace / browse / atom pages render from. The website's corpus
+      # loader looks under `external/` first, then falls back to `..` for
+      # local monorepo dev.
+      - name: Checkout prime-system (protocol + example corpora)
+        uses: actions/checkout@v4
+        with:
+          repository: skill-wiki/prime-system
+          path: external/prime-system
+
+      - name: Checkout prime-corpus-frontend (flagship corpus)
+        uses: actions/checkout@v4
+        with:
+          repository: skill-wiki/prime-corpus-frontend
+          # Path matches the directory name the corpus loader expects.
+          path: external/prime-corpus-frontend-design
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
       - name: Install
         run: bun install --frozen-lockfile
+
       - name: Build
         run: bun run build
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

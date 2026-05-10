@@ -3,3 +3,6 @@ dist/
 .astro/
 .DS_Store
 *.log
+
+# Vendored corpora repos (cloned by CI for build, never committed)
+external/

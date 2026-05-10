@@ -17,7 +17,20 @@ import { parse as parseYaml } from 'yaml';
 
 // Resolve relative to the website root (this file lives at src/lib/).
 const WEBSITE_ROOT = resolve(new URL('../..', import.meta.url).pathname);
-const RELEASE_ROOT = resolve(WEBSITE_ROOT, '..');
+
+// Resolve where the corpora live. In two layouts:
+//   • Monorepo dev (parent repo `release/`): siblings exist at `..`
+//   • Standalone deploy (e.g. GitHub Pages CI): we vendor them into
+//     `<website>/external/` via the deploy workflow.
+// We prefer `external/` if present, otherwise fall back to `..`.
+function resolveCorpusRoot(): string {
+  const external = resolve(WEBSITE_ROOT, 'external');
+  if (existsSync(join(external, 'prime-system'))) return external;
+  const sibling = resolve(WEBSITE_ROOT, '..');
+  if (existsSync(join(sibling, 'prime-system'))) return sibling;
+  return external; // doesn't exist either, so loadAll() will skip all corpora
+}
+const RELEASE_ROOT = resolveCorpusRoot();
 
 // Each entry is: corpus slug → { rootPath, compiledSubdir }.
 // compiledSubdir defaults to 'primes/compiled' but can be overridden when a
