@@ -21,23 +21,23 @@ function summarise(c: typeof packs[0]) {
 <Base
   title="Marketplace"
   current="marketplace"
-  description="Browse Skill Wiki Primes — design, backend, security, and more. Typed-atom corpora you can plug into any MCP-compatible AI agent. Each Prime is a self-contained @scope of rules, terms, methods, and patterns."
+  description="The Skill Wiki marketplace — typed-atom Primes covering design, backend, security and more. Plug into any MCP-compatible AI agent. Each Prime is a self-contained @scope of rules, terms, methods and patterns."
 >
   <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
     <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
       <div>
         <p class="hero-eyebrow">
-          <span class="pill">Marketplace</span>
+          <span class="pill">Skill Wiki · Marketplace</span>
           {packs.length} Primes · {fmt.format(packs.reduce((s, c) => s + c.total, 0))} atoms
         </p>
-        <h1>Browse Primes.</h1>
+        <h1>The Skill Wiki marketplace.</h1>
         <p class="lede">
-          Prime is the protocol; Skill Wiki is the marketplace. Each Prime is
-          a self-contained <code>@scope</code> of typed atoms — what a SKILL.md
-          would look like if every line had a type and an edge. Install with
-          <code>prime install @name</code>, or browse here. The protocol is
-          domain-blind — design, backend, and security all ride on the same
-          spec.
+          Every entry here is a Prime — a self-contained <code>@scope</code> of
+          typed atoms. What a <code>SKILL.md</code> would look like if every
+          line had a type and an edge. Install with
+          <code>prime install @name</code>, or browse below. Skill Wiki is
+          domain-blind — design, backend and security all ride on the same
+          open protocol.
         </p>
         <p class="lede" style="margin-bottom: 0;">
           Want to publish your own? See <a href="/docs/usage/publish-install">Publish & install</a>.

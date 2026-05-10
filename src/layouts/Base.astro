@@ -30,8 +30,8 @@ const fullTitle = title === 'Skill Wiki' ? title : `${title} · Skill Wiki`;
 const desc =
   description ??
   (isZh
-    ? 'Skill Wiki — 类型化原子、边图、懒加载投影。AI 知识的协议层。'
-    : 'Skill Wiki — typed atoms, edge graph, lazy projection. A protocol layer for AI knowledge.');
+    ? 'Skill Wiki —— AI 的 Wikipedia。把领域知识表达为类型化原子，按 ID 寻址、按需载入。由开放协议 Prime 提供支持。'
+    : 'Skill Wiki — Wikipedia for AI agents. Domain knowledge as typed atoms with declared edges, retrieved on demand. Powered by the open Prime protocol.');
 
 // Canonical URL — prefer Astro's configured site, fall back to org root.
 const SITE = (import.meta.env.SITE as string | undefined) ?? 'https://skill-wiki.github.io';
@@ -214,8 +214,8 @@ const prefix = (p: string) => (isZh ? `/zh${p}` : p);
         <div class="gh-footer-meta">
           <strong>Skill Wiki</strong> v0.1.0<br />
           {isZh
-            ? '类型化原子 · 边图 · 懒加载投影。AI 知识的协议层。'
-            : 'Typed atoms · edge graph · lazy projection. A protocol for AI knowledge.'}
+            ? 'AI 的 Wikipedia。类型化原子、按需载入。由开放协议 Prime 驱动。'
+            : 'Wikipedia for AI agents. Typed atoms, retrieved on demand. Powered by the open Prime protocol.'}
           <br /><br />
           Apache-2.0 licensed.
         </div>

@@ -4,14 +4,15 @@ import Base from '../layouts/Base.astro';
 <Base title="About" current="about">
   <article class="article">
     <p class="article-meta">About Skill Wiki</p>
-    <h1>The protocol layer for AI knowledge.</h1>
+    <h1>Wikipedia for AI agents.</h1>
 
     <p style="font-size: 18px; color: var(--fg-muted); line-height: 1.55; margin-bottom: 32px; letter-spacing: -0.005em;">
-      Prime is the protocol; Skill Wiki is the marketplace. Together they
-      treat domain knowledge as <strong>typed atoms with a declared edge
-      graph, retrieved on demand</strong>. We don't ship 200-line markdown
-      blobs to your agent every turn. We ship a 3 KB index of what exists; the
-      agent decides what to load.
+      Skill Wiki treats domain knowledge as <strong>typed atoms with a
+      declared edge graph, retrieved on demand</strong>. We don't ship
+      200-line markdown blobs to your agent every turn. We ship a 3 KB index
+      of what exists; the agent decides what to load. The whole thing runs
+      on the open <a href="/docs/spec/overview">Prime protocol</a> — each
+      <code>@scope</code> in the marketplace is a Prime.
     </p>
 
     <h2>Who it's for</h2>
@@ -36,13 +37,14 @@ import Base from '../layouts/Base.astro';
       </li>
     </ul>
 
-    <h2>The shape of the protocol</h2>
+    <h2>The shape of the wiki</h2>
     <p>
       Each <strong>atom</strong> has a <strong>kind</strong> (one of 28: fact,
       rule, pattern, method, persona, tradeoff, …), a <strong>domain</strong>,
       three <strong>projection levels</strong> (~30 / ~150 / ~380 tokens)
       compiled from a single source file, and a list of typed <strong>edges</strong>
-      (one of 14 verbs) to other atoms.
+      (one of 14 verbs) to other atoms. This is what the underlying Prime
+      protocol defines.
     </p>
     <p>
       A consumer queries the graph, resolves a brief to the smallest covering

@@ -21,20 +21,22 @@ function summarise(c: typeof packs[0]) {
   title="市场"
   current="marketplace"
   lang="zh"
-  description="浏览 Skill Wiki 上的 Prime —— 横跨设计、后端、安全等领域，可插入任意 MCP 兼容 AI 代理。每个 Prime 是一个自洽的 @scope，包含规则、术语、方法与模式。"
+  description="Skill Wiki 市场 —— 一份份类型化原子的 Prime，覆盖设计、后端、安全等领域，可插入任意 MCP 兼容 AI 代理。每个 Prime 是一个自洽的 @scope，包含规则、术语、方法与模式。"
 >
   <section class="hero" style="padding: var(--s-7) var(--s-4) var(--s-6);">
     <div class="hero-inner" style="grid-template-columns: 1fr; gap: 0;">
       <div>
         <p class="hero-eyebrow">
-          <span class="pill">市场</span>
+          <span class="pill">Skill Wiki · 市场</span>
           {packs.length} 个 Prime · 共 {fmt.format(packs.reduce((s, c) => s + c.total, 0))} 个原子
         </p>
-        <h1>浏览 Prime。</h1>
+        <h1>Skill Wiki 市场。</h1>
         <p class="lede">
-          每个 Prime 是一个自洽的 <code>@scope</code> —— 一组类型化原子。
-          用 <code>prime install @name</code> 装上，或在这里浏览。协议 domain-blind，
-          知识活在 Prime 里 —— 设计、后端、安全都在同一套协议上。
+          这里每一条都是一个 Prime —— 一份自洽的 <code>@scope</code>，
+          一组类型化原子。相当于"如果 <code>SKILL.md</code> 的每一行都有
+          类型和边"会长成的样子。用 <code>prime install @name</code> 装上，
+          或在这里浏览。Skill Wiki 本身 domain-blind ——
+          设计、后端、安全都跑在同一份开放协议上。
         </p>
         <p class="lede" style="margin-bottom: 0;">
           想发布自己的？看 <a href="/zh/docs/usage/publish-install">发布与安装</a>。

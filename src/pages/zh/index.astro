@@ -47,27 +47,29 @@ const mcpConfigSnippet = `{
   title="Skill Wiki"
   current="home"
   lang="zh"
-  description="一套面向 AI 知识的开放协议：类型化原子、声明式边图、懒加载投影。Prime 已覆盖设计、后端、安全等多个领域，按需取用、只取所需。"
+  description="Skill Wiki —— AI 的 Wikipedia。把领域知识表达为类型化原子，按 ID 寻址、按需载入。设计、后端、安全等领域共用同一套开放协议 Prime。"
 >
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
       <div>
         <p class="hero-eyebrow">
-          <span class="pill">v0.1.0</span> Apache-2.0 · MCP 原生 · 开放协议
+          <span class="pill">v0.1.0</span> Apache-2.0 · MCP 原生 · 开放
         </p>
-        <h1>Prime —— 协议层。</h1>
+        <h1>AI 的 Wikipedia。</h1>
         <p class="lede">
           Skill Wiki 把每个 <code>SKILL.md</code> 拆成一份
-          <strong>类型化原子的 wiki</strong> —— 用 ID 寻址，带声明式边图，按需取用。
+          <strong>类型化原子的 wiki</strong> —— 用 ID 寻址，靠声明式边图串起来，按需载入。
           Agent 只看一份 ~3 KB 的索引；原子正文只在 brief 真需要时才进上下文。
         </p>
         <p class="lede" style="margin-bottom: 0;">
-          Prime 是协议；Skill Wiki 是市场。类型贯穿到底。
+          每个 <code>@scope</code> 是一个 Prime —— 一份自洽的语料，跑在
+          支撑 Skill Wiki 的开放协议
+          <a href="/zh/docs/spec/overview">Prime</a> 上。
         </p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-large" href="/zh/docs/usage/install">开始使用 →</a>
-          <a class="btn btn-large" href="/zh/marketplace">浏览市场</a>
+          <a class="btn btn-large" href="/zh/marketplace">浏览 wiki</a>
           <a class="btn btn-large" href="https://github.com/skill-wiki/prime-system" rel="noopener">GitHub ↗</a>
         </div>
       </div>
@@ -128,12 +130,13 @@ const mcpConfigSnippet = `{
   <!-- METRICS — 两组：协议本身 vs 市场部署 -->
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">协议表面 · v1.0 冻结</p>
+      <p class="section-eyebrow">规范表面 · v1.0 冻结</p>
       <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
-        规范定义的内容
+        wiki 的形状
       </h2>
       <p class="section-lede">
-        关于协议本身的四个数字 —— v1.0 已冻结。装多少 Prime 都不会变。
+        Prime 协议在 v1.0 冻结的四个数字 —— Skill Wiki 就建在这套协议上。
+        装多少 Prime 都不会变。
       </p>
       <div class="kpi">
         <div>
@@ -203,8 +206,8 @@ const mcpConfigSnippet = `{
         来自市场
       </h2>
       <p class="section-lede">
-        协议 domain-blind —— 知识活在 Prime 里。当前市场已覆盖设计、后端架构、
-        应用安全等领域，所有 Prime 共用同一套协议。
+        Skill Wiki 本身 domain-blind —— 知识活在 Prime 里。当前市场已覆盖设计、
+        后端架构、应用安全等领域，所有 Prime 共用同一份 Prime 协议。
       </p>
       <p class="section-lede" style="margin-bottom: 40px;">
         <code>@frontend-design</code> 是旗舰参考 Prime：

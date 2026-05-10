@@ -46,29 +46,31 @@ const mcpConfigSnippet = `{
 <Base
   title="Skill Wiki"
   current="home"
-  description="An open protocol for AI knowledge: typed atoms, declarative edge graph, lazy projection. Primes span design, backend, security, and more — retrieve only what you need at the moment you need it."
+  description="Skill Wiki — Wikipedia for AI agents. Domain knowledge as typed atoms with declared edges, retrieved on demand. Design, backend, security and more on one open protocol."
 >
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
       <div>
         <p class="hero-eyebrow">
-          <span class="pill">v0.1.0</span> Apache-2.0 · MCP-native · open protocol
+          <span class="pill">v0.1.0</span> Apache-2.0 · MCP-native · open
         </p>
-        <h1>The protocol for Primes.</h1>
+        <h1>Wikipedia for AI agents.</h1>
         <p class="lede">
-          Prime is the protocol; Skill Wiki is the marketplace. Each
-          <code>SKILL.md</code> blob becomes a <strong>wiki of typed
-          atoms</strong> — addressable by ID, with a declared edge graph,
-          retrieved on demand. Agents see a ~3 KB index of what exists; atom
-          bodies stream in only when the brief calls for them.
+          Skill Wiki turns each <code>SKILL.md</code> blob into a
+          <strong>wiki of typed atoms</strong> — addressable by ID, linked
+          by a declared edge graph, retrieved on demand. Agents see a ~3 KB
+          index of what exists; atom bodies stream in only when the brief
+          actually calls for them.
         </p>
         <p class="lede" style="margin-bottom: 0;">
-          Wikipedia for Primes. Typed all the way down.
+          Each <code>@scope</code> is a Prime — a self-contained corpus on
+          the open <a href="/docs/spec/overview">Prime protocol</a> that
+          powers Skill Wiki.
         </p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-large" href="/docs/usage/install">Get started →</a>
-          <a class="btn btn-large" href="/marketplace">Browse Primes</a>
+          <a class="btn btn-large" href="/marketplace">Browse the wiki</a>
           <a class="btn btn-large" href="https://github.com/skill-wiki/prime-system" rel="noopener">View on GitHub ↗</a>
         </div>
       </div>
@@ -130,13 +132,13 @@ const mcpConfigSnippet = `{
   <!-- METRICS — two strips: protocol surface vs marketplace deployment -->
   <section class="section">
     <div class="section-inner">
-      <p class="section-eyebrow">Protocol surface · v1.0 frozen</p>
+      <p class="section-eyebrow">Spec surface · v1.0 frozen</p>
       <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
-        What the spec defines
+        The shape of the wiki
       </h2>
       <p class="section-lede">
-        Four numbers about the protocol itself — fixed at v1.0. They don't change
-        when you add Primes.
+        Four numbers fixed at v1.0 of the Prime protocol — the spec the wiki is
+        built on. They don't change when you add more Primes.
       </p>
       <div class="kpi">
         <div>
@@ -204,13 +206,13 @@ const mcpConfigSnippet = `{
     <div class="section-inner">
       <p class="section-eyebrow">Flagship Prime</p>
       <h2 class="section-title" style="border: 0; padding: 0; margin-top: 0;">
-        From the Marketplace
+        From the marketplace
       </h2>
       <p class="section-lede">
-        The protocol is domain-blind — Primes are where actual knowledge lives.
-        Each Prime is a self-contained <code>@scope</code> of typed atoms — what
-        Anthropic's <code>SKILL.md</code> format would look like if every line
-        had a type. Today's marketplace already spans design, backend
+        Skill Wiki is domain-blind — actual knowledge lives in the Primes.
+        Each Prime is a self-contained <code>@scope</code> of typed atoms —
+        what Anthropic's <code>SKILL.md</code> format would look like if every
+        line had a type. Today's marketplace already spans design, backend
         architecture, and application security.
       </p>
       <p class="section-lede" style="margin-bottom: 40px;">

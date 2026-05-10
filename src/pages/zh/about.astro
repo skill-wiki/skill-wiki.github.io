@@ -4,12 +4,14 @@ import Base from '../../layouts/Base.astro';
 <Base title="关于" current="about" lang="zh">
   <article class="article">
     <p class="article-meta">关于 Skill Wiki</p>
-    <h1>AI 知识的协议层。</h1>
+    <h1>AI 的 Wikipedia。</h1>
 
     <p style="font-size: 18px; color: var(--fg-muted); line-height: 1.55; margin-bottom: 32px; letter-spacing: -0.005em;">
       Skill Wiki 把领域知识表达为<strong>有类型的原子 + 显式边图，按需载入</strong>。
       不是每轮都把 200 行的 markdown 塞进 agent —— 而是塞 3 KB 的"什么存在"索引，
-      具体内容由 agent 自己挑要不要读。
+      具体内容由 agent 自己挑要不要读。底层跑在开放协议
+      <a href="/zh/docs/spec/overview">Prime</a> 上 —— 市场里每个
+      <code>@scope</code> 就是一个 Prime。
     </p>
 
     <h2>面向谁</h2>
@@ -29,12 +31,13 @@ import Base from '../../layouts/Base.astro';
       </li>
     </ul>
 
-    <h2>协议形状</h2>
+    <h2>wiki 的形状</h2>
     <p>
       每个<strong>原子</strong>有一个 <strong>kind</strong>（28 种之一：fact、rule、
       pattern、method、persona、tradeoff…）、一个<strong>领域</strong>、
       由单一源文件编译产出的<strong>三级投影</strong>（~30 / ~150 / ~380 token）、
       以及一组到其他原子的<strong>类型化边</strong>（14 种动词之一）。
+      这就是底层 Prime 协议定义的内容。
     </p>
     <p>
       消费方查图、把 brief 解析到最小覆盖原子集、按预算选投影层，把这些喂给模型。
